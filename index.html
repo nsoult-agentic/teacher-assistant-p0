@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+<title>Teacher Assistant</title>
+<style>
+  :root {
+    --bg:#e9edf3; --surface:#ffffff; --surface-2:#f4f6f9; --text:#1a1f2b; --text-dim:#586074;
+    --border:#d7dce6; --border-strong:#c2cad8;
+    --accent:#2563d9; --accent-ink:#ffffff; --accent-soft:#e8f0ff;
+    --owes:#b56a00; --owes-bg:#fff4e0; --owes-line:#e7a63a;
+    --logged:#137a41; --logged-bg:#e6f5ec;
+    --nodata:#5f6675; --nodata-bg:#eceef2;
+    --mastery:#8a6300; --mastery-bg:#fbf1d4;
+    --pending:#6a35c9; --pending-bg:#efe7fb;
+    --danger:#b5271b;
+    --shadow:0 6px 24px rgba(24,33,52,.14);
+    --radius:16px;
+    /* student identity hues — fixed per student, deliberately NOT green/amber/red (those are status) */
+    --s-ab:#0f766e; --s-cd:#4338ca; --s-ef:#0369a1; --s-gh:#6d28d9; --s-jm:#a21caf; --s-rt:#0e7490;
+  }
+  :root[data-theme="dark"] {
+    --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+    --border:#2c3a52; --border-strong:#3a4a66;
+    --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+    --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+    --logged:#54d38c; --logged-bg:#123726;
+    --nodata:#9aa7bd; --nodata-bg:#232c3b;
+    --mastery:#f4d271; --mastery-bg:#3a3111;
+    --pending:#bda2f7; --pending-bg:#2a1f45;
+    --danger:#ff8072;
+    --shadow:0 6px 26px rgba(0,0,0,.45);
+    --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+      --border:#2c3a52; --border-strong:#3a4a66;
+      --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+      --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+      --logged:#54d38c; --logged-bg:#123726;
+      --nodata:#9aa7bd; --nodata-bg:#232c3b;
+      --mastery:#f4d271; --mastery-bg:#3a3111;
+      --pending:#bda2f7; --pending-bg:#2a1f45;
+      --danger:#ff8072;
+      --shadow:0 6px 26px rgba(0,0,0,.45);
+      --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+    }
+  }
+
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.4; padding:1.2rem 0.6rem 2rem;
+    display:flex; justify-content:center; align-items:flex-start;
+  }
+
+  .phone {
+    width:100%; max-width:26rem; background:var(--bg);
+    border:1px solid var(--border-strong); border-radius:30px; overflow:hidden;
+    box-shadow:var(--shadow); position:relative;
+    height:52rem; max-height:90vh; display:flex; flex-direction:column;
+  }
+
+  /* frame chrome */
+  .statusbar {
+    display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    background:var(--surface); border-bottom:1px solid var(--border); font-size:.8rem;
+  }
+  .statusbar .grow { flex:1; }
+  .offline {
+    display:inline-flex; align-items:center; gap:.35rem; font-weight:600; color:var(--owes);
+    background:var(--owes-bg); padding:.2rem .5rem; border-radius:999px; font-size:.72rem;
+  }
+  .iconbtn {
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+    border-radius:10px; padding:.3rem .5rem; font-size:.85rem; cursor:pointer;
+  }
+  .roleseg { display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .roleseg button { border:0; background:var(--surface-2); color:var(--text-dim); padding:.3rem .55rem; font-size:.72rem; cursor:pointer; font-weight:600; }
+  .roleseg button.on { background:var(--accent); color:var(--accent-ink); }
+
+  .screen { flex:1; overflow-y:auto; overflow-x:hidden; padding:.9rem .9rem 1rem; }
+  .screen::-webkit-scrollbar { width:0; }
+
+  /* bottom nav */
+  .tabbar { display:flex; background:var(--surface); border-top:1px solid var(--border); }
+  .tabbar button {
+    flex:1; border:0; background:transparent; color:var(--text-dim); padding:.6rem 0 .7rem;
+    font-size:.72rem; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:.15rem;
+  }
+  .tabbar button .ic { font-size:1.15rem; line-height:1; }
+  .tabbar button.on { color:var(--accent); }
+
+  h1 { font-size:1.15rem; margin:.1rem 0 .1rem; }
+  h2 { font-size:1rem; margin:1rem 0 .5rem; }
+  .sub { color:var(--text-dim); font-size:.82rem; margin:.1rem 0 .7rem; }
+  .backrow { display:flex; align-items:center; gap:.4rem; margin-bottom:.3rem; }
+  .back { border:0; background:transparent; color:var(--accent); font-weight:700; font-size:.9rem; cursor:pointer; padding:.2rem 0; }
+
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; margin-bottom:.7rem; }
+  .card.tight { padding:.6rem .7rem; }
+
+  /* three-state header */
+  .headline { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.9rem; margin-bottom:.8rem; }
+  .weeknav { display:flex; align-items:center; justify-content:space-between; margin-bottom:.5rem; }
+  .weeknav .wk { font-weight:700; font-size:.95rem; }
+  .weeknav button { border:0; background:transparent; color:var(--accent); font-size:1.1rem; cursor:pointer; padding:.1rem .4rem; }
+  .three { display:flex; gap:.4rem; margin:.3rem 0 .55rem; flex-wrap:wrap; }
+  .stat { flex:1; min-width:5rem; border-radius:12px; padding:.5rem .55rem; text-align:center; }
+  .stat b { display:block; font-size:1.35rem; line-height:1.1; }
+  .stat span { font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; font-weight:700; opacity:.9; }
+  .stat.scored { background:var(--logged-bg); color:var(--logged); }
+  .stat.excused { background:var(--nodata-bg); color:var(--nodata); }
+  .stat.owe { background:var(--owes-bg); color:var(--owes); }
+  .pendnote { font-size:.76rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.3rem .5rem; margin-top:.1rem; display:inline-block; }
+
+  .grouplabel { display:flex; align-items:center; gap:.4rem; margin:.7rem .1rem .35rem; }
+  .grouplabel .ln { flex:1; height:1px; background:var(--border); }
+  .grouplabel span { font-size:.72rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+  .grouplabel.owes span { color:var(--owes); }
+
+  /* goal row */
+  .row {
+    display:flex; align-items:center; gap:.6rem; width:100%; text-align:left;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:.7rem .75rem; margin-bottom:.5rem; cursor:pointer; color:var(--text);
+  }
+  .row:active { transform:scale(.995); }
+  .row.owes { border-color:var(--owes-line); background:var(--owes-bg); }
+  .chip { font-size:1.35rem; width:1.6rem; text-align:center; flex:none; }
+  .chip.owes{color:var(--owes);} .chip.logged{color:var(--logged);} .chip.nodata{color:var(--nodata);}
+  .chip.mastery{color:var(--mastery);} .chip.pending{color:var(--pending);}
+  .rowmain { flex:1; min-width:0; }
+  .rowtitle { display:block; font-weight:700; font-size:.95rem; }
+  .rowmeta { display:block; font-size:.78rem; color:var(--text-dim); margin-top:.1rem; }
+  .rowright { text-align:right; flex:none; }
+  .rowval { font-weight:800; font-size:1rem; }
+  .rowval.dim { color:var(--text-dim); font-weight:600; font-size:.8rem; }
+  .sync { font-size:.66rem; color:var(--accent); font-weight:700; display:inline-flex; align-items:center; gap:.2rem; }
+  .goalname { color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+
+  /* student avatar — solid color monogram, fixed identity per student (LOCKED 2026-08-30) */
+  .av { flex:none; display:inline-flex; align-items:center; justify-content:center; font-weight:800; letter-spacing:.01em; font-size:.82rem; }
+  .av.circle { width:2.3rem; height:2.3rem; border-radius:50%; color:#fff; }
+  .av.sm { width:1.5rem; height:1.5rem; font-size:.62rem; border-radius:50%; color:#fff; vertical-align:middle; }
+  .av.ab{background:var(--s-ab);} .av.cd{background:var(--s-cd);} .av.ef{background:var(--s-ef);}
+  .av.gh{background:var(--s-gh);} .av.jm{background:var(--s-jm);} .av.rt{background:var(--s-rt);}
+  .period { display:inline-block; font-size:.64rem; font-weight:800; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.03rem .3rem; margin-left:.35rem; vertical-align:middle; }
+
+  /* by-student grouping card */
+  .scard { border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:.6rem; background:var(--surface); }
+  .shead { display:flex; align-items:center; gap:.6rem; padding:.55rem .7rem; background:var(--surface-2); }
+  .shead .name { font-weight:800; font-size:.92rem; }
+  .sgoal { display:flex; align-items:center; gap:.55rem; width:100%; text-align:left; font-family:inherit;
+    font-size:.86rem; color:var(--text); background:transparent; border:0; border-top:1px solid var(--border); padding:.55rem .7rem; cursor:pointer; }
+  .sgoal:active { background:var(--surface-2); }
+  .sgoal .g { flex:1; min-width:0; font-weight:600; }
+  .sgoal .chip { font-size:1.1rem; width:1.3rem; }
+  .rail { width:.28rem; border-radius:2px; align-self:stretch; flex:none; }
+  .rail.ab{background:var(--s-ab);} .rail.cd{background:var(--s-cd);} .rail.ef{background:var(--s-ef);}
+  .rail.gh{background:var(--s-gh);} .rail.jm{background:var(--s-jm);} .rail.rt{background:var(--s-rt);}
+
+  /* validate variant */
+  .validate { border-color:var(--pending); background:var(--pending-bg); }
+  .valbtns { display:flex; gap:.4rem; margin-top:.55rem; }
+  .valbtns button { flex:1; }
+
+  /* buttons */
+  .btnrow { display:flex; gap:.6rem; margin-top:.4rem; }
+  button.btn {
+    border:0; border-radius:13px; padding:.85rem 1rem; font-size:.95rem; font-weight:800; cursor:pointer;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border);
+  }
+  button.btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  button.btn.wide { flex:1; }
+  button.btn.small { padding:.55rem .7rem; font-size:.82rem; border-radius:10px; }
+  button.btn.ghost { background:transparent; }
+  button.btn.danger { color:var(--danger); border-color:var(--danger); }
+  button.btn:disabled { opacity:.5; cursor:default; }
+
+  /* bottom sheet */
+  .scrim { position:absolute; inset:0; background:rgba(10,15,25,.45); display:none; z-index:20; }
+  .scrim.open { display:block; }
+  .sheet {
+    position:absolute; left:0; right:0; bottom:0; z-index:21;
+    background:var(--surface); border-top-left-radius:22px; border-top-right-radius:22px;
+    padding:.6rem 1rem 1.3rem; transform:translateY(102%); transition:transform .22s ease;
+    max-height:90%; overflow-y:auto; box-shadow:0 -8px 30px rgba(0,0,0,.25);
+  }
+  .sheet.open { transform:translateY(0); }
+  .grip { width:2.6rem; height:.3rem; border-radius:999px; background:var(--border-strong); margin:.2rem auto .7rem; }
+
+  .whowhat { font-weight:800; font-size:1.05rem; }
+  .ctx { color:var(--text-dim); font-size:.82rem; margin:.1rem 0 .2rem; }
+  .locked { font-size:.68rem; color:var(--nodata); background:var(--nodata-bg); border-radius:6px; padding:.05rem .35rem; margin-left:.3rem; }
+
+  .scorewrap { text-align:center; margin:1rem 0 .4rem; }
+  .scoreline { display:flex; align-items:center; justify-content:center; gap:.6rem; }
+  .stepbtn {
+    width:3.4rem; height:3.4rem; border-radius:16px; border:1px solid var(--border-strong);
+    background:var(--surface-2); color:var(--text); font-size:1.9rem; font-weight:700; cursor:pointer;
+  }
+  .stepbtn:active { background:var(--accent-soft); }
+  .numin {
+    width:4.2rem; height:3.4rem; text-align:center; font-size:2rem; font-weight:800;
+    border:1px solid var(--border-strong); border-radius:14px; background:var(--surface); color:var(--text);
+  }
+  .ofwrap { display:flex; align-items:center; justify-content:center; gap:.4rem; margin-top:.6rem; color:var(--text-dim); font-size:.9rem; }
+  .ofin { width:3.2rem; height:2.3rem; text-align:center; font-size:1.1rem; font-weight:800; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); }
+  .pct { font-size:2.6rem; font-weight:900; margin:.5rem 0 .2rem; }
+  .pct small { font-size:1rem; color:var(--text-dim); font-weight:700; }
+
+  .more { margin-top:.7rem; border-top:1px solid var(--border); padding-top:.6rem; }
+  .moretoggle { background:transparent; border:0; color:var(--accent); font-weight:700; cursor:pointer; padding:.2rem 0; font-size:.86rem; }
+  .morebody { display:none; margin-top:.5rem; }
+  .morebody.open { display:block; }
+  .field { display:flex; align-items:center; justify-content:space-between; padding:.5rem 0; border-bottom:1px dashed var(--border); font-size:.86rem; }
+  .field:last-child { border-bottom:0; }
+  .field .lab { color:var(--text-dim); }
+  .field .val { font-weight:700; }
+
+  /* reason chips */
+  .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin:.6rem 0; }
+  .rchip {
+    border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.55rem .9rem; font-size:.9rem; font-weight:700; cursor:pointer;
+  }
+  .rchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .req { color:var(--danger); font-size:.8rem; font-weight:700; }
+
+  /* tooltip / why */
+  .tip { position:relative; display:inline-flex; }
+  .tipbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); border-radius:999px; width:1.3rem; height:1.3rem; font-size:.75rem; font-weight:800; cursor:pointer; line-height:1; }
+  .tipbody { display:none; margin-top:.4rem; background:var(--accent-soft); border:1px solid var(--accent); color:var(--text); border-radius:10px; padding:.5rem .6rem; font-size:.78rem; }
+  .tipbody.open { display:block; }
+
+  /* trend chart */
+  .chartwrap { width:100%; overflow-x:auto; }
+  svg { display:block; }
+  .window { display:flex; align-items:center; gap:.35rem; font-size:1.4rem; margin:.2rem 0; }
+  .window .wl { font-size:.85rem; color:var(--text-dim); font-weight:700; margin-left:.3rem; }
+  .win-yes { color:var(--logged); } .win-no { color:var(--owes); }
+  .notyet { font-size:.8rem; color:var(--owes); font-weight:700; }
+  .metbox { background:var(--mastery-bg); border:1px solid var(--mastery); border-radius:12px; padding:.7rem; margin:.6rem 0; }
+  .metbox .star { font-size:1.2rem; }
+
+  /* tables */
+  .tablewrap { width:100%; overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+  table { border-collapse:collapse; width:100%; min-width:34rem; font-size:.76rem; }
+  th, td { text-align:left; padding:.45rem .55rem; border-bottom:1px solid var(--border); white-space:nowrap; }
+  th { background:var(--surface-2); color:var(--text-dim); font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; position:sticky; top:0; }
+  tr:last-child td { border-bottom:0; }
+
+  /* planner */
+  .segbox { display:flex; align-items:flex-start; gap:.5rem; }
+  .toggle2 { display:inline-flex; border:1.5px solid var(--border-strong); border-radius:11px; overflow:hidden; }
+  .toggle2 button { border:0; background:var(--surface-2); color:var(--text-dim); font-weight:800; font-size:1rem; padding:.4rem .9rem; cursor:pointer; }
+  .toggle2 button.on { background:var(--accent); color:var(--accent-ink); }
+  .daysrow { display:flex; gap:.35rem; margin:.3rem 0 .2rem; }
+  .day {
+    flex:1; border:1.5px solid var(--border); border-radius:12px; padding:.5rem .2rem; text-align:center; cursor:pointer; background:var(--surface);
+  }
+  .day .dn { font-size:.72rem; font-weight:800; color:var(--text-dim); }
+  .day .dt { font-size:1.25rem; margin:.15rem 0; }
+  .day .dl { font-size:.62rem; color:var(--text-dim); }
+  .day.core { border-color:var(--accent); }
+  .day.iep { border-color:var(--pending); }
+  .day.off { opacity:.55; border-style:dashed; cursor:default; }
+  .day.test { border-color:var(--owes-line); }
+
+  .braid { background:var(--surface-2); border:1px dashed var(--border-strong); border-radius:12px; padding:.6rem; margin:.5rem 0; }
+  .braid .bl { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); margin-bottom:.35rem; }
+  .braidflow { display:flex; align-items:center; gap:.3rem; flex-wrap:wrap; font-size:.8rem; }
+  .bnode { border-radius:8px; padding:.28rem .5rem; font-weight:700; }
+  .bnode.unit { background:var(--accent-soft); color:var(--accent); }
+  .bnode.std { background:var(--logged-bg); color:var(--logged); }
+  .bnode.myp { background:var(--nodata-bg); color:var(--nodata); border:1px dashed var(--border-strong); font-style:italic; }
+  .bnode.goals { background:var(--pending-bg); color:var(--pending); }
+  .barrow { color:var(--text-dim); font-weight:800; }
+  .objective { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--logged); border-radius:10px; padding:.55rem .65rem; margin:.5rem 0; font-size:.85rem; }
+  .objective b { color:var(--logged); }
+
+  .checkitem { display:flex; align-items:flex-start; gap:.55rem; padding:.55rem 0; border-bottom:1px solid var(--border); }
+  .checkitem:last-child { border-bottom:0; }
+  .cmark { font-size:1.25rem; flex:none; }
+  .cmark.ok { color:var(--logged); } .cmark.bad { color:var(--danger); } .cmark.warn { color:var(--owes); }
+  .cbody { flex:1; }
+  .clabel { font-weight:700; font-size:.9rem; }
+  .cdetail { font-size:.82rem; color:var(--text-dim); margin-top:.15rem; }
+  .glink { color:var(--accent); font-weight:800; cursor:pointer; text-decoration:underline; }
+
+  .ambient { display:flex; gap:.5rem; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.5rem .6rem; margin-bottom:.7rem; align-items:center; }
+  .amb { flex:1; text-align:center; font-size:.72rem; font-weight:700; color:var(--text-dim); }
+  .amb b { display:block; font-size:1.05rem; }
+  .amb.ok b { color:var(--logged); } .amb.warn b { color:var(--owes); }
+
+  .banner { border-radius:12px; padding:.6rem .7rem; margin:.5rem 0; font-size:.85rem; }
+  .banner.warn { background:var(--owes-bg); color:var(--owes); border:1px solid var(--owes-line); }
+  .banner.info { background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); }
+  .banner.ok { background:var(--logged-bg); color:var(--logged); }
+
+  .attach { display:flex; align-items:center; gap:.55rem; padding:.55rem 0; border-bottom:1px dashed var(--border); }
+  .attach:last-child { border-bottom:0; }
+  .cb { width:1.5rem; height:1.5rem; border:2px solid var(--border-strong); border-radius:6px; flex:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:900; color:var(--accent-ink); background:var(--surface); }
+  .cb.on { background:var(--accent); border-color:var(--accent); }
+  .accom { display:inline-block; font-size:.7rem; background:var(--mastery-bg); color:var(--mastery); border-radius:6px; padding:.1rem .4rem; margin-top:.2rem; font-weight:700; }
+  .hook { font-size:.75rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.35rem .5rem; margin-top:.45rem; }
+  .greyhook { font-size:.8rem; color:var(--nodata); background:var(--nodata-bg); border:1px dashed var(--border-strong); border-radius:8px; padding:.5rem; margin-top:.5rem; }
+
+  .toast { position:absolute; left:50%; bottom:5rem; transform:translateX(-50%) translateY(1rem); z-index:30;
+    background:var(--text); color:var(--bg); padding:.6rem .9rem; border-radius:10px; font-size:.85rem; font-weight:700;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; max-width:88%; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .note { font-size:.78rem; color:var(--text-dim); margin-top:.3rem; }
+</style>
+
+<div class="phone" id="phone">
+  <div class="statusbar">
+    <span class="offline" id="offlineBadge">&#9925; offline &middot; syncs later</span>
+    <span class="grow"></span>
+    <div class="roleseg" id="roleSeg">
+      <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
+      <button data-role="para" onclick="setRole('para')">Para (JT)</button>
+    </div>
+    <button class="iconbtn" onclick="toggleTheme()" id="themeBtn">&#9789;</button>
+  </div>
+
+  <div class="screen" id="screen"></div>
+
+  <div class="tabbar" id="tabbar">
+    <button data-tab="track" class="on" onclick="go('dashboard')"><span class="ic">&#9679;</span>Track</button>
+    <button data-tab="plan" onclick="go('planWeek')"><span class="ic">&#9776;</span>Plan</button>
+  </div>
+
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ---------------- state ---------------- */
+var S = {
+  role: 'teacher',
+  screen: 'dashboard',
+  group: 'owes',          // 'owes' | 'period' | 'student'
+  coreDays: 3,            // planner default (Niah-adjustable)
+  reconcileOpen: false,
+  goals: [
+    {id:'g1', ini:'AB', period:'P2', name:'Two-step equations', crit:'80% × 4 probes', level:80, n:4,
+     denom:5, probe:'2-step, 5 items', status:'owes', val:null, reason:null, scorer:null, pending:null, freq:'weekly', paraSupported:true},
+    {id:'g2', ini:'CD', period:'P2', name:'Multiply fractions', crit:'80% × 4 probes', level:80, n:4,
+     denom:8, probe:'fractions, 8 items', status:'owes', val:null, reason:null, scorer:null, pending:null, freq:'weekly', paraSupported:true},
+    {id:'g3', ini:'GH', period:'P4', name:'Add integers', crit:'70% × 3 probes', level:70, n:3,
+     denom:3, probe:'integers, 3 items', status:'owes', val:null, reason:null, scorer:null, pending:null, freq:'weekly', paraSupported:false},
+    {id:'g4', ini:'AB', period:'P2', name:'Add integers', crit:'80% × 4 probes', level:80, n:4,
+     denom:5, probe:'integers, 5 items', status:'logged', val:88, reason:null, scorer:'NS', pending:false, freq:'weekly', paraSupported:false},
+    {id:'g5', ini:'EF', period:'P2', name:'Scientific notation', crit:'70% × 4 probes', level:70, n:4,
+     denom:5, probe:'sci-notation, 5 items', status:'logged', val:60, reason:null, scorer:'NS', pending:false, freq:'2×/month', paraSupported:false},
+    {id:'g6', ini:'CD', period:'P2', name:'Number line', crit:'80% × 4 probes', level:80, n:4,
+     denom:5, probe:'number-line, 5 items', status:'nodata', val:null, reason:'Absent', scorer:'NS', pending:false, freq:'weekly', paraSupported:false},
+    {id:'g7', ini:'EF', period:'P4', name:'Rounding', crit:'80% × 4 probes', level:80, n:4,
+     denom:5, probe:'rounding, 5 items', status:'mastery', val:84, reason:null, scorer:'NS', pending:false, freq:'weekly', paraSupported:false, acked:false}
+  ],
+  // to-score queue: collected, admin-date set, numerator not yet entered
+  toScore: [
+    {id:'g1', ini:'AB', period:'P2', name:'Two-step equations', denom:5, collected:'Mar 4', filled:null},
+    {id:'g2', ini:'CD', period:'P2', name:'Multiply fractions', denom:8, collected:'Mar 4', filled:null}
+  ],
+  detailGoal:'g1',
+  dayEdit:0,
+  // planner day types recomputed from coreDays; 0=Mon..4=Fri
+  days:['core','core','core','iep','iep'],
+  weekMode:'normal'       // 'normal' | 'testing'
+};
+
+/* history for goal detail (ARC-auditable). admin date drives everything. */
+var HISTORY = {
+  g1:[
+    {admin:'Mar 4', entry:'Mar 4 pm', ct:'4/5', pct:80, probe:'2-step', setting:'Resource', scorer:'NS', valid:'—'},
+    {admin:'Feb 26', entry:'Feb 26 pm', ct:'4/5', pct:80, probe:'2-step', setting:'Home', scorer:'NS', valid:'—'},
+    {admin:'Feb 19', entry:'Feb 20', ct:'—', pct:null, probe:'—', setting:'—', scorer:'NS', valid:'—', nodata:'Absent'},
+    {admin:'Feb 12', entry:'Feb 12', ct:'4/5', pct:82, probe:'2-step', setting:'Resource', scorer:'JT (para)', valid:'NS 2/12'},
+    {admin:'Feb 5', entry:'Feb 5', ct:'3/5', pct:70, probe:'2-step', setting:'Resource', scorer:'NS', valid:'—'},
+    {admin:'Jan 29', entry:'Jan 29', ct:'1/5', pct:20, probe:'2-step', setting:'Resource', scorer:'NS', valid:'—', base:true}
+  ],
+  g7:[
+    {admin:'Mar 4', entry:'Mar 4', ct:'5/5', pct:100, probe:'rounding', setting:'Resource', scorer:'NS', valid:'—'},
+    {admin:'Feb 26', entry:'Feb 26', ct:'4/5', pct:80, probe:'rounding', setting:'Resource', scorer:'NS', valid:'—'},
+    {admin:'Feb 19', entry:'Feb 19', ct:'5/5', pct:100, probe:'rounding', setting:'Home', scorer:'NS', valid:'—'},
+    {admin:'Feb 12', entry:'Feb 12', ct:'4/5', pct:84, probe:'rounding', setting:'Resource', scorer:'NS', valid:'—'}
+  ]
+};
+/* trend points (admin-date order); nodata = gap, never a plotted 0 */
+var TREND = {
+  g1:[ {wk:1,v:20,base:true},{wk:2,v:70},{wk:3,v:82},{wk:4,nodata:true},{wk:5,v:82},{wk:6,v:88},{wk:7,v:76} ],
+  g7:[ {wk:1,v:60,base:true},{wk:2,v:78},{wk:3,v:84},{wk:4,v:100},{wk:5,v:80},{wk:6,v:100},{wk:7,v:84} ]
+};
+
+/* ---------------- helpers ---------------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pct(c,d){ return d>0 ? Math.round((c/d)*100) : 0; }
+function glyph(st){ return {owes:'○',logged:'●',nodata:'⊘',mastery:'★',pending:'⏳'}[st]; }
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},1900); }
+
+/* student identity: fixed color per student, reused on EVERY screen (LOCKED 2026-08-30).
+   Deterministic map keyed by initials; falls back to a stable hash for unknown initials.
+   Palette avoids green/amber/red (status hues). Initials stay the primary identifier. */
+var STUDENT_HUES=['ab','cd','ef','gh','jm','rt'];
+var STUDENT_HUE={ AB:'ab', CD:'cd', EF:'ef', GH:'gh', JM:'jm', RT:'rt' };
+function hueClass(ini){
+  var i=(''+ini).toUpperCase();
+  if(STUDENT_HUE[i]) return STUDENT_HUE[i];
+  var s=0; for(var k=0;k<i.length;k++) s=(s*31+i.charCodeAt(k))>>>0;
+  return STUDENT_HUES[s%STUDENT_HUES.length];
+}
+function avatar(ini){ var i=(''+ini).toUpperCase(); return '<span class="av circle '+hueClass(i)+'" role="img" aria-label="student '+esc(i)+'">'+esc(i)+'</span>'; }
+function avatarSm(ini){ var i=(''+ini).toUpperCase(); return '<span class="av circle sm '+hueClass(i)+'" role="img" aria-label="student '+esc(i)+'">'+esc(i)+'</span>'; }
+
+function tip(id, text){
+  return '<span class="tip"><button class="tipbtn" onclick="toggleTip(\''+id+'\')" aria-label="why">?</button></span>'+
+         '<div class="tipbody" id="'+id+'">'+text+'</div>';
+}
+function toggleTip(id){ var e=$(id); if(e) e.classList.toggle('open'); }
+
+function toggleTheme(){
+  var root=document.documentElement;
+  var cur=root.getAttribute('data-theme');
+  var isDark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  root.setAttribute('data-theme', isDark ? 'light':'dark');
+  $('themeBtn').innerHTML = isDark ? '☀' : '☽';
+}
+
+function setRole(r){
+  S.role=r;
+  document.querySelectorAll('#roleSeg button').forEach(function(b){ b.classList.toggle('on', b.dataset.role===r); });
+  $('tabbar').style.display = r==='para' ? 'none' : 'flex';
+  go(r==='para' ? 'para' : 'dashboard');
+}
+
+function go(sc){
+  S.screen=sc; closeSheet();
+  document.querySelectorAll('#tabbar button').forEach(function(b){
+    var track=['dashboard','toscore','goalDetail','para'];
+    b.classList.toggle('on', (b.dataset.tab==='track') ? track.indexOf(sc)>=0 : ['planWeek','dayEditor','reconcile'].indexOf(sc)>=0);
+  });
+  render(); $('screen').scrollTop=0;
+}
+
+/* ---------------- render router ---------------- */
+function render(){
+  var el=$('screen');
+  var m={ dashboard:renderDashboard, toscore:renderToScore, goalDetail:renderGoalDetail,
+          para:renderPara, planWeek:renderPlanWeek, dayEditor:renderDayEditor, reconcile:renderReconcile };
+  el.innerHTML = (m[S.screen]||renderDashboard)();
+}
+
+/* ---- [A] Weekly Dashboard ---- */
+function activeGoals(){ return S.goals; }
+function renderDashboard(){
+  var g=activeGoals();
+  var excused=g.filter(x=>x.status==='nodata').length;
+  var scored=g.filter(x=>x.status==='logged'||x.status==='mastery').length;
+  var pend=g.filter(x=>x.status==='pending').length;
+  var collectable=g.length-excused;
+  var owe=collectable-scored-pend;
+
+  var h='';
+  h+='<div class="headline">';
+  h+= '<div class="weeknav"><button onclick="toast(\'prototype: single week\')">‹</button>'+
+      '<span class="wk">Week of Mar 3–7</span>'+
+      '<button onclick="toast(\'prototype: single week\')">›</button></div>';
+  h+= '<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem"><b style="font-size:.82rem">Monitoring this week</b>'+
+      tip('tipHeader','Three states, not pass/fail. A documented “no data” is excused — it clears the week honestly and is never counted as a zero.')+'</div>';
+  h+= '<div class="three">'+
+      '<div class="stat scored"><b>'+scored+'</b><span>scored</span></div>'+
+      '<div class="stat excused"><b>'+excused+'</b><span>excused</span></div>'+
+      '<div class="stat owe"><b>'+owe+'</b><span>owe</span></div>'+
+      '</div>';
+  h+= '<div style="font-size:.82rem;color:var(--text-dim)">'+scored+' of '+collectable+' collectable scored'+
+      (excused? ' · '+excused+' excused':'')+(owe? ' · '+owe+' owe':'')+'</div>';
+  if(pend) h+='<div class="pendnote">⏳ '+pend+' para point'+(pend>1?'s':'')+' awaiting your OK</div>';
+  h+='</div>';
+
+  // grouping toggle (O4) — owes-first → by period → by student
+  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:.2rem">'+
+     '<button class="btn small ghost" onclick="toggleGroup()">Group: '+(S.group==='owes'?'owes-first':S.group==='period'?'by period':'by student')+'</button></div>';
+
+  if(S.group==='owes'){
+    h+=renderGroupLabel('Owes a point','owes');
+    g.filter(x=>x.status==='owes').forEach(function(x){ h+=goalRow(x); });
+    h+=renderGroupLabel('Needs your OK','pend');
+    var pl=g.filter(x=>x.status==='pending'); if(!pl.length) h+='<div class="note" style="margin:0 .2rem .5rem">None right now.</div>';
+    pl.forEach(function(x){ h+=validateRow(x); });
+    h+=renderGroupLabel('Done this week','done');
+    g.filter(x=>['logged','nodata','mastery'].indexOf(x.status)>=0).forEach(function(x){ h+=goalRow(x); });
+  } else if(S.group==='period'){
+    ['P2','P4'].forEach(function(p){
+      h+=renderGroupLabel('Period '+p,'done');
+      g.filter(x=>x.period===p).forEach(function(x){ x.status==='pending'? h+=validateRow(x) : h+=goalRow(x); });
+    });
+  } else {
+    h+=renderByStudent(g);
+  }
+
+  h+='<div class="btnrow" style="margin-top:.9rem">'+
+     '<button class="btn primary wide" onclick="openScore(null)">&#43; Score a probe</button>'+
+     '<button class="btn wide" onclick="go(\'toscore\')">To-score ('+S.toScore.length+')</button>'+
+     '</div>';
+  return h;
+}
+function renderGroupLabel(txt, kind){
+  return '<div class="grouplabel '+(kind==='owes'?'owes':'')+'"><span>'+esc(txt)+'</span><span class="ln"></span></div>';
+}
+function toggleGroup(){ S.group = S.group==='owes'?'period':(S.group==='period'?'student':'owes'); render(); }
+
+/* by-student lens (O4 third option). Each student = a card headed by their avatar + period(s),
+   their goals nested under with a matching color rail. Status color still wins per row. */
+function renderByStudent(g){
+  var seen=[];
+  g.forEach(function(x){ if(seen.indexOf(x.ini)<0) seen.push(x.ini); });
+  // owes-first ordering of students, so anyone owing a point floats up
+  seen.sort(function(a,b){
+    var ao=g.some(x=>x.ini===a&&x.status==='owes')?0:1;
+    var bo=g.some(x=>x.ini===b&&x.status==='owes')?0:1;
+    return ao-bo;
+  });
+  var h='';
+  seen.forEach(function(ini){
+    var goals=g.filter(x=>x.ini===ini);
+    var periods=goals.map(x=>x.period).filter(function(v,i,a){return a.indexOf(v)===i;});
+    var hue=hueClass(ini);
+    var owes=goals.filter(x=>x.status==='owes').length;
+    h+='<div class="scard">';
+    h+='<div class="shead">'+avatar(ini)+'<span class="name">'+esc(ini)+'</span>'+
+       '<span class="period">'+esc(periods.join(' / '))+'</span>'+
+       (owes? '<span style="margin-left:auto;color:var(--owes);font-weight:800;font-size:.76rem">'+owes+' owe</span>'
+            : '<span style="margin-left:auto;color:var(--logged);font-weight:800;font-size:.76rem">✓ done</span>')+
+       '</div>';
+    goals.forEach(function(x){
+      var onclick = x.status==='mastery' ? "openDetail('"+x.id+"')" : "openScore('"+x.id+"')";
+      var right;
+      if(x.status==='owes') right='<span style="color:var(--owes);font-weight:800">owes</span>';
+      else if(x.status==='nodata') right='<span style="color:var(--nodata)">⊘ '+esc(x.reason)+'</span>';
+      else if(x.status==='pending') right='<span style="color:var(--pending);font-weight:700">⏳ OK?</span>';
+      else if(x.status==='mastery') right='<span style="color:var(--mastery);font-weight:800">'+x.val+'% ★</span>';
+      else right='<b>'+x.val+'%</b>';
+      h+='<button class="sgoal" onclick="'+onclick+'">'+
+         '<span class="rail '+hue+'"></span>'+
+         '<span class="chip '+x.status+'">'+glyph(x.status)+'</span>'+
+         '<span class="g">'+esc(x.name)+'</span>'+right+'</button>';
+    });
+    h+='</div>';
+  });
+  return h;
+}
+
+function goalRow(x){
+  var right='';
+  if(x.status==='logged'||x.status==='mastery'){
+    right='<div class="rowval">'+x.val+'%</div>'+(x.pending?'<div class="sync">⟳ pending sync</div>':'');
+  } else if(x.status==='owes'){
+    right='<div class="rowval dim">'+x.crit+'</div>';
+  } else if(x.status==='nodata'){
+    right='<div class="rowval dim">no data</div>';
+  }
+  var meta = x.period+' · '+(x.freq!=='weekly'?('<span style="color:var(--pending)">'+x.freq+'</span> · '):'') +
+    (x.status==='nodata'?('<span style="color:var(--nodata)">reason: '+esc(x.reason)+'</span>'):esc(x.probe.split(',')[0]));
+  var extra = x.status==='mastery' ? '<div class="rowmeta" style="color:var(--mastery);font-weight:700">criterion window met — review</div>':'';
+  var onclick = x.status==='mastery' ? "openDetail('"+x.id+"')" : "openScore('"+x.id+"')";
+  return '<button class="row '+(x.status==='owes'?'owes':'')+'" onclick="'+onclick+'">'+
+    '<span class="chip '+x.status+'">'+glyph(x.status)+'</span>'+
+    avatar(x.ini)+
+    '<span class="rowmain"><span class="rowtitle">'+esc(x.name)+'</span>'+
+      '<span class="rowmeta">'+meta+'</span>'+extra+'</span>'+
+    '<span class="rowright">'+right+'</span></button>';
+}
+function validateRow(x){
+  var p=x.pending;
+  return '<div class="row validate">'+
+    '<span class="chip pending">⏳</span>'+
+    avatar(x.ini)+
+    '<div class="rowmain"><div class="rowtitle">'+esc(x.name)+'</div>'+
+      '<div class="rowmeta">'+x.period+' · '+p.correct+'/'+p.denom+' = '+pct(p.correct,p.denom)+'% · entered by JT</div>'+
+      '<div class="valbtns">'+
+        '<button class="btn small primary" onclick="confirmPara(\''+x.id+'\')">Confirm</button>'+
+        '<button class="btn small" onclick="openScore(\''+x.id+'\')">Fix</button>'+
+      '</div>'+
+    '</div></div>';
+}
+function confirmPara(id){
+  var x=S.goals.find(g=>g.id===id); if(!x||!x.pending) return;
+  var p=x.pending;
+  x.status='logged'; x.val=pct(p.correct,p.denom); x.pending=false; x.scorer='JT (para)'; x.validated='NS';
+  HISTORY[id]=HISTORY[id]||[];
+  HISTORY[id].unshift({admin:p.date, entry:p.date, ct:p.correct+'/'+p.denom, pct:x.val, probe:x.probe.split(',')[0], setting:'Resource', scorer:'JT (para)', valid:'NS today'});
+  toast('Para point confirmed · now counts');
+  render();
+}
+
+/* ---- [B] Quick-Score bottom sheet ---- */
+function openScore(id){
+  if(!id){
+    // pick a goal to score: default first owing
+    var owe=S.goals.find(x=>x.status==='owes'); id = owe?owe.id:S.goals[0].id;
+  }
+  var x=S.goals.find(g=>g.id===id); if(!x) return;
+  var isPara = S.role==='para';
+  var start = (x.pending && x.pending.correct!=null) ? x.pending.correct : 0;
+  S.score={ id:id, correct:start, denom:x.denom, reason:null, mode:'score', moreOpen:false };
+  drawSheet();
+  openSheet();
+}
+function drawSheet(){
+  var s=S.score; var x=S.goals.find(g=>g.id===s.id);
+  var isPara = S.role==='para';
+  var h='<div class="grip"></div>';
+
+  if(s.mode==='nodata'){
+    h+='<div class="whowhat" style="display:flex;align-items:center;gap:.5rem">'+avatar(x.ini)+'<span>'+x.period+' · '+esc(x.name)+'</span></div>';
+    h+='<div class="ctx">No data this week</div>';
+    h+='<div style="display:flex;align-items:center;gap:.4rem;margin-top:.5rem"><b>Reason</b> <span class="req">required</span>'+
+       tip('tipReason','Reason is required so a no-data week is honest. Absent / Testing = excused; “No time” quietly counts toward a fidelity flag before an ARC.')+'</div>';
+    var reasons = isPara ? ['Absent','Behavior','No time'] : ['No time','Absent','Testing','Behavior'];
+    h+='<div class="chips">'+reasons.map(function(r){
+        return '<button class="rchip'+(s.reason===r?' on':'')+'" onclick="pickReason(\''+r+'\')">'+r+'</button>';
+      }).join('')+'</div>';
+    h+='<div class="btnrow">'+
+       '<button class="btn wide" onclick="s_mode(\'score\')">‹ Back</button>'+
+       '<button class="btn primary wide" id="ndBtn" onclick="recordNoData()" '+(s.reason?'':'disabled')+'>Record no data</button>'+
+       '</div>';
+    $('sheet').innerHTML=h; return;
+  }
+
+  var p = pct(s.correct, s.denom);
+  h+='<div class="whowhat" style="display:flex;align-items:center;gap:.5rem">'+avatar(x.ini)+'<span>'+x.period+' · '+esc(x.name)+'</span></div>';
+  h+='<div class="ctx">Probe: '+esc(x.probe)+' · Setting: Resource'+(isPara?'<span class="locked">locked</span>':'')+'</div>';
+
+  h+='<div class="scorewrap"><div style="font-size:.8rem;color:var(--text-dim);font-weight:700"># CORRECT</div>'+
+     '<div class="scoreline">'+
+       '<button class="stepbtn" onclick="step(-1)">−</button>'+
+       '<input class="numin" id="numin" inputmode="numeric" value="'+s.correct+'" onchange="typeNum(this.value)">'+
+       '<button class="stepbtn" onclick="step(1)">+</button>'+
+     '</div>'+
+     '<div class="ofwrap">of '+
+       (isPara ? '<b style="color:var(--text)">'+s.denom+'</b><span class="locked">from probe</span>'
+               : '<input class="ofin" id="ofin" inputmode="numeric" value="'+s.denom+'" onchange="typeDenom(this.value)">')+
+     '</div>'+
+     '<div class="pct">'+p+'<small>%</small></div>'+
+   '</div>';
+
+  h+='<div class="btnrow">'+
+     '<button class="btn primary wide" onclick="saveScore()">Save</button>'+
+     '<button class="btn wide" onclick="s_mode(\'nodata\')">No data</button>'+
+     '</div>';
+
+  if(isPara){
+    h+='<div class="more"><div class="field"><span class="lab">Date</span><span class="val">Today'+
+       '<span class="locked">locked</span></span></div>'+
+       '<div class="field"><span class="lab">Probe</span><span class="val">'+esc(x.probe)+'<span class="locked">read-only</span></span></div>'+
+       '<div class="field"><span class="lab">Lands as</span><span class="val" style="color:var(--pending)">⏳ pending — teacher confirms</span></div>'+
+       '</div>';
+  } else {
+    h+='<div class="more"><button class="moretoggle" onclick="toggleMore()">'+(s.moreOpen?'▾':'▸')+' More (date · setting · probe · note)</button>'+
+       '<div class="morebody'+(s.moreOpen?' open':'')+'">'+
+         '<div class="field"><span class="lab">Date administered</span><span class="val">Today · Mar 4 ✎</span></div>'+
+         '<div class="field"><span class="lab">Setting</span><span class="val">Resource ✎</span></div>'+
+         '<div class="field"><span class="lab">Probe</span><span class="val">'+esc(x.probe)+' ✎</span></div>'+
+         '<div class="field"><span class="lab">Note (no names)</span><span class="val" style="color:var(--text-dim)">optional ✎</span></div>'+
+         '<button class="btn small ghost" onclick="collectLater()">Collected — score later</button>'+
+       '</div></div>';
+  }
+  $('sheet').innerHTML=h;
+}
+function s_mode(m){ S.score.mode=m; drawSheet(); }
+function toggleMore(){ S.score.moreOpen=!S.score.moreOpen; drawSheet(); }
+function step(d){ var s=S.score; s.correct=Math.max(0, Math.min(s.denom, s.correct+d)); drawSheet(); }
+function typeNum(v){ var s=S.score; var n=parseInt(v,10); if(isNaN(n))n=0; s.correct=Math.max(0,Math.min(s.denom,n)); drawSheet(); }
+function typeDenom(v){ var s=S.score; var n=parseInt(v,10); if(isNaN(n)||n<1)n=1; s.denom=n; if(s.correct>n)s.correct=n; drawSheet(); }
+function pickReason(r){ S.score.reason=r; drawSheet(); }
+function collectLater(){ toast('Added to To-score · dated today'); closeSheet(); }
+
+function saveScore(){
+  var s=S.score; var x=S.goals.find(g=>g.id===s.id);
+  var p=pct(s.correct,s.denom);
+  if(S.role==='para'){
+    x.status='pending';
+    x.pending={correct:s.correct, denom:s.denom, date:'Mar 4'};
+    toast('Sent for teacher OK · saved offline');
+    closeSheet(); render(); return;
+  }
+  x.status=(x.acked!==undefined && p>=x.level)? x.status : 'logged';
+  x.status='logged'; x.val=p; x.pending=true; x.scorer='NS';
+  HISTORY[x.id]=HISTORY[x.id]||[];
+  HISTORY[x.id].unshift({admin:'Mar 4', entry:'Mar 4', ct:s.correct+'/'+s.denom, pct:p, probe:x.probe.split(',')[0], setting:'Resource', scorer:'NS', valid:'—'});
+  toast('Saved '+p+'% · syncs when online');
+  closeSheet(); render();
+}
+function recordNoData(){
+  var s=S.score; if(!s.reason) return;
+  var x=S.goals.find(g=>g.id===s.id);
+  x.status='nodata'; x.reason=s.reason; x.val=null;
+  toast('No data recorded · '+s.reason);
+  closeSheet(); render();
+}
+
+function openSheet(){ $('scrim').classList.add('open'); requestAnimationFrame(function(){ $('sheet').classList.add('open'); }); }
+function closeSheet(){ $('sheet').classList.remove('open'); $('scrim').classList.remove('open'); }
+
+/* ---- [E] To-score queue ---- */
+function renderToScore(){
+  var h='<div class="backrow"><button class="back" onclick="go(\'dashboard\')">‹ Dashboard</button></div>';
+  h+='<h1>To-score</h1>';
+  h+='<div class="sub">Collected, not yet scored — score tonight at home.'+
+     tip('tipQueue','The date shown is when you gave the probe, not tonight when you score it. That keeps the weekly cadence and trend honest.')+'</div>';
+  if(!S.toScore.length){ h+='<div class="card">All caught up.</div>'; return h; }
+  S.toScore.forEach(function(t,i){
+    var p = t.filled!=null ? pct(t.filled,t.denom)+'%' : '—';
+    h+='<div class="card tight">'+
+       '<div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.4rem">'+avatar(t.ini)+
+         '<div style="min-width:0"><div class="rowtitle">'+esc(t.name)+'</div>'+
+         '<div class="rowmeta">'+t.period+' · collected '+t.collected+' <span class="locked">admin date</span></div></div></div>'+
+       '<div class="scoreline" style="justify-content:flex-start;gap:.5rem">'+
+         '<button class="stepbtn" style="width:2.6rem;height:2.6rem;font-size:1.4rem" onclick="qStep('+i+',-1)">−</button>'+
+         '<input class="numin" style="width:3.2rem;height:2.6rem;font-size:1.4rem" inputmode="numeric" value="'+(t.filled!=null?t.filled:'')+'" placeholder="?" onchange="qType('+i+',this.value)">'+
+         '<button class="stepbtn" style="width:2.6rem;height:2.6rem;font-size:1.4rem" onclick="qStep('+i+',1)">+</button>'+
+         '<span style="color:var(--text-dim)">of '+t.denom+'</span>'+
+         '<span style="margin-left:auto;font-weight:800">'+p+'</span>'+
+       '</div></div>';
+  });
+  h+='<button class="btn primary wide" style="width:100%;margin-top:.4rem" onclick="saveAllQueue()">Save all</button>';
+  return h;
+}
+function qStep(i,d){ var t=S.toScore[i]; var c=(t.filled!=null?t.filled:0)+d; t.filled=Math.max(0,Math.min(t.denom,c)); render(); }
+function qType(i,v){ var t=S.toScore[i]; var n=parseInt(v,10); if(isNaN(n))n=null; else n=Math.max(0,Math.min(t.denom,n)); t.filled=n; render(); }
+function saveAllQueue(){
+  var done=0;
+  S.toScore.slice().forEach(function(t){
+    if(t.filled==null) return;
+    var x=S.goals.find(g=>g.id===t.id);
+    if(x){ x.status='logged'; x.val=pct(t.filled,t.denom); x.pending=true; x.scorer='NS';
+      HISTORY[x.id]=HISTORY[x.id]||[];
+      HISTORY[x.id].unshift({admin:t.collected, entry:'Mar 4 pm', ct:t.filled+'/'+t.denom, pct:x.val, probe:x.probe.split(',')[0], setting:'Home', scorer:'NS', valid:'—'}); }
+    S.toScore=S.toScore.filter(q=>q!==t); done++;
+  });
+  toast(done? done+' scored · dated to when given':'Enter a number first');
+  if(done) go('dashboard'); else render();
+}
+
+/* ---- [D] Goal Detail ---- */
+function openDetail(id){ S.detailGoal=id; go('goalDetail'); }
+function renderGoalDetail(){
+  var x=S.goals.find(g=>g.id===S.detailGoal); if(!x) x=S.goals[0];
+  var tr=TREND[x.id]||TREND.g1;
+  var hist=HISTORY[x.id]||[];
+  var h='<div class="backrow"><button class="back" onclick="go(\'dashboard\')">‹ Dashboard</button></div>';
+  h+='<div style="display:flex;align-items:center;gap:.6rem;margin:.1rem 0 .3rem">'+avatar(x.ini)+
+     '<div style="min-width:0"><h1 style="margin:0">'+esc(x.name)+'</h1>'+
+     '<div class="sub" style="margin:.1rem 0 0">'+x.period+' · Criterion: '+esc(x.crit)+' · Baseline 20% (Jan 8)</div></div></div>';
+
+  // chart
+  h+='<div class="card"><div class="chartwrap">'+trendSVG(tr,x.level)+'</div>'+
+     '<div class="note">⊘ no-data probe shown as a gap, never plotted as a zero.</div></div>';
+
+  // consistency window
+  var scored=tr.filter(p=>!p.nodata).map(p=>p.v);
+  var last4=scored.slice(-x.n);
+  var metCount=last4.filter(v=>v>=x.level).length;
+  var consecutive = last4.length===x.n && last4.every(v=>v>=x.level);
+  h+='<div class="card"><div style="display:flex;align-items:center;gap:.4rem"><b>Consistency window</b>'+
+     tip('tipWindow','Consecutive means consecutive probes in admin-date order — never cherry-picked weeks. A ⊘ pauses the run, it never breaks or resets it.')+'</div>';
+  h+='<div class="window">'+ last4.map(function(v){ return '<span class="'+(v>=x.level?'win-yes':'win-no')+'">'+(v>=x.level?'●':'○')+'</span>'; }).join('')+
+     '<span class="wl">'+metCount+' of '+x.n+' ≥'+x.level+'%</span></div>';
+  if(consecutive && !x.acked){
+    h+='<div class="metbox"><div><span class="star">★</span> <b>Criterion window met.</b></div>'+
+       '<div class="note" style="color:var(--mastery)">The app only observes this — it never closes the goal.'+
+       tip('tipMastery','Acknowledging flags the goal for ARC/progress review. Retiring a goal is always your call at ARC, never automatic.')+'</div>'+
+       '<button class="btn small primary" style="margin-top:.5rem" onclick="ackMastery(\''+x.id+'\')">Acknowledge for ARC</button></div>';
+  } else if(x.acked){
+    h+='<div class="banner ok">★ Window met — acknowledged Mar 4, flagged for ARC. Goal stays open.</div>';
+  } else {
+    h+='<div class="notyet">↳ Not yet: needs '+x.n+' consecutive ≥'+x.level+'%.</div>';
+  }
+  h+='</div>';
+
+  // ARC history table
+  h+='<div class="card"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem"><b>ARC history (audit)</b></div>'+
+     '<div class="tablewrap"><table><thead><tr>'+
+     '<th>Admin date</th><th>Entered</th><th>Correct/total</th><th>%</th><th>Probe</th><th>Setting</th><th>Scorer</th><th>Validated by</th>'+
+     '</tr></thead><tbody>';
+  hist.forEach(function(r){
+    var pctcell = r.nodata ? '<span style="color:var(--nodata)">⊘ '+r.nodata+'</span>' : (r.pct!=null?r.pct+'%':'—');
+    h+='<tr>'+
+      '<td>'+r.admin+(r.base?' <span class="locked">baseline</span>':'')+'</td>'+
+      '<td>'+r.entry+'</td>'+
+      '<td>'+r.ct+'</td>'+
+      '<td>'+pctcell+'</td>'+
+      '<td>'+r.probe+'</td>'+
+      '<td>'+r.setting+'</td>'+
+      '<td>'+r.scorer+'</td>'+
+      '<td>'+r.valid+'</td>'+
+    '</tr>';
+  });
+  h+='</tbody></table></div>'+
+     '<div class="note">Stores numerator/denominator, both dates, and validator — not just the %.</div></div>';
+  return h;
+}
+function ackMastery(id){ var x=S.goals.find(g=>g.id===id); x.acked=true; toast('Flagged for ARC · goal stays open'); render(); }
+
+function trendSVG(tr,level){
+  var W=520,H=180, padL=34,padR=14,padT=14,padB=26;
+  var plotW=W-padL-padR, plotH=H-padT-padB;
+  function X(wk){ return padL + (wk-1)/6*plotW; }
+  function Y(v){ return padT + (1-v/100)*plotH; }
+  var s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="trend">';
+  // gridlines + y labels
+  [0,20,40,60,80,100].forEach(function(v){
+    s+='<line x1="'+padL+'" y1="'+Y(v)+'" x2="'+(W-padR)+'" y2="'+Y(v)+'" stroke="var(--border)" stroke-width="1"/>';
+    s+='<text x="'+(padL-6)+'" y="'+(Y(v)+4)+'" font-size="10" fill="var(--text-dim)" text-anchor="end">'+v+'</text>';
+  });
+  // aim line
+  s+='<line x1="'+padL+'" y1="'+Y(level)+'" x2="'+(W-padR)+'" y2="'+Y(level)+'" stroke="var(--owes-line)" stroke-width="2" stroke-dasharray="6 5"/>';
+  s+='<text x="'+(W-padR)+'" y="'+(Y(level)-5)+'" font-size="10" fill="var(--owes)" text-anchor="end">aim '+level+'%</text>';
+  // connected segments skipping nodata gaps
+  var seg=[], cur=[];
+  tr.forEach(function(p){ if(p.nodata){ if(cur.length)seg.push(cur); cur=[]; } else cur.push(p); });
+  if(cur.length)seg.push(cur);
+  seg.forEach(function(arr){
+    if(arr.length<2) return;
+    var d='M'+X(arr[0].wk)+' '+Y(arr[0].v);
+    for(var i=1;i<arr.length;i++) d+=' L'+X(arr[i].wk)+' '+Y(arr[i].v);
+    s+='<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
+  });
+  // points + gap markers
+  tr.forEach(function(p){
+    if(p.nodata){
+      s+='<text x="'+X(p.wk)+'" y="'+(H-padB+18)+'" font-size="15" fill="var(--nodata)" text-anchor="middle">⊘</text>';
+      s+='<line x1="'+X(p.wk)+'" y1="'+padT+'" x2="'+X(p.wk)+'" y2="'+(H-padB)+'" stroke="var(--nodata)" stroke-width="1" stroke-dasharray="2 4" opacity=".6"/>';
+    } else {
+      var col = p.v>=level?'var(--logged)':'var(--accent)';
+      s+='<circle cx="'+X(p.wk)+'" cy="'+Y(p.v)+'" r="5.5" fill="'+col+'"/>';
+      if(p.base) s+='<text x="'+X(p.wk)+'" y="'+(Y(p.v)+18)+'" font-size="9" fill="var(--text-dim)" text-anchor="middle">base</text>';
+    }
+  });
+  s+='</svg>';
+  return s;
+}
+
+/* ---- [P] Para view ---- */
+function renderPara(){
+  var g=S.goals.filter(x=>x.paraSupported);
+  var h='<div class="banner info">Math Resource · para: JT · your supported students only</div>';
+  h+='<h1>Your students today</h1>';
+  h+='<div class="sub">Enter scores; the teacher confirms each one.'+
+     tip('tipPara','The para path is deliberately narrow: no student notes, date locked to today, probe and Resource setting fixed. Points land pending until the teacher confirms.')+'</div>';
+  g.forEach(function(x){
+    var st = x.status==='pending' ? 'pending' : (x.status==='logged'||x.status==='mastery'?'logged':'owes');
+    var right = x.status==='pending' ? '<span class="sync" style="color:var(--pending)">⏳ pending</span>'
+              : (st==='logged'? '<span class="rowval">sent</span>':'');
+    h+='<div class="row" style="cursor:default">'+
+       '<span class="chip '+st+'">'+glyph(st)+'</span>'+
+       avatar(x.ini)+
+       '<div class="rowmain"><div class="rowtitle">'+esc(x.name)+'</div>'+
+         '<div class="rowmeta">probe: '+esc(x.probe)+'</div></div>'+
+       '<div class="rowright">'+ (x.status==='pending'? right :
+          '<button class="btn small primary" onclick="openScore(\''+x.id+'\')">Score</button>') +'</div>'+
+       '</div>';
+  });
+  h+='<div class="note" style="margin-top:.8rem">No other students, no trends, no export — by design.</div>';
+  return h;
+}
+
+/* ---------------- Flow 2: Weekly Planner ---------------- */
+function layoutDays(){
+  var n=S.coreDays;
+  if(S.weekMode==='testing'){ S.days=['off','core','test','iep','iep']; return; }
+  S.days = [0,1,2,3,4].map(function(i){ return i<n?'core':'iep'; });
+}
+function setCoreDays(n){ S.coreDays=n; S.weekMode='normal'; layoutDays(); render(); toast('Re-laid the week for '+n+' core days'); }
+function flipDay(i){
+  if(S.days[i]==='off') return;
+  S.days[i] = S.days[i]==='core' ? 'iep' : 'core';
+  render();
+}
+
+function renderPlanWeek(){
+  layoutDays();
+  var goalsInPlay = ['AB','CD','EF','GH'];
+  var coreCount=S.days.filter(d=>d==='core').length;
+  var h='';
+  // scenario switch
+  h+='<div style="display:flex;gap:.4rem;justify-content:flex-end;margin-bottom:.4rem">'+
+     '<button class="btn small '+(S.weekMode==='normal'?'primary':'ghost')+'" onclick="setWeek(\'normal\')">Normal week</button>'+
+     '<button class="btn small '+(S.weekMode==='testing'?'primary':'ghost')+'" onclick="setWeek(\'testing\')">Short / testing week</button>'+
+     '</div>';
+
+  if(S.weekMode==='testing') return h+renderCarryForward();
+
+  h+='<div class="card">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center">'+
+     '<b>Week of Mar 3–7</b>'+
+     '<span style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim)">core days'+
+       tip('tipCore','This is your call. Default is 3 — flip to 2 anytime, and a single week can still be adjusted by hand.')+
+       '<span class="toggle2"><button class="'+(S.coreDays===2?'on':'')+'" onclick="setCoreDays(2)">2</button>'+
+       '<button class="'+(S.coreDays===3?'on':'')+'" onclick="setCoreDays(3)">3</button></span></span>'+
+     '</div>';
+
+  h+='<div class="segbox" style="margin-top:.6rem"><div><div style="font-size:.7rem;color:var(--text-dim);font-weight:800">SEGMENT (inherited from spine)</div>'+
+     '<div style="font-weight:800">EE7 · two-step linear equations</div>'+
+     '<div class="note">next up on the pacing spine</div></div>'+
+     '<button class="btn small ghost" style="margin-left:auto" onclick="toast(\'prototype: segment picker\')">change</button></div>';
+
+  // days
+  h+='<div class="daysrow">'+ ['Mon','Tue','Wed','Thu','Fri'].map(function(dn,i){
+      var t=S.days[i];
+      var lbl = t==='core'?'core':'IEP/SDI';
+      var gl = t==='core'?'◼':'◆';
+      return '<div class="day '+t+'" onclick="openDay('+i+')"><div class="dn">'+dn+'</div>'+
+             '<div class="dt">'+gl+'</div><div class="dl">'+lbl+'</div>'+
+             '<div class="dl">'+(t==='core'?'EE7':'goals')+'</div></div>';
+    }).join('')+'</div>';
+  h+='<div class="note">Tap a day to flip core ◼ / IEP ◆. Now: '+coreCount+' core, '+(5-coreCount)+' IEP.</div>';
+  h+='</div>';
+
+  // braid strip
+  h+='<div class="braid"><div class="bl">Braid this week</div>'+
+     '<div class="braidflow">'+
+       '<span class="bnode unit">EnVision U2</span><span class="barrow">→</span>'+
+       '<span class="bnode std">KY.8.EE.7</span><span class="barrow">→</span>'+
+       '<span class="bnode myp">[MYP A/B *]</span><span class="barrow">→</span>'+
+       '<span class="bnode goals" style="display:inline-flex;align-items:center;gap:.25rem">goals '+goalsInPlay.map(avatarSm).join('')+'</span>'+
+     '</div>'+
+     '<div class="note">* MYP criterion filled by a later pass — shown greyed, never scored here.</div></div>';
+
+  // student objective (separate line)
+  h+='<div class="objective"><b>Student objective</b> (exposure, not mastery): access EE7 with CRA supports &amp; a number line. Tracked apart from the IEP goal.</div>';
+
+  // ambient reconciliation strip (O8)
+  h+=ambientStrip();
+
+  h+='<div class="btnrow"><button class="btn primary wide" onclick="toast(\'Week built\')">Looks good — build</button>'+
+     '<button class="btn wide" onclick="go(\'reconcile\')">Reconcile</button></div>';
+  return h;
+}
+function setWeek(m){ S.weekMode=m; layoutDays(); render(); }
+
+function ambientStrip(){
+  var g=S.goals;
+  var exposed=true;
+  var sdiCovered = g.filter(x=>x.status!=='nodata').length; // synthetic
+  var owe=g.filter(x=>x.status==='owes').length;
+  return '<div class="ambient">'+
+    '<div class="amb ok"><b>✓</b>standard exposed</div>'+
+    '<div class="amb '+(owe? 'warn':'ok')+'"><b>'+(5-1)+'/5</b>goals w/ SDI</div>'+
+    '<div class="amb '+(owe?'warn':'ok')+'"><b>'+owe+'</b>owe a point</div>'+
+    '</div>';
+}
+
+/* ---- [I] Day editor ---- */
+function openDay(i){ if(S.days[i]==='off') return; S.dayEdit=i; go('dayEditor'); }
+function renderDayEditor(){
+  var i=S.dayEdit; var dn=['Mon','Tue','Wed','Thu','Fri'][i]; var t=S.days[i];
+  var h='<div class="backrow"><button class="back" onclick="go(\'planWeek\')">‹ Week</button></div>';
+  if(t==='core'){
+    h+='<h1>'+dn+' ◼ Core · EE7</h1>';
+    h+='<div class="card">'+
+       '<button class="btn small" onclick="flipAndBack('+i+')">Make this an IEP/SDI day</button>'+
+       '<div style="margin-top:.7rem"><b>Learning intention</b> (from segment)</div>'+
+       '<div class="note">Solve two-step equations; variables on one side; one / infinite / no solutions.</div>'+
+       '<div style="margin-top:.6rem"><b>Artifacts</b></div>'+
+       '<div class="note">guided notes · matching cards</div>'+
+       '<div style="margin-top:.6rem"><b>Checkpoint</b></div>'+
+       '<div class="note">exit slip</div>'+
+       '<div class="greyhook">▸ Differentiate this day → down to ~3rd-grade access <span class="locked">later pass</span></div>'+
+       '</div>';
+    h+='<div class="banner info">Core ◼ maps toward MYP → Toddle. Kept separate from the IEP → IC track.</div>';
+    return h;
+  }
+  // IEP/SDI day
+  h+='<h1>'+dn+' ◆ IEP / SDI</h1>';
+  h+='<div class="card">'+
+     '<button class="btn small" onclick="flipAndBack('+i+')">Make this a core day</button>'+
+     '<div style="margin:.7rem 0 .3rem"><b>Attach goals</b> (your supported students)</div>';
+  S.goals.filter(x=>['AB','CD','EF'].indexOf(x.ini)>=0).slice(0,3).forEach(function(x,idx){
+    var on = idx<2;
+    h+='<div class="attach"><div class="cb '+(on?'on':'')+'" onclick="this.classList.toggle(\'on\')">'+(on?'✓':'')+'</div>'+
+       avatar(x.ini)+
+       '<div style="flex:1"><div style="font-weight:700">'+esc(x.name)+'</div>'+
+       '<div class="rowmeta">probe: '+esc(x.probe)+'</div>'+
+       '<span class="accom">Accom/mod: extended time · read-aloud</span></div></div>';
+  });
+  h+='<div class="hook">Monitoring hook: delivering this yields 1 data point → the tracker. '+
+     'Only logs if the probe matches the goal’s behavior + condition + method.</div>';
+  h+='</div>';
+  h+='<div class="banner ok">IEP ◆ maps toward IEP % → Infinite Campus. The same activity is never counted for both tracks.</div>';
+  return h;
+}
+function flipAndBack(i){ flipDay(i); go('planWeek'); }
+
+/* ---- [J] Reconciliation ---- */
+function renderReconcile(){
+  var g=S.goals;
+  var oweList=g.filter(x=>x.status==='owes');
+  var noSdi = ['EF']; // synthetic gap
+  var h='<div class="backrow"><button class="back" onclick="go(\'planWeek\')">‹ Week</button></div>';
+  h+='<h1>Reconcile · Mar 3–7</h1>';
+  h+='<div class="sub">Ambient all week, or open the checklist at close.'+
+     tip('tipRecon','The strip fills in as you go so nothing piles up. The checklist is the end-of-week gate — both, so it fits how you actually work.')+'</div>';
+  h+=ambientStrip();
+
+  h+='<div class="card">';
+  // (a)
+  h+='<div class="checkitem"><span class="cmark ok">✓</span><div class="cbody">'+
+     '<div class="clabel">(a) Standard exposed?</div>'+
+     '<div class="cdetail">EE7 taught on '+S.days.filter(d=>d==='core').length+' core days.</div></div></div>';
+  // (b)
+  h+='<div class="checkitem"><span class="cmark '+(noSdi.length?'bad':'ok')+'">'+(noSdi.length?'✗':'✓')+'</span><div class="cbody">'+
+     '<div class="clabel">(b) Each goal given SDI time?</div>'+
+     '<div class="cdetail" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin-top:.25rem">'+
+       ['AB','CD','GH'].map(function(i){return '<span style="display:inline-flex;align-items:center;gap:.25rem">'+avatarSm(i)+'<span style="color:var(--logged)">✓</span></span>';}).join('')+
+       (noSdi.length? noSdi.map(function(i){return '<span style="display:inline-flex;align-items:center;gap:.25rem">'+avatarSm(i)+'<span style="color:var(--danger)">✗ no SDI day</span></span>';}).join('')+'<span class="glink" onclick="go(\'dayEditor\')">attach a day</span>':'')+
+     '</div></div></div>';
+  // (c)
+  var ccells = g.map(function(x){
+    if(x.status==='owes') return '<span class="glink" style="display:inline-flex;align-items:center;gap:.25rem" onclick="openScore(\''+x.id+'\')">'+avatarSm(x.ini)+'○ owes</span>';
+    if(x.status==='nodata') return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--nodata)">'+avatarSm(x.ini)+'⊘ ('+esc(x.reason)+')</span>';
+    if(x.status==='pending') return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--pending)">'+avatarSm(x.ini)+'⏳</span>';
+    return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--logged)">'+avatarSm(x.ini)+'●</span>';
+  }).join('');
+  h+='<div class="checkitem"><span class="cmark '+(oweList.length?'warn':'ok')+'">'+(oweList.length?'!':'✓')+'</span><div class="cbody">'+
+     '<div class="clabel">(c) Each active goal has this week’s point?</div>'+
+     '<div class="cdetail" style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:center;margin-top:.25rem">'+ccells+'</div>'+
+     '<div class="note">⊘ no-data does not read as a zero. Tap an owing goal to score it now.</div></div></div>';
+  h+='</div>';
+
+  var status = oweList.length? 'NOT monitoring-complete — '+oweList.length+' goal'+(oweList.length>1?'s':'')+' owe' : 'Monitoring-complete';
+  h+='<div class="banner '+(oweList.length?'warn':'ok')+'"><b>Week status:</b> '+status+'</div>';
+  h+='<div class="btnrow">'+
+     (oweList.length? '<button class="btn primary wide" onclick="openScore(\''+oweList[0].id+'\')"><span style="display:inline-flex;align-items:center;gap:.4rem;justify-content:center">'+avatarSm(oweList[0].ini)+'Fix now</span></button>':'')+
+     '<button class="btn wide" onclick="closeWeek()">Close week</button></div>';
+  h+='<div class="note">Closing with gaps is allowed — the specific owed goals are recorded durably (weeks-owed counter), never silently marked done.</div>';
+  return h;
+}
+function closeWeek(){
+  var owe=S.goals.filter(x=>x.status==='owes').length;
+  toast(owe? 'Week closed · '+owe+' gap(s) recorded for ARC':'Week closed · complete');
+  go('planWeek');
+}
+
+/* ---- Carry-forward / testing week ---- */
+function renderCarryForward(){
+  var g=S.goals;
+  var h='<div class="card">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center"><b>Week of Jan 19–23</b>'+
+     '<span style="font-size:.78rem;color:var(--owes);font-weight:700">⛔ MLK Mon · ✎ MAP testing</span></div>';
+  h+='<div class="daysrow" style="margin-top:.6rem">'+ ['Mon','Tue','Wed','Thu','Fri'].map(function(dn,i){
+      var t=S.days[i]; var gl={off:'⛔',core:'◼',iep:'◆',test:'✎'}[t];
+      var lbl={off:'no school',core:'core',iep:'IEP',test:'MAP'}[t];
+      return '<div class="day '+t+'"><div class="dn">'+dn+'</div><div class="dt">'+gl+'</div><div class="dl">'+lbl+'</div></div>';
+    }).join('')+'</div>';
+  h+='</div>';
+
+  h+='<div class="banner warn">Only 1 core day fits (needed '+S.coreDays+'). EE5 segment not finished.</div>';
+  h+='<div class="card"><div style="font-weight:800;margin-bottom:.3rem">↪ Instruction slips</div>'+
+     '<div class="note">The unfinished EE5 segment carries to next week with its standard→goal links intact; next week opens pre-loaded with the remainder.</div>'+
+     '<button class="btn small primary" style="margin-top:.5rem" onclick="toast(\'EE5 carried → next week\')">Carry EE5 forward</button></div>';
+
+  h+='<div class="card"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><b>Monitoring does NOT slip</b>'+
+     tip('tipCarry','Instruction can move to next week. Monitoring can’t — every active goal still owes its point this week, even when a test eats the days.')+'</div>';
+  var owe=g.filter(x=>x.status==='owes');
+  h+='<div class="cdetail">Every active goal still owes a point this week:</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:.6rem;margin:.4rem 0;align-items:center">'+ g.map(function(x){
+        var st=x.status; var key=(st==='owes'?'owes':st==='nodata'?'nodata':'logged');
+        return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--'+key+')">'+avatarSm(x.ini)+glyph(key)+'</span>';
+     }).join('')+'</div>';
+  h+='<button class="btn wide" style="width:100%;margin-top:.3rem" onclick="bulkTesting()">Mark remaining no-data · reason: Testing</button>';
+  h+='<div class="note">One teacher-initiated action — only touches UNSCORED goals; any real points keep their value.</div>';
+  h+='</div>';
+  return h;
+}
+function bulkTesting(){
+  var n=0;
+  S.goals.forEach(function(x){ if(x.status==='owes'){ x.status='nodata'; x.reason='Testing'; n++; } });
+  toast(n+' marked no-data (Testing) · real points kept');
+  render();
+}
+
+/* ---------------- init ---------------- */
+layoutDays();
+render();
+</script>
+
+</body>
+</html>
