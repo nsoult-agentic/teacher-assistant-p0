@@ -21,6 +21,8 @@
     --radius:16px;
     /* student identity hues — fixed per student, deliberately NOT green/amber/red (those are status) */
     --s-ab:#0f766e; --s-cd:#4338ca; --s-ef:#0369a1; --s-gh:#6d28d9; --s-jm:#a21caf; --s-rt:#0e7490;
+    /* PLAN day-type hues — separate semantic domain from TRACK status colors; applied to TEXT + BORDER only */
+    --plan-core:#2563d9; --plan-sdi:#0f8a4f; --plan-rev:#7c3aed;
   }
   :root[data-theme="dark"] {
     --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
@@ -34,6 +36,7 @@
     --danger:#ff8072;
     --shadow:0 6px 26px rgba(0,0,0,.45);
     --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+    --plan-core:#6ea8ff; --plan-sdi:#3ad486; --plan-rev:#b98cff;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -48,6 +51,7 @@
       --danger:#ff8072;
       --shadow:0 6px 26px rgba(0,0,0,.45);
       --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+      --plan-core:#6ea8ff; --plan-sdi:#3ad486; --plan-rev:#b98cff;
     }
   }
 
@@ -117,7 +121,7 @@
   .stat.scored { background:var(--logged-bg); color:var(--logged); }
   .stat.excused { background:var(--nodata-bg); color:var(--nodata); }
   .stat.owe { background:var(--owes-bg); color:var(--owes); }
-  .pendnote { font-size:.76rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.3rem .5rem; margin-top:.1rem; display:inline-block; }
+  .pendnote { font-size:.76rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.3rem .5rem; margin-top:.25rem; display:inline-block; margin-right:.3rem; }
 
   .grouplabel { display:flex; align-items:center; gap:.4rem; margin:.7rem .1rem .35rem; }
   .grouplabel .ln { flex:1; height:1px; background:var(--border); }
@@ -128,9 +132,8 @@
   .row {
     display:flex; align-items:center; gap:.6rem; width:100%; text-align:left;
     background:var(--surface); border:1px solid var(--border); border-radius:14px;
-    padding:.7rem .75rem; margin-bottom:.5rem; cursor:pointer; color:var(--text);
+    padding:.7rem .75rem; margin-bottom:.5rem; color:var(--text);
   }
-  .row:active { transform:scale(.995); }
   .row.owes { border-color:var(--owes-line); background:var(--owes-bg); }
   .chip { font-size:1.35rem; width:1.6rem; text-align:center; flex:none; }
   .chip.owes{color:var(--owes);} .chip.logged{color:var(--logged);} .chip.nodata{color:var(--nodata);}
@@ -157,8 +160,7 @@
   .shead { display:flex; align-items:center; gap:.6rem; padding:.55rem .7rem; background:var(--surface-2); }
   .shead .name { font-weight:800; font-size:.92rem; }
   .sgoal { display:flex; align-items:center; gap:.55rem; width:100%; text-align:left; font-family:inherit;
-    font-size:.86rem; color:var(--text); background:transparent; border:0; border-top:1px solid var(--border); padding:.55rem .7rem; cursor:pointer; }
-  .sgoal:active { background:var(--surface-2); }
+    font-size:.86rem; color:var(--text); background:transparent; border-top:1px solid var(--border); padding:.55rem .7rem; }
   .sgoal .g { flex:1; min-width:0; font-weight:600; }
   .sgoal .chip { font-size:1.1rem; width:1.3rem; }
   .rail { width:.28rem; border-radius:2px; align-self:stretch; flex:none; }
@@ -263,15 +265,24 @@
   .toggle2 button.on { background:var(--accent); color:var(--accent-ink); }
   .daysrow { display:flex; gap:.35rem; margin:.3rem 0 .2rem; }
   .day {
-    flex:1; border:1.5px solid var(--border); border-radius:12px; padding:.5rem .2rem; text-align:center; cursor:pointer; background:var(--surface);
+    flex:1; min-width:0; border:1.5px solid var(--border); border-radius:12px; padding:.45rem .25rem; text-align:center; cursor:pointer; background:var(--surface);
   }
   .day .dn { font-size:.72rem; font-weight:800; color:var(--text-dim); }
-  .day .dt { font-size:1.25rem; margin:.15rem 0; }
-  .day .dl { font-size:.62rem; color:var(--text-dim); }
-  .day.core { border-color:var(--accent); }
-  .day.iep { border-color:var(--pending); }
-  .day.off { opacity:.55; border-style:dashed; cursor:default; }
+  .day .concept { font-size:.6rem; line-height:1.15; margin-top:.2rem; color:var(--text-dim); overflow-wrap:anywhere; }
+  .day .dtype { font-size:.58rem; font-weight:800; text-transform:uppercase; letter-spacing:.02em; margin-top:.15rem; color:var(--text-dim); }
+  .day .grab { font-size:.75rem; color:var(--text-dim); margin-top:.1rem; }
+  /* PLAN day-type colors — TEXT + BORDER only, never a fill (kept distinct from TRACK status hues) */
+  .day.core { border-color:var(--plan-core); }
+  .day.core .dn, .day.core .dtype, .day.core .concept { color:var(--plan-core); }
+  .day.sdi { border-color:var(--plan-sdi); }
+  .day.sdi .dn, .day.sdi .dtype { color:var(--plan-sdi); }
+  .day.rev { border-color:var(--plan-rev); }
+  .day.rev .dn, .day.rev .dtype { color:var(--plan-rev); }
+  .day.holiday { opacity:.55; border-style:dashed; border-color:var(--danger); cursor:default; }
+  .day.holiday .dn { color:var(--danger); }
+  .day.holiday .concept { color:var(--danger); text-decoration:line-through; }
   .day.test { border-color:var(--owes-line); }
+  .day.test .dn, .day.test .dtype { color:var(--owes); }
 
   .braid { background:var(--surface-2); border:1px dashed var(--border-strong); border-radius:12px; padding:.6rem; margin:.5rem 0; }
   .braid .bl { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); margin-bottom:.35rem; }
@@ -317,6 +328,86 @@
     opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; max-width:88%; text-align:center; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   .note { font-size:.78rem; color:var(--text-dim); margin-top:.3rem; }
+
+  /* ---- round-1 additions (D1–D6, F1–F5) ---- */
+  .tap { cursor:pointer; }
+  /* new status glyph colors — kept visually distinct from the settled ● ○ ⊘ ★ ⏳ */
+  .chip.incomplete{ color:var(--owes); }
+  .chip.queued{ color:var(--accent); }
+  .row.incomplete { border-style:dashed; border-color:var(--owes-line); background:var(--surface); }
+  .row.queued { border-color:var(--accent); }
+  /* per-row secondary controls (bookmark = score-later; graph = open history) */
+  .rowactions { display:flex; align-items:center; gap:.35rem; flex:none; }
+  .minibtn {
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim);
+    border-radius:9px; min-width:2rem; height:2rem; padding:0 .35rem; font-size:1rem; line-height:1; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+  .minibtn:active { background:var(--accent-soft); }
+  .minibtn.book { color:var(--owes); border-color:var(--owes-line); }
+  /* incomplete + queued mini-notes under the 3-state header */
+  .pendnote.hold { color:var(--owes); background:var(--owes-bg); }
+  .pendnote.queue { color:var(--accent); background:var(--accent-soft); }
+  /* F2 resolve sheet */
+  .resolveopt { display:flex; align-items:flex-start; gap:.6rem; width:100%; text-align:left; border:1px solid var(--border-strong);
+    background:var(--surface); color:var(--text); border-radius:12px; padding:.7rem; margin:.5rem 0; cursor:pointer; font-family:inherit; }
+  .resolveopt .ig { font-size:1.4rem; flex:none; }
+  .resolveopt .rt { font-weight:800; font-size:.9rem; }
+  .resolveopt .rd { font-size:.78rem; color:var(--text-dim); margin-top:.15rem; }
+  /* F4 quarterly summary */
+  .qsummary { background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; padding:.75rem; margin:.2rem 0 0; }
+  .qsummary .big { font-size:2rem; font-weight:900; color:var(--accent); line-height:1; }
+  .qsummary .qlab { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); }
+  /* edit-a-point affordance in the ARC table */
+  .editpt { border:1px solid var(--border); background:var(--surface-2); color:var(--accent); border-radius:7px; padding:.1rem .4rem; font-size:.72rem; font-weight:800; cursor:pointer; }
+  .waswas { color:var(--owes); font-weight:700; font-size:.7rem; }
+  /* D5 new-goal + F3 baseline forms */
+  .form label { display:block; font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin:.65rem 0 .2rem; }
+  .form input.tin, .form select.tin, .form textarea.tin {
+    width:100%; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text);
+    font-size:.9rem; padding:.55rem .6rem; font-family:inherit; }
+  .form textarea.tin { min-height:3rem; resize:vertical; }
+  .form .two { display:flex; gap:.5rem; }
+  .form .two > div { flex:1; }
+  .reqmark { color:var(--danger); }
+  .pathseg { display:flex; gap:.4rem; margin:.3rem 0 .5rem; }
+  .pathseg button { flex:1; border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:12px; padding:.55rem .5rem; font-weight:700; font-size:.8rem; cursor:pointer; line-height:1.2; }
+  .pathseg button.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .gate { font-size:.78rem; border-radius:8px; padding:.45rem .55rem; margin:.5rem 0; font-weight:700; }
+  .gate.bad { background:var(--owes-bg); color:var(--owes); border:1px solid var(--owes-line); }
+  .gate.ok { background:var(--logged-bg); color:var(--logged); }
+  /* F3 baseline cards */
+  .bcard { border:1px solid var(--pending); background:var(--pending-bg); border-radius:14px; padding:.75rem; margin-bottom:.6rem; }
+  .bcard .bhd { display:flex; align-items:center; gap:.55rem; }
+  .bcard .est { font-size:1.6rem; font-weight:900; color:var(--pending); }
+  .dchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.4rem .7rem; font-size:.82rem; font-weight:700; cursor:pointer; }
+  .dchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .mismatch { color:var(--owes); font-weight:800; }
+
+  /* ---- round-2 PLAN redesign: catalog dropdown, month view, day-type control ---- */
+  .segsel { width:100%; border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); font-size:.9rem; font-weight:700; padding:.5rem .55rem; font-family:inherit; }
+  .kystd { display:inline-block; font-size:.72rem; font-weight:800; color:var(--logged); background:var(--logged-bg); border-radius:6px; padding:.1rem .4rem; }
+  .seg3 { display:flex; gap:.3rem; }
+  .seg3 button { flex:1; border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text-dim); border-radius:10px; padding:.5rem .3rem; font-weight:800; font-size:.78rem; cursor:pointer; line-height:1.15; }
+  .seg3 button.core.on { background:var(--plan-core); border-color:var(--plan-core); color:#fff; }
+  .seg3 button.sdi.on { background:var(--plan-sdi); border-color:var(--plan-sdi); color:#fff; }
+  .seg3 button.rev.on { background:var(--plan-rev); border-color:var(--plan-rev); color:#fff; }
+  .viewtoggle { display:inline-flex; border:1.5px solid var(--border-strong); border-radius:11px; overflow:hidden; }
+  .viewtoggle button { border:0; background:var(--surface-2); color:var(--text-dim); font-weight:800; font-size:.78rem; padding:.4rem .8rem; cursor:pointer; }
+  .viewtoggle button.on { background:var(--accent); color:var(--accent-ink); }
+  .monthgrid { display:grid; grid-template-columns:repeat(5,1fr); gap:.3rem; }
+  .mcell { border:1px solid var(--border); border-radius:9px; min-height:3.4rem; padding:.3rem; background:var(--surface); font-size:.62rem; cursor:pointer; }
+  .mcell .md { font-weight:800; color:var(--text-dim); }
+  .mcell .evt { font-weight:700; margin-top:.15rem; overflow-wrap:anywhere; color:var(--accent); }
+  .mcell.ev { border-color:var(--accent); }
+  .mcell.holiday { border-color:var(--danger); border-style:dashed; }
+  .mcell.holiday .evt { color:var(--danger); text-decoration:line-through; }
+  .mcell.test { border-color:var(--owes-line); }
+  .mcell.test .evt { color:var(--owes); }
+  .mcell.core { border-color:var(--plan-core); } .mcell.core .evt { color:var(--plan-core); }
+  .comingsoon { display:inline-flex; align-items:center; gap:.3rem; font-size:.72rem; font-weight:700; color:var(--text-dim); background:var(--surface-2); border:1px dashed var(--border-strong); border-radius:999px; padding:.4rem .6rem; cursor:default; }
 </style>
 
 <div class="phone" id="phone">
@@ -344,12 +435,17 @@
 
 <script>
 /* ---------------- state ---------------- */
+function freshNewGoal(){
+  return { path:'adopt', ini:'', behavior:'', circumstance:'', level:'', consistency:'',
+           method:'', tool:'', freq:'weekly', denom:'', setting:'Resource', accom:'', baseline:'' };
+}
 var S = {
   role: 'teacher',
   screen: 'dashboard',
   group: 'owes',          // 'owes' | 'period' | 'student'
-  coreDays: 3,            // planner default (Niah-adjustable)
   reconcileOpen: false,
+  qsMedian: false,        // F4 avg/median toggle
+  baseMedian: false,      // F3 baseline avg/median toggle
   goals: [
     {id:'g1', ini:'AB', period:'P2', name:'Two-step equations', crit:'80% × 4 probes', level:80, n:4,
      denom:5, probe:'2-step, 5 items', status:'owes', val:null, reason:null, scorer:null, pending:null, freq:'weekly', paraSupported:true},
@@ -364,18 +460,25 @@ var S = {
     {id:'g6', ini:'CD', period:'P2', name:'Number line', crit:'80% × 4 probes', level:80, n:4,
      denom:5, probe:'number-line, 5 items', status:'nodata', val:null, reason:'Absent', scorer:'NS', pending:false, freq:'weekly', paraSupported:false},
     {id:'g7', ini:'EF', period:'P4', name:'Rounding', crit:'80% × 4 probes', level:80, n:4,
-     denom:5, probe:'rounding, 5 items', status:'mastery', val:84, reason:null, scorer:'NS', pending:false, freq:'weekly', paraSupported:false, acked:false}
+     denom:5, probe:'rounding, 5 items', status:'mastery', val:84, reason:null, scorer:'NS', pending:false, freq:'weekly', paraSupported:false, acked:false},
+    {id:'g8', ini:'JM', period:'P4', name:'Two-step inequalities', crit:'70% × 3 probes', level:70, n:3,
+     denom:5, probe:'inequalities, 5 items', status:'incomplete', val:null, reason:null, scorer:'NS', pending:false, freq:'weekly', paraSupported:false, partial:{correct:2, done:3, denom:5}}
   ],
   // to-score queue: collected, admin-date set, numerator not yet entered
   toScore: [
     {id:'g1', ini:'AB', period:'P2', name:'Two-step equations', denom:5, collected:'Mar 4', filled:null},
     {id:'g2', ini:'CD', period:'P2', name:'Multiply fractions', denom:8, collected:'Mar 4', filled:null}
   ],
+  // F3 proposed / baseline track — SEGREGATED, never in the active weekly dashboard
+  proposed: [
+    {id:'p1', ini:'RT', period:'P4', name:'Elapsed-time word problems', behavior:'solve elapsed-time word problems',
+     arc:'Oct 14', windowOpen:'Sep 2', windowClose:'Sep 26', denom:5, points:[35,45]},
+    {id:'p2', ini:'JM', period:'P2', name:'Equivalent fractions', behavior:'identify equivalent fractions',
+     arc:'Nov 3', windowOpen:'Sep 22', windowClose:'Oct 17', denom:8, points:[20,30,25]}
+  ],
+  newGoal: freshNewGoal(),
   detailGoal:'g1',
-  dayEdit:0,
-  // planner day types recomputed from coreDays; 0=Mon..4=Fri
-  days:['core','core','core','iep','iep'],
-  weekMode:'normal'       // 'normal' | 'testing'
+  plan: { weekIdx:0, segIdx:2, view:'week', editMode:false, dragFrom:null, dayEdit:0, conceptStart:0, otherTopic:'', otherStd:'', days:[] }
 };
 
 /* history for goal detail (ARC-auditable). admin date drives everything. */
@@ -401,16 +504,38 @@ var TREND = {
   g7:[ {wk:1,v:60,base:true},{wk:2,v:78},{wk:3,v:84},{wk:4,v:100},{wk:5,v:80},{wk:6,v:100},{wk:7,v:84} ]
 };
 
+/* D2: every goal reaches Goal Detail. Goals without hand-authored data get a deterministic
+   synthetic history/trend built once, so trend + consistency window + ARC table all render. */
+function ensureGoalData(x){
+  if(TREND[x.id]) return;
+  var dates=['Jan 29','Feb 5','Feb 12','Feb 19','Feb 26','Mar 4'];
+  var lvl=x.level, last=(x.val!=null?x.val:lvl+4);
+  var seq=[Math.max(10,lvl-45), lvl-20, lvl-5, null, lvl, last];
+  var tr=[], hist=[];
+  seq.forEach(function(v,i){
+    if(v===null){
+      tr.push({wk:i+1,nodata:true});
+      hist.unshift({admin:dates[i],entry:dates[i],ct:'—',pct:null,probe:x.probe.split(',')[0],setting:'—',scorer:'NS',valid:'—',nodata:'Absent'});
+      return;
+    }
+    v=Math.max(0,Math.min(100,Math.round(v)));
+    var corr=Math.max(0,Math.min(x.denom,Math.round(v/100*x.denom)));
+    tr.push(i===0?{wk:1,v:v,base:true}:{wk:i+1,v:v});
+    hist.unshift({admin:dates[i],entry:dates[i],ct:corr+'/'+x.denom,pct:v,probe:x.probe.split(',')[0],setting:'Resource',scorer:'NS',valid:'—',base:i===0});
+  });
+  TREND[x.id]=tr; HISTORY[x.id]=hist;
+}
+
 /* ---------------- helpers ---------------- */
 function $(id){ return document.getElementById(id); }
 function esc(s){ return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function pct(c,d){ return d>0 ? Math.round((c/d)*100) : 0; }
-function glyph(st){ return {owes:'○',logged:'●',nodata:'⊘',mastery:'★',pending:'⏳'}[st]; }
+function glyph(st){ return {owes:'○',logged:'●',nodata:'⊘',mastery:'★',pending:'⏳',incomplete:'◐',queued:'◷'}[st]; }
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},1900); }
+/* D1: keep a student's goals adjacent + alphabetized within any group */
+function byIni(a,b){ return a.ini<b.ini?-1:(a.ini>b.ini?1:(a.id<b.id?-1:1)); }
 
-/* student identity: fixed color per student, reused on EVERY screen (LOCKED 2026-08-30).
-   Deterministic map keyed by initials; falls back to a stable hash for unknown initials.
-   Palette avoids green/amber/red (status hues). Initials stay the primary identifier. */
+/* student identity: fixed color per student, reused on EVERY screen (LOCKED 2026-08-30). */
 var STUDENT_HUES=['ab','cd','ef','gh','jm','rt'];
 var STUDENT_HUE={ AB:'ab', CD:'cd', EF:'ef', GH:'gh', JM:'jm', RT:'rt' };
 function hueClass(ini){
@@ -446,7 +571,7 @@ function setRole(r){
 function go(sc){
   S.screen=sc; closeSheet();
   document.querySelectorAll('#tabbar button').forEach(function(b){
-    var track=['dashboard','toscore','goalDetail','para'];
+    var track=['dashboard','toscore','goalDetail','para','newGoal','baseline'];
     b.classList.toggle('on', (b.dataset.tab==='track') ? track.indexOf(sc)>=0 : ['planWeek','dayEditor','reconcile'].indexOf(sc)>=0);
   });
   render(); $('screen').scrollTop=0;
@@ -456,7 +581,8 @@ function go(sc){
 function render(){
   var el=$('screen');
   var m={ dashboard:renderDashboard, toscore:renderToScore, goalDetail:renderGoalDetail,
-          para:renderPara, planWeek:renderPlanWeek, dayEditor:renderDayEditor, reconcile:renderReconcile };
+          para:renderPara, planWeek:renderPlanWeek, dayEditor:renderDayEditor, reconcile:renderReconcile,
+          newGoal:renderNewGoal, baseline:renderBaseline };
   el.innerHTML = (m[S.screen]||renderDashboard)();
 }
 
@@ -467,8 +593,10 @@ function renderDashboard(){
   var excused=g.filter(x=>x.status==='nodata').length;
   var scored=g.filter(x=>x.status==='logged'||x.status==='mastery').length;
   var pend=g.filter(x=>x.status==='pending').length;
+  var queuedN=g.filter(x=>x.status==='queued').length;
+  var incompleteN=g.filter(x=>x.status==='incomplete').length;
   var collectable=g.length-excused;
-  var owe=collectable-scored-pend;
+  var owe=collectable-scored-pend-queuedN-incompleteN;
 
   var h='';
   h+='<div class="headline">';
@@ -485,6 +613,8 @@ function renderDashboard(){
   h+= '<div style="font-size:.82rem;color:var(--text-dim)">'+scored+' of '+collectable+' collectable scored'+
       (excused? ' · '+excused+' excused':'')+(owe? ' · '+owe+' owe':'')+'</div>';
   if(pend) h+='<div class="pendnote">⏳ '+pend+' para point'+(pend>1?'s':'')+' awaiting your OK</div>';
+  if(queuedN) h+='<div class="pendnote queue">◷ '+queuedN+' collected — to score</div>';
+  if(incompleteN) h+='<div class="pendnote hold">◐ '+incompleteN+' incomplete — needs resolution</div>';
   h+='</div>';
 
   // grouping toggle (O4) — owes-first → by period → by student
@@ -492,26 +622,33 @@ function renderDashboard(){
      '<button class="btn small ghost" onclick="toggleGroup()">Group: '+(S.group==='owes'?'owes-first':S.group==='period'?'by period':'by student')+'</button></div>';
 
   if(S.group==='owes'){
-    h+=renderGroupLabel('Owes a point','owes');
-    g.filter(x=>x.status==='owes').forEach(function(x){ h+=goalRow(x); });
+    var owesL=g.filter(x=>x.status==='owes').sort(byIni);
+    var incL=g.filter(x=>x.status==='incomplete').sort(byIni);
+    var queuedL=g.filter(x=>x.status==='queued').sort(byIni);
+    var pendL=g.filter(x=>x.status==='pending').sort(byIni);
+    var doneL=g.filter(x=>['logged','nodata','mastery'].indexOf(x.status)>=0).sort(byIni);
+    h+=renderGroupLabel('Owes a point','owes'); owesL.forEach(function(x){ h+=goalRow(x); });
+    if(incL.length){ h+=renderGroupLabel('Incomplete — needs resolution','owes'); incL.forEach(function(x){ h+=goalRow(x); }); }
+    if(queuedL.length){ h+=renderGroupLabel('Collected — score later','done'); queuedL.forEach(function(x){ h+=goalRow(x); }); }
     h+=renderGroupLabel('Needs your OK','pend');
-    var pl=g.filter(x=>x.status==='pending'); if(!pl.length) h+='<div class="note" style="margin:0 .2rem .5rem">None right now.</div>';
-    pl.forEach(function(x){ h+=validateRow(x); });
+    if(!pendL.length) h+='<div class="note" style="margin:0 .2rem .5rem">None right now.</div>';
+    pendL.forEach(function(x){ h+=validateRow(x); });
     h+=renderGroupLabel('Done this week','done');
-    g.filter(x=>['logged','nodata','mastery'].indexOf(x.status)>=0).forEach(function(x){ h+=goalRow(x); });
+    doneL.forEach(function(x){ h+=goalRow(x); });
   } else if(S.group==='period'){
     ['P2','P4'].forEach(function(p){
       h+=renderGroupLabel('Period '+p,'done');
-      g.filter(x=>x.period===p).forEach(function(x){ x.status==='pending'? h+=validateRow(x) : h+=goalRow(x); });
+      g.filter(x=>x.period===p).sort(byIni).forEach(function(x){ x.status==='pending'? h+=validateRow(x) : h+=goalRow(x); });
     });
   } else {
     h+=renderByStudent(g);
   }
 
   h+='<div class="btnrow" style="margin-top:.9rem">'+
-     '<button class="btn primary wide" onclick="openScore(null)">&#43; Score a probe</button>'+
+     '<button class="btn primary wide" onclick="go(\'newGoal\')">&#43; New goal</button>'+
      '<button class="btn wide" onclick="go(\'toscore\')">To-score ('+S.toScore.length+')</button>'+
      '</div>';
+  h+='<button class="btn wide ghost" style="width:100%;margin-top:.5rem" onclick="go(\'baseline\')">Baseline / proposed goals ('+S.proposed.length+')</button>';
   return h;
 }
 function renderGroupLabel(txt, kind){
@@ -519,41 +656,56 @@ function renderGroupLabel(txt, kind){
 }
 function toggleGroup(){ S.group = S.group==='owes'?'period':(S.group==='period'?'student':'owes'); render(); }
 
-/* by-student lens (O4 third option). Each student = a card headed by their avatar + period(s),
-   their goals nested under with a matching color rail. Status color still wins per row. */
+/* context action for a goal row: owes/queued → score; incomplete → resolve; scored → history (D3) */
+function rowAction(x){
+  if(x.status==='owes'||x.status==='queued') return "openScore('"+x.id+"')";
+  if(x.status==='incomplete') return "openResolve('"+x.id+"')";
+  return "openDetail('"+x.id+"')";
+}
+
+/* by-student lens (O4 third option). D1: students owes-first then alphabetical; a student's goals stay nested/adjacent. */
 function renderByStudent(g){
   var seen=[];
   g.forEach(function(x){ if(seen.indexOf(x.ini)<0) seen.push(x.ini); });
-  // owes-first ordering of students, so anyone owing a point floats up
+  var isTodo=function(s){ return s==='owes'||s==='incomplete'||s==='queued'; };
   seen.sort(function(a,b){
-    var ao=g.some(x=>x.ini===a&&x.status==='owes')?0:1;
-    var bo=g.some(x=>x.ini===b&&x.status==='owes')?0:1;
-    return ao-bo;
+    var ao=g.some(x=>x.ini===a&&isTodo(x.status))?0:1;
+    var bo=g.some(x=>x.ini===b&&isTodo(x.status))?0:1;
+    if(ao!==bo) return ao-bo;
+    return a<b?-1:1;
   });
   var h='';
   seen.forEach(function(ini){
-    var goals=g.filter(x=>x.ini===ini);
+    var goals=g.filter(x=>x.ini===ini).sort(byIni);
     var periods=goals.map(x=>x.period).filter(function(v,i,a){return a.indexOf(v)===i;});
     var hue=hueClass(ini);
-    var owes=goals.filter(x=>x.status==='owes').length;
+    var todo=goals.filter(x=>isTodo(x.status)).length;
     h+='<div class="scard">';
     h+='<div class="shead">'+avatar(ini)+'<span class="name">'+esc(ini)+'</span>'+
        '<span class="period">'+esc(periods.join(' / '))+'</span>'+
-       (owes? '<span style="margin-left:auto;color:var(--owes);font-weight:800;font-size:.76rem">'+owes+' owe</span>'
+       (todo? '<span style="margin-left:auto;color:var(--owes);font-weight:800;font-size:.76rem">'+todo+' to do</span>'
             : '<span style="margin-left:auto;color:var(--logged);font-weight:800;font-size:.76rem">✓ done</span>')+
        '</div>';
     goals.forEach(function(x){
-      var onclick = x.status==='mastery' ? "openDetail('"+x.id+"')" : "openScore('"+x.id+"')";
+      var ctx=rowAction(x);
       var right;
       if(x.status==='owes') right='<span style="color:var(--owes);font-weight:800">owes</span>';
       else if(x.status==='nodata') right='<span style="color:var(--nodata)">⊘ '+esc(x.reason)+'</span>';
       else if(x.status==='pending') right='<span style="color:var(--pending);font-weight:700">⏳ OK?</span>';
       else if(x.status==='mastery') right='<span style="color:var(--mastery);font-weight:800">'+x.val+'% ★</span>';
+      else if(x.status==='incomplete') right='<span style="color:var(--owes);font-weight:800">◐ finish</span>';
+      else if(x.status==='queued') right='<span style="color:var(--accent);font-weight:800">◷ score</span>';
       else right='<b>'+x.val+'%</b>';
-      h+='<button class="sgoal" onclick="'+onclick+'">'+
+      var actions='';
+      if(x.status==='owes') actions+='<button class="minibtn book" title="Gave it — score later" aria-label="Gave it, score later" onclick="bookmark(\''+x.id+'\')">⚑</button>';
+      if(['owes','queued','incomplete'].indexOf(x.status)>=0) actions+='<button class="minibtn" title="Trend & history" aria-label="Trend and history" onclick="openDetail(\''+x.id+'\')">↗</button>';
+      h+='<div class="sgoal">'+
          '<span class="rail '+hue+'"></span>'+
          '<span class="chip '+x.status+'">'+glyph(x.status)+'</span>'+
-         '<span class="g">'+esc(x.name)+'</span>'+right+'</button>';
+         '<span class="g tap" onclick="'+ctx+'">'+esc(x.name)+'</span>'+
+         '<span class="tap" onclick="'+ctx+'">'+right+'</span>'+
+         (actions?'<span class="rowactions">'+actions+'</span>':'')+
+         '</div>';
     });
     h+='</div>';
   });
@@ -561,32 +713,49 @@ function renderByStudent(g){
 }
 
 function goalRow(x){
+  var ctx=rowAction(x);
+  // Rows with action buttons (owes/queued/incomplete) fold their value into the meta line,
+  // so the right column holds ONLY the buttons — otherwise value + buttons crowd the title.
+  var hasActions = (x.status==='owes'||x.status==='queued'||x.status==='incomplete');
   var right='';
   if(x.status==='logged'||x.status==='mastery'){
     right='<div class="rowval">'+x.val+'%</div>'+(x.pending?'<div class="sync">⟳ pending sync</div>':'');
-  } else if(x.status==='owes'){
-    right='<div class="rowval dim">'+x.crit+'</div>';
   } else if(x.status==='nodata'){
     right='<div class="rowval dim">no data</div>';
   }
-  var meta = x.period+' · '+(x.freq!=='weekly'?('<span style="color:var(--pending)">'+x.freq+'</span> · '):'') +
-    (x.status==='nodata'?('<span style="color:var(--nodata)">reason: '+esc(x.reason)+'</span>'):esc(x.probe.split(',')[0]));
-  var extra = x.status==='mastery' ? '<div class="rowmeta" style="color:var(--mastery);font-weight:700">criterion window met — review</div>':'';
-  var onclick = x.status==='mastery' ? "openDetail('"+x.id+"')" : "openScore('"+x.id+"')";
-  return '<button class="row '+(x.status==='owes'?'owes':'')+'" onclick="'+onclick+'">'+
+  var meta;
+  if(x.status==='nodata') meta = x.period+' · <span style="color:var(--nodata)">reason: '+esc(x.reason)+'</span>';
+  else if(x.status==='queued') meta = x.period+' · <span style="color:var(--accent)">collected — to score</span>';
+  else if(x.status==='incomplete'){ var pr=x.partial||{}; meta=x.period+' · <span style="color:var(--owes)">partial'+(pr.done?' ('+pr.done+'/'+pr.denom+' done)':'')+'</span>'; }
+  else if(x.status==='owes') meta = x.period+' · '+esc(x.probe.split(',')[0])+' · <span style="color:var(--text-dim);font-weight:700">'+esc(x.crit)+'</span>';
+  else meta = x.period+' · '+(x.freq!=='weekly'?('<span style="color:var(--pending)">'+x.freq+'</span> · '):'')+esc(x.probe.split(',')[0]);
+  var extra='';
+  if(x.status==='mastery') extra='<div class="rowmeta" style="color:var(--mastery);font-weight:700">criterion window met — review</div>';
+  else if(x.status==='incomplete') extra='<div class="rowmeta" style="color:var(--owes);font-weight:700">◐ incomplete — tap to resolve</div>';
+  var rc = x.status==='owes'?'owes':(x.status==='incomplete'?'incomplete':(x.status==='queued'?'queued':''));
+  var actions='';
+  if(x.status==='owes') actions+='<button class="minibtn book" title="Gave it — score later" aria-label="Gave it, score later" onclick="bookmark(\''+x.id+'\')">⚑</button>';
+  if(hasActions) actions+='<button class="minibtn" title="Trend & history" aria-label="Trend and history" onclick="openDetail(\''+x.id+'\')">↗</button>';
+  return '<div class="row '+rc+'">'+
     '<span class="chip '+x.status+'">'+glyph(x.status)+'</span>'+
     avatar(x.ini)+
-    '<span class="rowmain"><span class="rowtitle">'+esc(x.name)+'</span>'+
+    '<span class="rowmain tap" onclick="'+ctx+'"><span class="rowtitle">'+esc(x.name)+'</span>'+
       '<span class="rowmeta">'+meta+'</span>'+extra+'</span>'+
-    '<span class="rowright">'+right+'</span></button>';
+    (right?'<span class="rowright tap" onclick="'+ctx+'">'+right+'</span>':'')+
+    (actions?'<span class="rowactions">'+actions+'</span>':'')+
+    '</div>';
 }
 function validateRow(x){
   var p=x.pending;
+  var mm = p.mismatch ? '<span class="mismatch"> · ⚠ total '+p.denom+' vs assigned '+p.expected+'</span>' : '';
+  var obs = (p.obs&&p.obs.length)? ' · '+esc(p.obs.join(', ')) : '';
+  var setg = p.setting? ' · '+esc(p.setting) : '';
   return '<div class="row validate">'+
     '<span class="chip pending">⏳</span>'+
     avatar(x.ini)+
     '<div class="rowmain"><div class="rowtitle">'+esc(x.name)+'</div>'+
-      '<div class="rowmeta">'+x.period+' · '+p.correct+'/'+p.denom+' = '+pct(p.correct,p.denom)+'% · entered by JT</div>'+
+      '<div class="rowmeta">'+x.period+' · '+p.correct+'/'+p.denom+' = '+pct(p.correct,p.denom)+'% · '+esc(p.date||'')+setg+' · JT'+mm+obs+'</div>'+
+      (p.mismatch?'<div class="note" style="color:var(--owes)">Total differs from the assigned probe — original-vs-used retained; excluded from the consistency window until you resolve.</div>':'')+
       '<div class="valbtns">'+
         '<button class="btn small primary" onclick="confirmPara(\''+x.id+'\')">Confirm</button>'+
         '<button class="btn small" onclick="openScore(\''+x.id+'\')">Fix</button>'+
@@ -595,27 +764,51 @@ function validateRow(x){
 }
 function confirmPara(id){
   var x=S.goals.find(g=>g.id===id); if(!x||!x.pending) return;
-  var p=x.pending;
-  x.status='logged'; x.val=pct(p.correct,p.denom); x.pending=false; x.scorer='JT (para)'; x.validated='NS';
+  var pnd=x.pending;
+  x.status='logged'; x.val=pct(pnd.correct,pnd.denom); x.scorer='JT (para)'; x.validated='NS';
   HISTORY[id]=HISTORY[id]||[];
-  HISTORY[id].unshift({admin:p.date, entry:p.date, ct:p.correct+'/'+p.denom, pct:x.val, probe:x.probe.split(',')[0], setting:'Resource', scorer:'JT (para)', valid:'NS today'});
-  toast('Para point confirmed · now counts');
+  var row={admin:pnd.date||'Mar 4', entry:'Mar 4', ct:pnd.correct+'/'+pnd.denom, pct:x.val, probe:x.probe.split(',')[0], setting:pnd.setting||'Resource', scorer:'JT (para)', valid:'NS today'};
+  if(pnd.mismatch) row.mismatch=true;
+  HISTORY[id].unshift(row);
+  x.pending=false;
+  toast(pnd.mismatch? 'Confirmed · mismatch kept in audit':'Para point confirmed · now counts');
+  render();
+}
+
+/* ---- [D6] one-tap bookmark: probe given, score later ---- */
+function bookmark(id){
+  var x=S.goals.find(g=>g.id===id); if(!x||x.status!=='owes') return;
+  x.status='queued';
+  if(!S.toScore.some(t=>t.id===id))
+    S.toScore.push({id:x.id, ini:x.ini, period:x.period, name:x.name, denom:x.denom, collected:'Mar 4', filled:null});
+  toast('Marked given · added to To-score · owe cleared');
   render();
 }
 
 /* ---- [B] Quick-Score bottom sheet ---- */
-function openScore(id){
-  if(!id){
-    // pick a goal to score: default first owing
-    var owe=S.goals.find(x=>x.status==='owes'); id = owe?owe.id:S.goals[0].id;
-  }
+function openScore(id, opts){
+  opts=opts||{};
+  if(!id){ var owe=S.goals.find(x=>x.status==='owes'); id = owe?owe.id:S.goals[0].id; }
   var x=S.goals.find(g=>g.id===id); if(!x) return;
-  var isPara = S.role==='para';
-  var start = (x.pending && x.pending.correct!=null) ? x.pending.correct : 0;
-  S.score={ id:id, correct:start, denom:x.denom, reason:null, mode:'score', moreOpen:false };
+  var start = (x.pending && x.pending.correct!=null) ? x.pending.correct
+            : (x.partial && x.partial.correct!=null ? x.partial.correct : 0);
+  var denom = (opts.denom!=null) ? opts.denom : x.denom;
+  S.score={ id:id, correct:start, denom:denom, reason:null, mode:'score', moreOpen:!!opts.fromQueue,
+            date:opts.date||'Today · Mar 4', setting:'Resource', obs:[], accoms:[],
+            queueIdx:(opts.queueIdx!=null?opts.queueIdx:null), collected:opts.collected||null };
   drawSheet();
   openSheet();
 }
+var PARA_DATES=['Today · Mar 4','Wed · Mar 3','Tue · Mar 2','Mon · Mar 1','Fri · Feb 28'];
+var SETTINGS=['Resource','Small group','1:1','Gen-ed'];
+/* Para observation menu — LOCKED multi-select (design-decisions §F.F1-update). Fully closed set, no free text (FERPA). */
+var PARA_OBS=['Independent','Accommodation','Within 2 prompts','3+ prompts','Frustrated','Off-task','Task-refusal','On-task but needed more time','Used learned strategy','Self-corrected'];
+var ACCOM_TYPES=['Calculator','Multiplication Grid','Worked Example','Manipulatives','Keyword List','Symbol Chart'];
+function setScoreDate(d){ S.score.date=d; drawSheet(); }
+function setScoreSetting(st){ S.score.setting=st; drawSheet(); }
+function toggleObs(o){ var a=S.score.obs; var i=a.indexOf(o); if(i>=0){ a.splice(i,1); if(o==='Accommodation') S.score.accoms=[]; } else a.push(o); drawSheet(); }
+function toggleAccom(a){ var arr=S.score.accoms; var i=arr.indexOf(a); if(i>=0)arr.splice(i,1); else arr.push(a); drawSheet(); }
+
 function drawSheet(){
   var s=S.score; var x=S.goals.find(g=>g.id===s.id);
   var isPara = S.role==='para';
@@ -638,8 +831,9 @@ function drawSheet(){
   }
 
   var p = pct(s.correct, s.denom);
+  var mism = (isPara && s.denom!==x.denom);
   h+='<div class="whowhat" style="display:flex;align-items:center;gap:.5rem">'+avatar(x.ini)+'<span>'+x.period+' · '+esc(x.name)+'</span></div>';
-  h+='<div class="ctx">Probe: '+esc(x.probe)+' · Setting: Resource'+(isPara?'<span class="locked">locked</span>':'')+'</div>';
+  h+='<div class="ctx">Probe: '+esc(x.probe)+' · Setting: '+(isPara?esc(s.setting):'Resource'+'<span class="locked">this session</span>')+'</div>';
 
   h+='<div class="scorewrap"><div style="font-size:.8rem;color:var(--text-dim);font-weight:700"># CORRECT</div>'+
      '<div class="scoreline">'+
@@ -648,8 +842,8 @@ function drawSheet(){
        '<button class="stepbtn" onclick="step(1)">+</button>'+
      '</div>'+
      '<div class="ofwrap">of '+
-       (isPara ? '<b style="color:var(--text)">'+s.denom+'</b><span class="locked">from probe</span>'
-               : '<input class="ofin" id="ofin" inputmode="numeric" value="'+s.denom+'" onchange="typeDenom(this.value)">')+
+       '<input class="ofin" id="ofin" inputmode="numeric" value="'+s.denom+'" onchange="typeDenom(this.value)">'+
+       (mism? '<span class="mismatch">⚠ assigned '+x.denom+'</span>':'')+
      '</div>'+
      '<div class="pct">'+p+'<small>%</small></div>'+
    '</div>';
@@ -660,20 +854,34 @@ function drawSheet(){
      '</div>';
 
   if(isPara){
-    h+='<div class="more"><div class="field"><span class="lab">Date</span><span class="val">Today'+
-       '<span class="locked">locked</span></span></div>'+
-       '<div class="field"><span class="lab">Probe</span><span class="val">'+esc(x.probe)+'<span class="locked">read-only</span></span></div>'+
-       '<div class="field"><span class="lab">Lands as</span><span class="val" style="color:var(--pending)">⏳ pending — teacher confirms</span></div>'+
-       '</div>';
+    // F1: para may set a BOUNDED admin date (no future), a SETTING from a picklist, and this probe's TOTAL.
+    // Observations are a LOCKED multi-select chip set — no free-text student notes (FERPA hard stop). Everything lands ⏳ pending.
+    h+='<div class="more">';
+    h+='<label style="margin-top:0">Date administered <span class="locked">today or recent · no future</span></label>';
+    h+='<div class="chips">'+PARA_DATES.map(function(d){ return '<button class="dchip'+(s.date===d?' on':'')+'" onclick="setScoreDate(\''+d+'\')">'+d+'</button>'; }).join('')+'</div>';
+    h+='<label>Setting</label>';
+    h+='<div class="chips">'+SETTINGS.map(function(st){ return '<button class="dchip'+(s.setting===st?' on':'')+'" onclick="setScoreSetting(\''+st+'\')">'+st+'</button>'; }).join('')+'</div>';
+    h+='<label>Observations <span style="text-transform:none;font-weight:600">(select all that apply)</span></label>';
+    h+='<div class="chips">'+PARA_OBS.map(function(o){ return '<button class="dchip'+(s.obs.indexOf(o)>=0?' on':'')+'" onclick="toggleObs(\''+esc(o)+'\')">'+esc(o)+'</button>'; }).join('')+'</div>';
+    if(s.obs.indexOf('Accommodation')>=0){
+      h+='<label>Which accommodation(s)?</label>';
+      h+='<div class="chips">'+ACCOM_TYPES.map(function(a){ return '<button class="dchip'+(s.accoms.indexOf(a)>=0?' on':'')+'" onclick="toggleAccom(\''+esc(a)+'\')">'+esc(a)+'</button>'; }).join('')+'</div>';
+    }
+    h+='<div class="note">Tap-select only — no free typing, by design.</div>';
+    if(mism) h+='<div class="note" style="color:var(--owes)">Total differs from the assigned probe ('+x.denom+'). It lands flagged for the teacher to resolve; the goal\'s denominator is not changed here.</div>';
+    h+='<div class="field"><span class="lab">Student notes</span><span class="val" style="color:var(--nodata)">teacher-only — not on this device</span></div>';
+    h+='<div class="field"><span class="lab">Lands as</span><span class="val" style="color:var(--pending)">⏳ pending — teacher confirms</span></div>';
+    h+='</div>';
   } else {
     h+='<div class="more"><button class="moretoggle" onclick="toggleMore()">'+(s.moreOpen?'▾':'▸')+' More (date · setting · probe · note)</button>'+
        '<div class="morebody'+(s.moreOpen?' open':'')+'">'+
-         '<div class="field"><span class="lab">Date administered</span><span class="val">Today · Mar 4 ✎</span></div>'+
+         '<div class="field"><span class="lab">Date administered</span><span class="val">'+esc(s.date)+' ✎</span></div>'+
          '<div class="field"><span class="lab">Setting</span><span class="val">Resource ✎</span></div>'+
          '<div class="field"><span class="lab">Probe</span><span class="val">'+esc(x.probe)+' ✎</span></div>'+
          '<div class="field"><span class="lab">Note (no names)</span><span class="val" style="color:var(--text-dim)">optional ✎</span></div>'+
          '<button class="btn small ghost" onclick="collectLater()">Collected — score later</button>'+
        '</div></div>';
+    h+='<div style="text-align:center;margin-top:.4rem"><button class="moretoggle" style="color:var(--owes)" onclick="saveIncomplete()">Didn\'t finish the probe — save as incomplete</button></div>';
   }
   $('sheet').innerHTML=h;
 }
@@ -683,31 +891,62 @@ function step(d){ var s=S.score; s.correct=Math.max(0, Math.min(s.denom, s.corre
 function typeNum(v){ var s=S.score; var n=parseInt(v,10); if(isNaN(n))n=0; s.correct=Math.max(0,Math.min(s.denom,n)); drawSheet(); }
 function typeDenom(v){ var s=S.score; var n=parseInt(v,10); if(isNaN(n)||n<1)n=1; s.denom=n; if(s.correct>n)s.correct=n; drawSheet(); }
 function pickReason(r){ S.score.reason=r; drawSheet(); }
-function collectLater(){ toast('Added to To-score · dated today'); closeSheet(); }
+function collectLater(){
+  var s=S.score; var x=S.goals.find(g=>g.id===s.id);
+  if(x && x.status==='owes'){ bookmark(x.id); }
+  else toast('Added to To-score · dated today');
+  closeSheet();
+}
 
 function saveScore(){
   var s=S.score; var x=S.goals.find(g=>g.id===s.id);
   var p=pct(s.correct,s.denom);
   if(S.role==='para'){
     x.status='pending';
-    x.pending={correct:s.correct, denom:s.denom, date:'Mar 4'};
+    var obsList=s.obs.slice();
+    if(s.obs.indexOf('Accommodation')>=0 && s.accoms.length) obsList=obsList.map(function(o){ return o==='Accommodation' ? 'Accommodation ('+s.accoms.join(', ')+')' : o; });
+    x.pending={correct:s.correct, denom:s.denom, date:s.date.replace(/^Today · /,''), setting:s.setting, obs:obsList, expected:x.denom, mismatch:(s.denom!==x.denom)};
     toast('Sent for teacher OK · saved offline');
     closeSheet(); render(); return;
   }
-  x.status=(x.acked!==undefined && p>=x.level)? x.status : 'logged';
-  x.status='logged'; x.val=p; x.pending=true; x.scorer='NS';
+  x.status='logged'; x.val=p; x.pending=true; x.scorer='NS'; x.partial=null;
+  var admin = s.collected || 'Mar 4';
   HISTORY[x.id]=HISTORY[x.id]||[];
-  HISTORY[x.id].unshift({admin:'Mar 4', entry:'Mar 4', ct:s.correct+'/'+s.denom, pct:p, probe:x.probe.split(',')[0], setting:'Resource', scorer:'NS', valid:'—'});
+  HISTORY[x.id].unshift({admin:admin, entry:'Mar 4', ct:s.correct+'/'+s.denom, pct:p, probe:x.probe.split(',')[0], setting:s.setting||'Resource', scorer:'NS', valid:'—'});
+  if(s.queueIdx!=null){ S.toScore=S.toScore.filter(function(t){return t.id!==s.id;}); }
   toast('Saved '+p+'% · syncs when online');
   closeSheet(); render();
 }
 function recordNoData(){
   var s=S.score; if(!s.reason) return;
   var x=S.goals.find(g=>g.id===s.id);
-  x.status='nodata'; x.reason=s.reason; x.val=null;
+  x.status='nodata'; x.reason=s.reason; x.val=null; x.partial=null;
   toast('No data recorded · '+s.reason);
   closeSheet(); render();
 }
+/* F2: partially administered → holds as "incomplete", no %, not in trend/consistency */
+function saveIncomplete(){
+  var s=S.score; var x=S.goals.find(g=>g.id===s.id);
+  x.status='incomplete'; x.partial={correct:s.correct, done:s.correct, denom:s.denom}; x.val=null;
+  toast('Saved as incomplete · needs resolution');
+  closeSheet(); render();
+}
+
+/* F2 resolve sheet */
+function openResolve(id){ S.resolveId=id; drawResolveSheet(); openSheet(); }
+function drawResolveSheet(){
+  var x=S.goals.find(g=>g.id===S.resolveId); var pr=x.partial||{};
+  var h='<div class="grip"></div>';
+  h+='<div class="whowhat" style="display:flex;align-items:center;gap:.5rem">'+avatar(x.ini)+'<span>'+x.period+' · '+esc(x.name)+'</span></div>';
+  h+='<div class="ctx">◐ Incomplete — probe started but not finished'+(pr.done!=null?' ('+pr.done+' of '+pr.denom+' items done)':'')+'. It holds: no % yet, and it is not in the trend or the consistency window.</div>';
+  h+='<button class="resolveopt" onclick="resolveFinish()"><span class="ig">✎</span><span><span class="rt">Finish / re-administer → one full point</span>'+
+     '<span class="rd">Enter the remaining items into one full-denominator point (same probe).</span></span></button>';
+  h+='<button class="resolveopt" onclick="resolveToNoData()"><span class="ig">⊘</span><span><span class="rt">Convert to no-data + reason</span>'+
+     '<span class="rd">Record it honestly as no-data with a required reason. Kept separate from a never-administered “No time” gap.</span></span></button>';
+  $('sheet').innerHTML=h;
+}
+function resolveFinish(){ var id=S.resolveId; openScore(id); }
+function resolveToNoData(){ var id=S.resolveId; openScore(id); S.score.mode='nodata'; drawSheet(); }
 
 function openSheet(){ $('scrim').classList.add('open'); requestAnimationFrame(function(){ $('sheet').classList.add('open'); }); }
 function closeSheet(){ $('sheet').classList.remove('open'); $('scrim').classList.remove('open'); }
@@ -716,14 +955,14 @@ function closeSheet(){ $('sheet').classList.remove('open'); $('scrim').classList
 function renderToScore(){
   var h='<div class="backrow"><button class="back" onclick="go(\'dashboard\')">‹ Dashboard</button></div>';
   h+='<h1>To-score</h1>';
-  h+='<div class="sub">Collected, not yet scored — score tonight at home.'+
+  h+='<div class="sub">Collected, not yet scored — score tonight at home. Tap a student for the full editor (date · setting · notes), or use the steppers for a quick batch.'+
      tip('tipQueue','The date shown is when you gave the probe, not tonight when you score it. That keeps the weekly cadence and trend honest.')+'</div>';
   if(!S.toScore.length){ h+='<div class="card">All caught up.</div>'; return h; }
   S.toScore.forEach(function(t,i){
     var p = t.filled!=null ? pct(t.filled,t.denom)+'%' : '—';
     h+='<div class="card tight">'+
-       '<div style="display:flex;align-items:center;gap:.55rem;margin-bottom:.4rem">'+avatar(t.ini)+
-         '<div style="min-width:0"><div class="rowtitle">'+esc(t.name)+'</div>'+
+       '<div class="tap" style="display:flex;align-items:center;gap:.55rem;margin-bottom:.4rem" onclick="openScore(\''+t.id+'\',{queueIdx:'+i+',denom:'+t.denom+',collected:\''+t.collected+'\',date:\'collected '+t.collected+'\'})">'+avatar(t.ini)+
+         '<div style="min-width:0"><div class="rowtitle">'+esc(t.name)+' <span class="editpt">full editor ›</span></div>'+
          '<div class="rowmeta">'+t.period+' · collected '+t.collected+' <span class="locked">admin date</span></div></div></div>'+
        '<div class="scoreline" style="justify-content:flex-start;gap:.5rem">'+
          '<button class="stepbtn" style="width:2.6rem;height:2.6rem;font-size:1.4rem" onclick="qStep('+i+',-1)">−</button>'+
@@ -756,16 +995,24 @@ function saveAllQueue(){
 function openDetail(id){ S.detailGoal=id; go('goalDetail'); }
 function renderGoalDetail(){
   var x=S.goals.find(g=>g.id===S.detailGoal); if(!x) x=S.goals[0];
+  ensureGoalData(x);
   var tr=TREND[x.id]||TREND.g1;
   var hist=HISTORY[x.id]||[];
+  var baseP = (tr.find(function(p){return p.base;})||{}).v;
   var h='<div class="backrow"><button class="back" onclick="go(\'dashboard\')">‹ Dashboard</button></div>';
   h+='<div style="display:flex;align-items:center;gap:.6rem;margin:.1rem 0 .3rem">'+avatar(x.ini)+
      '<div style="min-width:0"><h1 style="margin:0">'+esc(x.name)+'</h1>'+
-     '<div class="sub" style="margin:.1rem 0 0">'+x.period+' · Criterion: '+esc(x.crit)+' · Baseline 20% (Jan 8)</div></div></div>';
+     '<div class="sub" style="margin:.1rem 0 0">'+x.period+' · Criterion: '+esc(x.crit)+(baseP!=null?' · Baseline '+baseP+'%':'')+'</div></div></div>';
+
+  // add-a-point (D3: history opens with an add-new action, never a blanked re-entry)
+  h+='<div class="btnrow" style="margin-top:0"><button class="btn primary wide" onclick="openScore(\''+x.id+'\')">&#43; Add a point</button></div>';
 
   // chart
   h+='<div class="card"><div class="chartwrap">'+trendSVG(tr,x.level)+'</div>'+
      '<div class="note">⊘ no-data probe shown as a gap, never plotted as a zero.</div></div>';
+
+  // F4 quarterly progress summary (report-card number)
+  h+=quarterlySummary(x);
 
   // consistency window
   var scored=tr.filter(p=>!p.nodata).map(p=>p.v);
@@ -788,29 +1035,101 @@ function renderGoalDetail(){
   }
   h+='</div>';
 
-  // ARC history table
+  // ARC history table (D3 edit; retains prior value per §B audit trail)
   h+='<div class="card"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem"><b>ARC history (audit)</b></div>'+
      '<div class="tablewrap"><table><thead><tr>'+
      '<th>Admin date</th><th>Entered</th><th>Correct/total</th><th>%</th><th>Probe</th><th>Setting</th><th>Scorer</th><th>Validated by</th>'+
      '</tr></thead><tbody>';
-  hist.forEach(function(r){
-    var pctcell = r.nodata ? '<span style="color:var(--nodata)">⊘ '+r.nodata+'</span>' : (r.pct!=null?r.pct+'%':'—');
+  hist.forEach(function(r,ri){
+    var pctcell = r.nodata ? '<span style="color:var(--nodata)">⊘ '+r.nodata+'</span>'
+      : (r.pct!=null? r.pct+'%'+(r.was!=null?' <span class="waswas">(was '+r.was+'%)</span>':'') : '—');
+    var editbtn = (r.pct!=null)? ' <button class="editpt" onclick="openEdit(\''+x.id+'\','+ri+')">edit</button>' : '';
+    var validcell = r.valid + (r.edited?' · edit '+r.edited:'');
     h+='<tr>'+
-      '<td>'+r.admin+(r.base?' <span class="locked">baseline</span>':'')+'</td>'+
+      '<td>'+r.admin+(r.base?' <span class="locked">baseline</span>':'')+(r.mismatch?' <span class="mismatch">⚠</span>':'')+'</td>'+
       '<td>'+r.entry+'</td>'+
-      '<td>'+r.ct+'</td>'+
+      '<td>'+r.ct+editbtn+'</td>'+
       '<td>'+pctcell+'</td>'+
       '<td>'+r.probe+'</td>'+
       '<td>'+r.setting+'</td>'+
       '<td>'+r.scorer+'</td>'+
-      '<td>'+r.valid+'</td>'+
+      '<td>'+validcell+'</td>'+
     '</tr>';
   });
   h+='</tbody></table></div>'+
-     '<div class="note">Stores numerator/denominator, both dates, and validator — not just the %.</div></div>';
+     '<div class="note">Stores numerator/denominator, both dates, and validator — not just the %. Edits keep the prior value (who/when/old→new).</div></div>';
   return h;
 }
 function ackMastery(id){ var x=S.goals.find(g=>g.id===id); x.acked=true; toast('Flagged for ARC · goal stays open'); render(); }
+
+/* F4: average of the most-recent-5 SCORED points by admin date; excludes ⊘ but notes them */
+function quarterlySummary(x){
+  var hist=HISTORY[x.id]||[];
+  var scored=hist.filter(function(r){return r.pct!=null;}); // newest-first
+  var five=scored.slice(0,5);
+  if(!five.length) return '';
+  var avg=Math.round(five.reduce(function(a,r){return a+r.pct;},0)/five.length);
+  var sv=five.map(function(r){return r.pct;}).slice().sort(function(a,b){return a-b;});
+  var median = sv.length%2 ? sv[(sv.length-1)/2] : Math.round((sv[sv.length/2-1]+sv[sv.length/2])/2);
+  var newest=five[0].admin, oldest=five[five.length-1].admin;
+  var idxN=hist.indexOf(five[0]), idxO=hist.indexOf(five[five.length-1]);
+  var span=hist.slice(idxN, idxO+1);
+  var nod=span.filter(function(r){return r.nodata;}).length;
+  var denoms=five.map(function(r){return (r.ct||'/').split('/')[1];});
+  var mixed=denoms.some(function(d){return d!==denoms[0];});
+  var use = S.qsMedian? median : avg;
+  var h='<div class="qsummary">';
+  h+='<div style="display:flex;align-items:center;gap:.4rem"><span class="qlab">Quarterly progress summary</span>'+
+     tip('tipQ','A report-card figure: the average of the last '+five.length+' scored points, not the last 5 calendar weeks. Separate from the weekly monitoring points and copied to the progress report (IC), not the weekly feed.')+'</div>';
+  h+='<div style="display:flex;align-items:baseline;gap:.5rem;margin:.2rem 0"><span class="big">'+use+'%</span>'+
+     '<span style="font-size:.78rem;color:var(--text-dim)">'+(S.qsMedian?'median':'average')+' of last '+five.length+' points · '+oldest+'–'+newest+'</span></div>';
+  h+='<div class="chips" style="margin:.2rem 0 .3rem">'+
+     '<button class="dchip'+(!S.qsMedian?' on':'')+'" onclick="setQs(false)">Average</button>'+
+     '<button class="dchip'+(S.qsMedian?' on':'')+'" onclick="setQs(true)">Median</button></div>';
+  if(nod) h+='<div class="note">Spans '+nod+' no-data week'+(nod>1?'s':'')+' (excluded from the average, shown for context).</div>';
+  if(five.length<5) h+='<div class="note">Only '+five.length+' scored point'+(five.length>1?'s':'')+' available — averaged as-is, never padded with zeros.</div>';
+  if(mixed) h+='<div class="note" style="color:var(--owes)">⚠ Points do not all share the same total — check comparability before reporting.</div>';
+  h+='<button class="btn small primary" style="margin-top:.4rem" onclick="toast(\'Copied '+use+'% — paste into Infinite Campus progress report\')">Copy for IC progress report</button>';
+  h+='</div>';
+  return h;
+}
+function setQs(m){ S.qsMedian=m; render(); }
+
+/* D3: edit a prior point; retains the old value in the audit trail */
+function openEdit(id, idx){
+  var r=(HISTORY[id]||[])[idx]; if(!r||r.pct==null) return;
+  var parts=(r.ct||'0/0').split('/');
+  S.edit={ id:id, idx:idx, correct:parseInt(parts[0],10)||0, denom:parseInt(parts[1],10)||1 };
+  drawEditSheet(); openSheet();
+}
+function drawEditSheet(){
+  var e=S.edit; var r=HISTORY[e.id][e.idx]; var p=pct(e.correct,e.denom);
+  var h='<div class="grip"></div>';
+  h+='<div class="whowhat">Correct a past point · '+r.admin+'</div>';
+  h+='<div class="ctx">The old value is retained in the audit trail (who · when · old→new).</div>';
+  h+='<div class="scorewrap"><div style="font-size:.8rem;color:var(--text-dim);font-weight:700"># CORRECT</div>'+
+     '<div class="scoreline">'+
+       '<button class="stepbtn" onclick="editStep(-1)">−</button>'+
+       '<input class="numin" inputmode="numeric" value="'+e.correct+'" onchange="editType(this.value)">'+
+       '<button class="stepbtn" onclick="editStep(1)">+</button>'+
+     '</div><div class="ofwrap">of <b style="color:var(--text)">'+e.denom+'</b></div>'+
+     '<div class="pct">'+p+'<small>%</small></div></div>';
+  h+='<div class="note" style="text-align:center">Was '+r.pct+'% — prior value kept.</div>';
+  h+='<div class="btnrow"><button class="btn wide" onclick="closeSheet()">Cancel</button>'+
+     '<button class="btn primary wide" onclick="saveEdit()">Save correction</button></div>';
+  $('sheet').innerHTML=h;
+}
+function editStep(d){ var e=S.edit; e.correct=Math.max(0,Math.min(e.denom,e.correct+d)); drawEditSheet(); }
+function editType(v){ var e=S.edit; var n=parseInt(v,10); if(isNaN(n))n=0; e.correct=Math.max(0,Math.min(e.denom,n)); drawEditSheet(); }
+function saveEdit(){
+  var e=S.edit; var r=HISTORY[e.id][e.idx]; var np=pct(e.correct,e.denom);
+  if(r.was==null) r.was=r.pct;
+  r.pct=np; r.ct=e.correct+'/'+e.denom; r.edited='NS today';
+  var x=S.goals.find(g=>g.id===e.id);
+  if(x && e.idx===0 && (x.status==='logged'||x.status==='mastery')) x.val=np;
+  toast('Point corrected · prior value kept');
+  closeSheet(); render();
+}
 
 function trendSVG(tr,level){
   var W=520,H=180, padL=34,padR=14,padT=14,padB=26;
@@ -818,15 +1137,12 @@ function trendSVG(tr,level){
   function X(wk){ return padL + (wk-1)/6*plotW; }
   function Y(v){ return padT + (1-v/100)*plotH; }
   var s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="trend">';
-  // gridlines + y labels
   [0,20,40,60,80,100].forEach(function(v){
     s+='<line x1="'+padL+'" y1="'+Y(v)+'" x2="'+(W-padR)+'" y2="'+Y(v)+'" stroke="var(--border)" stroke-width="1"/>';
     s+='<text x="'+(padL-6)+'" y="'+(Y(v)+4)+'" font-size="10" fill="var(--text-dim)" text-anchor="end">'+v+'</text>';
   });
-  // aim line
   s+='<line x1="'+padL+'" y1="'+Y(level)+'" x2="'+(W-padR)+'" y2="'+Y(level)+'" stroke="var(--owes-line)" stroke-width="2" stroke-dasharray="6 5"/>';
   s+='<text x="'+(W-padR)+'" y="'+(Y(level)-5)+'" font-size="10" fill="var(--owes)" text-anchor="end">aim '+level+'%</text>';
-  // connected segments skipping nodata gaps
   var seg=[], cur=[];
   tr.forEach(function(p){ if(p.nodata){ if(cur.length)seg.push(cur); cur=[]; } else cur.push(p); });
   if(cur.length)seg.push(cur);
@@ -836,7 +1152,6 @@ function trendSVG(tr,level){
     for(var i=1;i<arr.length;i++) d+=' L'+X(arr[i].wk)+' '+Y(arr[i].v);
     s+='<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
   });
-  // points + gap markers
   tr.forEach(function(p){
     if(p.nodata){
       s+='<text x="'+X(p.wk)+'" y="'+(H-padB+18)+'" font-size="15" fill="var(--nodata)" text-anchor="middle">⊘</text>';
@@ -851,13 +1166,152 @@ function trendSVG(tr,level){
   return s;
 }
 
-/* ---- [P] Para view ---- */
+/* ---- [D5] Create-a-goal (teacher only) ---- */
+function ngSet(k,v){ S.newGoal[k]=v; updateGate(); }
+function ngPath(p){ S.newGoal.path=p; render(); }
+function updateGate(){
+  var n=S.newGoal;
+  var coreOk = n.ini&&n.behavior&&n.circumstance&&n.level&&n.consistency&&n.method&&n.accom;
+  var ok = n.path==='adopt' ? (coreOk && n.baseline) : coreOk;
+  var btn=$('ngSubmit'); if(btn) btn.disabled=!ok;
+  var gate=$('ngGate');
+  if(gate){
+    if(n.path==='adopt'){
+      gate.className='gate '+(ok?'ok':'bad');
+      gate.innerHTML = ok ? '✓ Baseline + criterion (level & consistency) present — this goal can go active and feed IC.'
+        : 'Baseline-mandatory: a goal cannot go active without a baseline value AND a criterion with level + consistency.';
+    } else {
+      gate.className='gate '+(coreOk?'ok':'bad');
+      gate.innerHTML = coreOk ? '✓ Ready to start baselining. Proposed goals never feed IC and carry no weekly “owes” until adopted at ARC.'
+        : 'Fill the KY goal components + the accommodation label to start baselining.';
+    }
+  }
+}
+function renderNewGoal(){
+  var n=S.newGoal;
+  var h='<div class="backrow"><button class="back" onclick="go(\'dashboard\')">‹ Dashboard</button></div>';
+  h+='<h1>New goal</h1>';
+  h+='<div class="sub">Teacher only. Initials only — no names; the goal text must pass the stranger test.</div>';
+  h+='<div class="form card">';
+  h+='<label>Path</label>';
+  h+='<div class="pathseg">'+
+     '<button class="'+(n.path==='adopt'?'on':'')+'" onclick="ngPath(\'adopt\')">Adopt an already-baselined goal → active</button>'+
+     '<button class="'+(n.path==='draft'?'on':'')+'" onclick="ngPath(\'draft\')">Draft a proposed goal to baseline</button>'+
+     '</div>';
+  h+='<label>Student initials <span class="reqmark">*</span> <span style="text-transform:none;font-weight:600">(Audience)</span></label>'+
+     '<input class="tin" value="'+esc(n.ini)+'" placeholder="e.g. AB" oninput="ngSet(\'ini\',this.value)">';
+  h+='<label>Behavior <span class="reqmark">*</span> <span style="text-transform:none;font-weight:600">(what the student will do)</span></label>'+
+     '<input class="tin" value="'+esc(n.behavior)+'" placeholder="solve two-step equations" oninput="ngSet(\'behavior\',this.value)">';
+  h+='<label>Circumstance <span class="reqmark">*</span> <span style="text-transform:none;font-weight:600">(given…)</span></label>'+
+     '<input class="tin" value="'+esc(n.circumstance)+'" placeholder="given a 5-item probe and a number line" oninput="ngSet(\'circumstance\',this.value)">';
+  h+='<label>Criterion <span class="reqmark">*</span></label>'+
+     '<div class="two"><div><input class="tin" value="'+esc(n.level)+'" inputmode="numeric" placeholder="level %  e.g. 80" oninput="ngSet(\'level\',this.value)"></div>'+
+     '<div><input class="tin" value="'+esc(n.consistency)+'" inputmode="numeric" placeholder="consistency  e.g. 4 probes" oninput="ngSet(\'consistency\',this.value)"></div></div>'+
+     '<div class="note">Both are required — a level AND a consistency window (n consecutive probes).</div>';
+  h+='<label>Method + tool <span class="reqmark">*</span></label>'+
+     '<div class="two"><div><input class="tin" value="'+esc(n.method)+'" placeholder="method e.g. curriculum probe" oninput="ngSet(\'method\',this.value)"></div>'+
+     '<div><input class="tin" value="'+esc(n.tool)+'" placeholder="tool e.g. enVision worksheet" oninput="ngSet(\'tool\',this.value)"></div></div>';
+  h+='<label>Frequency</label>'+
+     '<select class="tin" onchange="ngSet(\'freq\',this.value)">'+
+     ['weekly','2×/month','monthly'].map(function(f){return '<option'+(n.freq===f?' selected':'')+'>'+f+'</option>';}).join('')+'</select>';
+  h+='<label>Total items per probe <span style="text-transform:none;font-weight:600">(denominator model)</span></label>'+
+     '<input class="tin" value="'+esc(n.denom)+'" inputmode="numeric" placeholder="e.g. 5" oninput="ngSet(\'denom\',this.value)">';
+  h+='<label>Setting</label>'+
+     '<select class="tin" onchange="ngSet(\'setting\',this.value)">'+
+     SETTINGS.map(function(st){return '<option'+(n.setting===st?' selected':'')+'>'+st+'</option>';}).join('')+'</select>';
+  h+='<label>Accommodation / modification <span class="reqmark">*</span> <span style="text-transform:none;font-weight:600">(explicit — never defaulted)</span></label>'+
+     '<input class="tin" value="'+esc(n.accom)+'" placeholder="e.g. read-aloud + extended time" oninput="ngSet(\'accom\',this.value)">';
+  if(n.path==='adopt'){
+    h+='<label>Baseline % <span class="reqmark">*</span></label>'+
+       '<input class="tin" value="'+esc(n.baseline)+'" inputmode="numeric" placeholder="already-collected baseline, e.g. 20" oninput="ngSet(\'baseline\',this.value)">';
+  } else {
+    h+='<div class="note" style="margin-top:.6rem">Baseline is gathered in the Baseline / proposed track (≥3 comparable probes, then averaged into an estimate). Not entered here.</div>';
+  }
+  h+='<div class="gate bad" id="ngGate">Fill the required fields.</div>';
+  h+='<button class="btn primary wide" id="ngSubmit" style="width:100%" disabled onclick="submitNewGoal()">'+
+     (n.path==='adopt'?'Activate goal · begin monitoring':'Start baselining →')+'</button>';
+  h+='</div>';
+  // run the gate after the DOM exists
+  setTimeout(updateGate,0);
+  return h;
+}
+function submitNewGoal(){
+  var n=S.newGoal;
+  if(n.path==='adopt'){
+    var id='g'+Date.now().toString().slice(-4);
+    S.goals.push({id:id, ini:(n.ini||'??').toUpperCase(), period:'P4',
+      name:(n.behavior||'New goal').slice(0,26),
+      crit:(n.level||'?')+'% × '+(n.consistency||'?')+' probes', level:parseInt(n.level,10)||0, n:parseInt(n.consistency,10)||3,
+      denom:parseInt(n.denom,10)||5, probe:(n.behavior||'probe')+', '+(parseInt(n.denom,10)||5)+' items',
+      status:'owes', val:null, reason:null, scorer:null, pending:null, freq:n.freq, paraSupported:false,
+      baseline:n.baseline, accom:n.accom});
+    toast('Goal activated · baseline '+n.baseline+'% · monitoring begins');
+    S.newGoal=freshNewGoal(); go('dashboard');
+  } else {
+    var pid='p'+Date.now().toString().slice(-4);
+    S.proposed.push({id:pid, ini:(n.ini||'??').toUpperCase(), period:'P4',
+      name:(n.behavior||'Proposed goal').slice(0,26), behavior:n.behavior,
+      arc:'ARC date TBD', windowOpen:'today', windowClose:'~6 wks', denom:parseInt(n.denom,10)||5, points:[]});
+    toast('Proposed goal drafted · gather ≥3 baseline points');
+    S.newGoal=freshNewGoal(); go('baseline');
+  }
+}
+
+/* ---- [F3] Baseline / proposed-goal track (SEGREGATED) ---- */
+function renderBaseline(){
+  var h='<div class="backrow"><button class="back" onclick="go(\'dashboard\')">‹ Dashboard</button></div>';
+  h+='<h1>Baseline / proposed goals</h1>';
+  h+='<div class="sub">New IEP goals being baselined before each student\'s annual ARC. Separate from weekly monitoring.'+
+     tip('tipBase','Proposed goals never feed Infinite Campus and carry no weekly “owes”. A usable baseline needs ≥3 comparable probes; the value is an estimate, not a trend.')+'</div>';
+  h+='<div class="banner info">These never feed IC and have no weekly “owes”. On adoption at ARC they lock a baseline and become active goals.</div>';
+  if(!S.proposed.length){ h+='<div class="card">No proposed goals. Use “＋ New goal → Draft a proposed goal”.</div>'; }
+  S.proposed.forEach(function(pg){
+    var n=pg.points.length, need=Math.max(0,3-n);
+    var avg = n? Math.round(pg.points.reduce(function(a,b){return a+b;},0)/n) : null;
+    var sv=pg.points.slice().sort(function(a,b){return a-b;});
+    var median = n? (sv.length%2? sv[(sv.length-1)/2] : Math.round((sv[sv.length/2-1]+sv[sv.length/2])/2)) : null;
+    var use = S.baseMedian? median : avg;
+    h+='<div class="bcard">';
+    h+='<div class="bhd">'+avatar(pg.ini)+'<div style="min-width:0"><div class="rowtitle">'+esc(pg.name)+'</div>'+
+       '<div class="rowmeta">'+pg.period+' · '+esc(pg.behavior)+'</div></div></div>';
+    h+='<div class="note" style="margin-top:.5rem"><b>'+n+' of ≥3 collected</b> · window closes '+pg.windowClose+' · ARC '+pg.arc+'</div>';
+    h+='<div class="chips" style="margin:.4rem 0">'+pg.points.map(function(v){return '<span class="dchip" style="cursor:default">'+v+'%</span>';}).join('')+
+       (n? '':'<span class="note">no points yet</span>')+'</div>';
+    if(n>=3){
+      h+='<div style="display:flex;align-items:center;gap:.5rem;margin:.3rem 0"><span class="est">'+use+'%</span>'+
+         '<span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:var(--pending)">baseline estimate ('+(S.baseMedian?'median':'average')+')</span></div>';
+      h+='<div class="chips">'+
+         '<button class="dchip'+(!S.baseMedian?' on':'')+'" onclick="setBaseMed(false)">Average</button>'+
+         '<button class="dchip'+(S.baseMedian?' on':'')+'" onclick="setBaseMed(true)">Median</button></div>';
+      h+='<div class="note">An estimate, not a trend. Locks into the goal only on ARC adoption, when the criterion is finalized.</div>';
+      h+='<div class="btnrow"><button class="btn primary small wide" onclick="addBaselinePoint(\''+pg.id+'\')">＋ Add baseline point</button>'+
+         '<button class="btn small wide" onclick="toast(\'Adopt at ARC → activates the goal (prototype)\')">Adopt at ARC →</button></div>';
+    } else {
+      h+='<div class="note" style="color:var(--owes)">Needs '+need+' more comparable probe'+(need>1?'s':'')+' before a usable baseline.</div>';
+      h+='<button class="btn primary small wide" style="width:100%;margin-top:.4rem" onclick="addBaselinePoint(\''+pg.id+'\')">＋ Add baseline point</button>';
+    }
+    h+='</div>';
+  });
+  h+='<button class="btn primary wide" style="width:100%;margin-top:.3rem" onclick="go(\'newGoal\')">＋ Draft a proposed goal</button>';
+  return h;
+}
+function setBaseMed(m){ S.baseMedian=m; render(); }
+function addBaselinePoint(id){
+  var pg=S.proposed.find(function(p){return p.id===id;}); if(!pg) return;
+  var base = pg.points.length? pg.points[pg.points.length-1] : 30;
+  var v=Math.max(0,Math.min(100, base + (Math.random()<.5?5:10)));
+  pg.points.push(v);
+  toast('Baseline point added · '+v+'%'+(pg.points.length>=3?' · estimate ready':''));
+  render();
+}
+
+/* ---- [P] Para view — PERIOD-SCOPED to one class (design-decisions §F.F1-update) ---- */
 function renderPara(){
   var g=S.goals.filter(x=>x.paraSupported);
-  var h='<div class="banner info">Math Resource · para: JT · your supported students only</div>';
+  var h='<div class="banner info">3rd period · Math 81 Resource · para: JT · scoped to this class only</div>';
   h+='<h1>Your students today</h1>';
   h+='<div class="sub">Enter scores; the teacher confirms each one.'+
-     tip('tipPara','The para path is deliberately narrow: no student notes, date locked to today, probe and Resource setting fixed. Points land pending until the teacher confirms.')+'</div>';
+     tip('tipPara','You are scoped to your one assigned class (3rd period · Math 81 Resource) — only those students, no trends, no export. Every point lands pending for teacher confirmation. Set a recent date (no future), the setting, this probe\'s actual total, and tap-select observations — no student notes, by design.')+'</div>';
   g.forEach(function(x){
     var st = x.status==='pending' ? 'pending' : (x.status==='logged'||x.status==='mastery'?'logged':'owes');
     var right = x.status==='pending' ? '<span class="sync" style="color:var(--pending)">⏳ pending</span>'
@@ -871,88 +1325,213 @@ function renderPara(){
           '<button class="btn small primary" onclick="openScore(\''+x.id+'\')">Score</button>') +'</div>'+
        '</div>';
   });
-  h+='<div class="note" style="margin-top:.8rem">No other students, no trends, no export — by design.</div>';
+  h+='<div class="note" style="margin-top:.8rem">This is your one assigned class. No other students, no trends, no export — by design.</div>';
   return h;
 }
 
-/* ---------------- Flow 2: Weekly Planner ---------------- */
-function layoutDays(){
-  var n=S.coreDays;
-  if(S.weekMode==='testing'){ S.days=['off','core','test','iep','iep']; return; }
-  S.days = [0,1,2,3,4].map(function(i){ return i<n?'core':'iep'; });
+/* ---------------- Flow 2: Weekly Planner (round-2 redesign, catalog-wired) ---------------- */
+/* Curriculum catalog — 13 unit topics in pacing order (discovery/segment-catalog.md).
+   Co-teacher segments (first 8) carry verbatim daily concepts; the 5 authored segments
+   (F2/G5/G7/G9/SP3, marked authored:true) carry PLACEHOLDER concepts flagged for curriculum-SME confirmation. */
+var SEGMENTS=[
+  {topic:'The Number System — rational vs. irrational & roots', std:['KY.8.NS.1','KY.8.NS.2','KY.8.EE.2'],
+   concepts:['Repeating decimals→fractions','Intro to irrational numbers','Rational vs irrational on a number line','Quiz — rational vs irrational','Perfect squares & roots intro','Square & cube roots','Estimate irrational square roots','Irrational roots on a number line','Irrational roots (practice)','Cube roots + real-world']},
+  {topic:'Exponents & scientific notation', std:['KY.8.EE.1','KY.8.EE.3','KY.8.EE.4'],
+   concepts:['Solve x²=p and x³=p','Cube roots in word problems','CFA — roots & equations','Product property of exponents','Quotient property','Power property','Negative & zero exponents','Combine exponent rules','Quiz — exponent rules','Sub day','Scientific notation — convert','Multiply & divide in sci notation','Unit 1 review','Unit 1 test','Makeup DCA / 2-step review']},
+  {topic:'Solving linear equations (one variable)', std:['KY.8.EE.7'],
+   concepts:['Scientific notation carryover','Review — 2-step equations','Combining like terms','Distributive property','Multi-step (variable one side)','Variables on both sides','Variables both sides (advanced)','Practice — both sides','One/none/infinite solutions','Number of solutions (practice)','Identify number of solutions','CFA — variables both sides','Intro slope from two points']},
+  {topic:'Slope & linear graphs', std:['KY.8.EE.5','KY.8.EE.6'],
+   concepts:['Slope from two points','Slope-intercept y=mx+b','Write linear equations','Graph linear equations','Slope & y-int in context','Interpret slope & intercept (real-world)','Finish DCA / Amplify slope','Functions intro (transition)']},
+  {topic:'Functions', std:['KY.8.F.4','KY.8.F.1'],
+   concepts:['Define functions (input/output)','Identify functions','Functions in word problems','Equation→table→graph','Intervals of increase/decrease','Read distance-time graphs','Create distance-time graphs','Intro scatter plots (transition)']},
+  {topic:'Bivariate data & scatter plots', std:['KY.8.SP.1','KY.8.SP.2'],
+   concepts:['Line of best fit & outliers','Trend lines model data','Trend-line equation & predictions','CFA — scatter plots / DCA']},
+  {topic:'Systems of equations', std:['KY.8.EE.8'],
+   concepts:['MLK Day — no school','Systems by graphing (intersection=solution)','Systems — 1/0/infinite solutions','Solution cases in context','Systems review','Systems word problems (graphing)','Solve by substitution','Substitution — one solution','Systems by graphing (review)','Substitution method','Systems review (topic 5)','Solutions by inspection / CSA prep']},
+  {topic:'Transformations', std:['KY.8.G.1','KY.8.G.3'],
+   concepts:['DCA','Intro transformations/translations','Translations on the plane','Translations — algebraic rules','Reflections on the plane','Reflections — practice/rules','Rotations (Patty Paper, foldable)','Quiz — transformations','Spiral review','MAP testing (Thu–Fri)']},
+  {topic:'Comparing functions', std:['KY.8.F.2'], authored:true,
+   concepts:['Compare two functions in tables','Compare function graphs','Compare equation vs verbal rule','Compare rates of change','Compare initial values','Mixed comparison practice']},
+  {topic:'Angle relationships & similar triangles', std:['KY.8.G.5'], authored:true,
+   concepts:['Triangle angle sum','Exterior angle theorem','Parallel lines & transversals','Angle-angle similarity','Similar-triangle problems']},
+  {topic:'Pythagorean Theorem', std:['KY.8.G.7'], authored:true,
+   concepts:['Pythagorean theorem intro','Find the hypotenuse','Find a missing leg','Word problems','Distance between two points']},
+  {topic:'Volume & surface area (cones, cylinders, spheres)', std:['KY.8.G.9'], authored:true,
+   concepts:['Volume of cylinders','Volume of cones','Volume of spheres','Surface area','Mixed volume & SA problems']},
+  {topic:'Linear models for bivariate data', std:['KY.8.SP.3'], authored:true,
+   concepts:['Equation of a linear model','Interpret slope in context','Interpret intercept','Predict with the model','Mixed modeling practice']}
+];
+var DAY_TEMPLATE=['core','sdi','core','sdi','rev'];   /* Niah's 2 core / 2 SDI / 1 Review-Fluency default; every day changeable */
+var WEEKS=[
+  {label:'Week of Mar 3–7', seg:2, start:1},
+  {label:'Week of Mar 10–14', seg:2, start:5},
+  {label:'Week of Jan 19–23', seg:6, start:1, calendar:[
+    {i:0,type:'holiday',concept:'MLK Day — no school'},
+    {i:3,type:'test',concept:'MAP testing'},
+    {i:4,type:'test',concept:'MAP testing'}]}
+];
+function planSeg(){
+  var p=S.plan;
+  if(p.segIdx<0) return {topic:(p.otherTopic||'(your topic)'), std:(p.otherStd?[p.otherStd]:[]), concepts:[], other:true};
+  return SEGMENTS[p.segIdx];
 }
-function setCoreDays(n){ S.coreDays=n; S.weekMode='normal'; layoutDays(); render(); toast('Re-laid the week for '+n+' core days'); }
-function flipDay(i){
-  if(S.days[i]==='off') return;
-  S.days[i] = S.days[i]==='core' ? 'iep' : 'core';
-  render();
+function buildWeekDays(){
+  var p=S.plan, wk=WEEKS[p.weekIdx];
+  var tmpl=(wk.template||DAY_TEMPLATE).slice();
+  p.days=tmpl.map(function(t){ return {type:t, concept:''}; });
+  if(wk.calendar) wk.calendar.forEach(function(c){ if(c.i<p.days.length) p.days[c.i]={type:c.type, concept:c.concept}; });
+  assignConcepts();
+}
+function assignConcepts(){
+  var seg=planSeg(), cs=seg.concepts||[], ci=S.plan.conceptStart||0;
+  S.plan.days.forEach(function(d){
+    if(d.type==='core'){ d.concept = cs.length ? (cs[ci]||'(add concept)') : '(add concept)'; if(cs.length) ci++; }
+  });
+}
+function navWeek(dir){
+  var p=S.plan; p.weekIdx=(p.weekIdx+dir+WEEKS.length)%WEEKS.length;
+  var wk=WEEKS[p.weekIdx]; p.segIdx=wk.seg; p.conceptStart=wk.start||0; p.editMode=false;
+  buildWeekDays(); render();
+}
+function setSegment(v){ v=parseInt(v,10); S.plan.segIdx=isNaN(v)?-1:v; S.plan.conceptStart=0; buildWeekDays(); render(); }
+function setOther(k,val){ if(k==='topic')S.plan.otherTopic=val; else S.plan.otherStd=val; }
+function setPlanView(v){ S.plan.view=v; render(); }
+function toggleEdit(){ S.plan.editMode=!S.plan.editMode; render(); }
+function dragStart(i){ S.plan.dragFrom=i; }
+function dragDrop(i){
+  var p=S.plan, f=p.dragFrom; if(f==null||f===i){ p.dragFrom=null; return; }
+  var tmp=p.days[f]; p.days[f]=p.days[i]; p.days[i]=tmp; p.dragFrom=null;
+  var dn=['Mon','Tue','Wed','Thu','Fri']; toast('Swapped '+dn[f]+' ⇄ '+dn[i]); render();
+}
+function dayCell(dn,i){
+  var p=S.plan, d=p.days[i], t=d.type, edit=p.editMode;
+  var inner='<div class="dn">'+dn+'</div>';
+  if(edit && t!=='holiday') inner+='<div class="grab">⠿</div>';
+  if(t==='core') inner+='<div class="concept">'+esc(d.concept)+'</div><div class="dtype">Core</div>';
+  else if(t==='sdi') inner+='<div class="dtype">SDI</div><div class="concept">IEP goals</div>';
+  else if(t==='rev') inner+='<div class="dtype">Review</div><div class="concept">&amp; Fluency</div>';
+  else if(t==='holiday') inner+='<div class="concept">⛔ '+esc(d.concept||'no school')+'</div>';
+  else if(t==='test') inner+='<div class="dtype">✎ Test</div><div class="concept">'+esc(d.concept||'')+'</div>';
+  var cls='day '+t;
+  if(edit && t!=='holiday')
+    return '<div class="'+cls+'" draggable="true" ondragstart="dragStart('+i+')" ondragover="event.preventDefault()" ondrop="dragDrop('+i+')">'+inner+'</div>';
+  return '<div class="'+cls+'"'+(t==='holiday'?'':' onclick="openDay('+i+')"')+'>'+inner+'</div>';
+}
+
+function planTopBar(){
+  var p=S.plan;
+  return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">'+
+    '<span class="viewtoggle"><button class="'+(p.view==='week'?'on':'')+'" onclick="setPlanView(\'week\')">Week</button>'+
+    '<button class="'+(p.view==='month'?'on':'')+'" onclick="setPlanView(\'month\')">Month</button></span>'+
+    (p.view==='week'?'<button class="btn small '+(p.editMode?'primary':'ghost')+'" onclick="toggleEdit()">'+(p.editMode?'Done reordering':'Reorder days')+'</button>':'')+
+    '</div>';
 }
 
 function renderPlanWeek(){
-  layoutDays();
-  var goalsInPlay = ['AB','CD','EF','GH'];
-  var coreCount=S.days.filter(d=>d==='core').length;
-  var h='';
-  // scenario switch
-  h+='<div style="display:flex;gap:.4rem;justify-content:flex-end;margin-bottom:.4rem">'+
-     '<button class="btn small '+(S.weekMode==='normal'?'primary':'ghost')+'" onclick="setWeek(\'normal\')">Normal week</button>'+
-     '<button class="btn small '+(S.weekMode==='testing'?'primary':'ghost')+'" onclick="setWeek(\'testing\')">Short / testing week</button>'+
-     '</div>';
+  var p=S.plan;
+  if(p.view==='month') return renderMonth();
+  var seg=planSeg(), wk=WEEKS[p.weekIdx];
+  var h=planTopBar();
 
-  if(S.weekMode==='testing') return h+renderCarryForward();
-
+  // week banner: nav (PR4) + segment dropdown (PR2) + auto-filled KY standard(s)
   h+='<div class="card">';
-  h+='<div style="display:flex;justify-content:space-between;align-items:center">'+
-     '<b>Week of Mar 3–7</b>'+
-     '<span style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim)">core days'+
-       tip('tipCore','This is your call. Default is 3 — flip to 2 anytime, and a single week can still be adjusted by hand.')+
-       '<span class="toggle2"><button class="'+(S.coreDays===2?'on':'')+'" onclick="setCoreDays(2)">2</button>'+
-       '<button class="'+(S.coreDays===3?'on':'')+'" onclick="setCoreDays(3)">3</button></span></span>'+
+  h+='<div class="weeknav"><button onclick="navWeek(-1)" aria-label="previous week">‹</button>'+
+     '<span class="wk">'+esc(wk.label)+'</span>'+
+     '<button onclick="navWeek(1)" aria-label="next week">›</button></div>';
+  h+='<label style="display:block;font-size:.68rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;margin-bottom:.2rem">Unit topic · pacing order</label>';
+  var opts=SEGMENTS.map(function(s,idx){ return '<option value="'+idx+'"'+(p.segIdx===idx?' selected':'')+'>'+esc(s.topic)+(s.authored?' *':'')+'</option>'; }).join('');
+  opts+='<option value="-1"'+(p.segIdx<0?' selected':'')+'>Other / edit myself…</option>';
+  h+='<select class="segsel" onchange="setSegment(this.value)">'+opts+'</select>';
+  if(p.segIdx<0){
+    h+='<div style="display:flex;gap:.5rem;margin-top:.4rem">'+
+       '<input class="segsel" style="flex:2" placeholder="your topic" value="'+esc(p.otherTopic)+'" oninput="setOther(\'topic\',this.value)" onchange="render()">'+
+       '<input class="segsel" style="flex:1" placeholder="KY std" value="'+esc(p.otherStd)+'" oninput="setOther(\'std\',this.value)" onchange="render()">'+
+       '</div>';
+  }
+  h+='<div style="margin-top:.5rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">'+
+     '<span style="font-size:.7rem;font-weight:800;color:var(--text-dim)">KY standard'+((seg.std&&seg.std.length>1)?'s':'')+':</span>'+
+     ((seg.std&&seg.std.length)? seg.std.map(function(c){return '<span class="kystd">'+esc(c)+'</span>';}).join(' ') : '<span class="note">— pick a topic —</span>')+
      '</div>';
+  if(seg.authored) h+='<div class="note" style="color:var(--owes);margin-top:.3rem">* authored segment — daily concepts pending curriculum-SME confirmation.</div>';
 
-  h+='<div class="segbox" style="margin-top:.6rem"><div><div style="font-size:.7rem;color:var(--text-dim);font-weight:800">SEGMENT (inherited from spine)</div>'+
-     '<div style="font-weight:800">EE7 · two-step linear equations</div>'+
-     '<div class="note">next up on the pacing spine</div></div>'+
-     '<button class="btn small ghost" style="margin-left:auto" onclick="toast(\'prototype: segment picker\')">change</button></div>';
-
-  // days
-  h+='<div class="daysrow">'+ ['Mon','Tue','Wed','Thu','Fri'].map(function(dn,i){
-      var t=S.days[i];
-      var lbl = t==='core'?'core':'IEP/SDI';
-      var gl = t==='core'?'◼':'◆';
-      return '<div class="day '+t+'" onclick="openDay('+i+')"><div class="dn">'+dn+'</div>'+
-             '<div class="dt">'+gl+'</div><div class="dl">'+lbl+'</div>'+
-             '<div class="dl">'+(t==='core'?'EE7':'goals')+'</div></div>';
-    }).join('')+'</div>';
-  h+='<div class="note">Tap a day to flip core ◼ / IEP ◆. Now: '+coreCount+' core, '+(5-coreCount)+' IEP.</div>';
+  // days row (PR3 flexible types · PR5 color-coded · PR6 concept labels · PR10 drag-reorder in edit mode)
+  h+='<div class="daysrow" style="margin-top:.7rem">'+['Mon','Tue','Wed','Thu','Fri'].map(function(dn,i){ return dayCell(dn,i); }).join('')+'</div>';
+  var coreCount=p.days.filter(function(d){return d.type==='core';}).length;
+  var sdiCount=p.days.filter(function(d){return d.type==='sdi';}).length;
+  var revCount=p.days.filter(function(d){return d.type==='rev';}).length;
+  if(p.editMode) h+='<div class="note">Drag a day onto another to swap them, then tap “Done reordering”.</div>';
+  else h+='<div class="note">Tap a day to open it and set its type. '+coreCount+' core · '+sdiCount+' SDI · '+revCount+' review.</div>';
   h+='</div>';
 
-  // braid strip
+  // braid — follows the co-teacher sequence (PR1), driven by the selected segment
+  var stdNodes=(seg.std&&seg.std.length)? seg.std.map(function(c){return '<span class="bnode std">'+esc(c)+'</span>';}).join('<span class="barrow">·</span>') : '<span class="bnode std">—</span>';
   h+='<div class="braid"><div class="bl">Braid this week</div>'+
      '<div class="braidflow">'+
-       '<span class="bnode unit">EnVision U2</span><span class="barrow">→</span>'+
-       '<span class="bnode std">KY.8.EE.7</span><span class="barrow">→</span>'+
+       '<span class="bnode unit">'+esc(seg.topic)+'</span><span class="barrow">→</span>'+
+       stdNodes+'<span class="barrow">→</span>'+
        '<span class="bnode myp">[MYP A/B *]</span><span class="barrow">→</span>'+
-       '<span class="bnode goals" style="display:inline-flex;align-items:center;gap:.25rem">goals '+goalsInPlay.map(avatarSm).join('')+'</span>'+
+       '<span class="bnode goals" style="display:inline-flex;align-items:center;gap:.25rem">goals '+['AB','CD','EF','GH'].map(avatarSm).join('')+'</span>'+
      '</div>'+
      '<div class="note">* MYP criterion filled by a later pass — shown greyed, never scored here.</div></div>';
 
-  // student objective (separate line)
-  h+='<div class="objective"><b>Student objective</b> (exposure, not mastery): access EE7 with CRA supports &amp; a number line. Tracked apart from the IEP goal.</div>';
+  h+='<div class="objective"><b>Student objective</b> (exposure, not mastery): access '+esc(seg.std&&seg.std.length?seg.std[0]:seg.topic)+' with CRA supports &amp; a number line. Tracked apart from the IEP goal.</div>';
 
-  // ambient reconciliation strip (O8)
   h+=ambientStrip();
+  if(wk.calendar) h+=renderDisruption(seg);
 
   h+='<div class="btnrow"><button class="btn primary wide" onclick="toast(\'Week built\')">Looks good — build</button>'+
      '<button class="btn wide" onclick="go(\'reconcile\')">Reconcile</button></div>';
   return h;
 }
-function setWeek(m){ S.weekMode=m; layoutDays(); render(); }
+
+/* PR8: monthly overview for special events. First-cut grid; GCal sync is a post-MVP placeholder, not a live sync. */
+function renderMonth(){
+  var weeks=[[2,3,4,5,6],[9,10,11,12,13],[16,17,18,19,20],[23,24,25,26,27],[30,31,'','','']];
+  var events={4:{t:'Today',k:'core'},6:{t:'Quiz',k:'test'},13:{t:'Unit test',k:'test'},17:{t:'Field trip',k:'ev'},20:{t:'MAP',k:'test'}};
+  var h=planTopBar();
+  h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">'+
+     '<button class="iconbtn" onclick="toast(\'prototype: single month\')">‹</button>'+
+     '<b>March 2026</b>'+
+     '<button class="iconbtn" onclick="toast(\'prototype: single month\')">›</button></div>';
+  h+='<div class="monthgrid">'+['Mon','Tue','Wed','Thu','Fri'].map(function(d){return '<div style="font-size:.62rem;font-weight:800;color:var(--text-dim);text-align:center">'+d+'</div>';}).join('')+'</div>';
+  weeks.forEach(function(row){
+    h+='<div class="monthgrid" style="margin-top:.3rem">'+row.map(function(dt){
+      if(dt==='') return '<div class="mcell" style="opacity:.3;cursor:default"></div>';
+      var ev=events[dt], cls='mcell'+(ev?(' '+(ev.k||'ev')):'');
+      var act = ev? 'toast(\''+esc(ev.t)+' · Mar '+dt+'\')' : 'toast(\'Mar '+dt+' — tap ＋ to add an event\')';
+      return '<div class="'+cls+'" onclick="'+act+'"><div class="md">'+dt+'</div>'+(ev?'<div class="evt">'+esc(ev.t)+'</div>':'')+'</div>';
+    }).join('')+'</div>';
+  });
+  h+='</div>';
+  h+='<div class="btnrow" style="align-items:center"><button class="btn small primary" onclick="toast(\'prototype: add a special event\')">＋ Add event</button>'+
+     '<span class="comingsoon" title="Post-MVP">⟳ Google Calendar sync — coming later</span></div>';
+  h+='<div class="note">Monthly overview for special events. Two-way Google Calendar sync is post-MVP — the affordance above is a placeholder, not a live sync.</div>';
+  return h;
+}
+
+/* Calendar-driven disruption (PR7 replaces the manual Normal/Short-Testing toggle) */
+function renderDisruption(seg){
+  var g=S.goals;
+  var core=S.plan.days.filter(function(d){return d.type==='core';}).length;
+  var h='<div class="banner warn">Calendar disruption this week (holiday / testing) — only '+core+' core day'+(core===1?'':'s')+' fit. Instruction can carry; monitoring cannot.</div>';
+  h+='<div class="card"><div style="font-weight:800;margin-bottom:.3rem">↪ Instruction slips</div>'+
+     '<div class="note">The unfinished '+esc(seg.topic)+' segment carries to next week with its standard→goal links intact.</div>'+
+     '<button class="btn small primary" style="margin-top:.5rem" onclick="toast(\'Segment carried → next week\')">Carry segment forward</button></div>';
+  h+='<div class="card"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><b>Monitoring does NOT slip</b>'+
+     tip('tipCarry','Instruction can move to next week. Monitoring can’t — every active goal still owes its point this week, even when a test eats the days.')+'</div>';
+  h+='<div class="cdetail">Every active goal still owes a point this week:</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:.6rem;margin:.4rem 0;align-items:center">'+ g.map(function(x){
+        var st=x.status, key=(st==='owes'||st==='incomplete'||st==='queued'?'owes':st==='nodata'?'nodata':'logged');
+        return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--'+key+')">'+avatarSm(x.ini)+glyph(key)+'</span>';
+     }).join('')+'</div>';
+  h+='<button class="btn wide" style="width:100%;margin-top:.3rem" onclick="bulkTesting()">Mark remaining no-data · reason: Testing</button>';
+  h+='<div class="note">One teacher-initiated action — only touches UNSCORED goals; any real points keep their value.</div>';
+  h+='</div>';
+  return h;
+}
 
 function ambientStrip(){
   var g=S.goals;
-  var exposed=true;
-  var sdiCovered = g.filter(x=>x.status!=='nodata').length; // synthetic
   var owe=g.filter(x=>x.status==='owes').length;
   return '<div class="ambient">'+
     '<div class="amb ok"><b>✓</b>standard exposed</div>'+
@@ -961,75 +1540,91 @@ function ambientStrip(){
     '</div>';
 }
 
-/* ---- [I] Day editor ---- */
-function openDay(i){ if(S.days[i]==='off') return; S.dayEdit=i; go('dayEditor'); }
+/* ---- [I] Day editor (PR9: day nav, concept title in day-type color, matching lesson-box border, KY standard shown) ---- */
+function openDay(i){ var d=S.plan.days[i]; if(d.type==='holiday') return; S.plan.dayEdit=i; go('dayEditor'); }
+function navDay(dir){ var p=S.plan, n=p.days.length; p.dayEdit=(p.dayEdit+dir+n)%n; render(); }
+function setDayType(t){ var p=S.plan; p.days[p.dayEdit].type=t; assignConcepts(); render(); }
 function renderDayEditor(){
-  var i=S.dayEdit; var dn=['Mon','Tue','Wed','Thu','Fri'][i]; var t=S.days[i];
-  var h='<div class="backrow"><button class="back" onclick="go(\'planWeek\')">‹ Week</button></div>';
-  if(t==='core'){
-    h+='<h1>'+dn+' ◼ Core · EE7</h1>';
-    h+='<div class="card">'+
-       '<button class="btn small" onclick="flipAndBack('+i+')">Make this an IEP/SDI day</button>'+
-       '<div style="margin-top:.7rem"><b>Learning intention</b> (from segment)</div>'+
-       '<div class="note">Solve two-step equations; variables on one side; one / infinite / no solutions.</div>'+
-       '<div style="margin-top:.6rem"><b>Artifacts</b></div>'+
-       '<div class="note">guided notes · matching cards</div>'+
-       '<div style="margin-top:.6rem"><b>Checkpoint</b></div>'+
-       '<div class="note">exit slip</div>'+
-       '<div class="greyhook">▸ Differentiate this day → down to ~3rd-grade access <span class="locked">later pass</span></div>'+
+  var p=S.plan, i=p.dayEdit, dn=['Mon','Tue','Wed','Thu','Fri'][i], d=p.days[i], seg=planSeg();
+  var stdTxt=(seg.std&&seg.std.length)? seg.std.join(' · ') : '(no standard)';
+  var tc={core:'--plan-core',sdi:'--plan-sdi',rev:'--plan-rev',holiday:'--danger',test:'--owes'}[d.type];
+  var title = d.type==='core'? d.concept : (d.type==='sdi'?'IEP / SDI day':(d.type==='rev'?'Review & Fluency':(d.concept||dn)));
+  var h='<div class="backrow"><button class="back" onclick="go(\'planWeek\')">‹ Week</button>'+
+     '<span style="margin-left:auto;display:flex;gap:.3rem"><button class="iconbtn" onclick="navDay(-1)" aria-label="previous day">‹ day</button>'+
+     '<button class="iconbtn" onclick="navDay(1)" aria-label="next day">day ›</button></span></div>';
+  h+='<div style="display:flex;align-items:center;gap:.5rem;margin:.2rem 0"><span style="font-weight:800;color:var(--text-dim);font-size:.82rem">'+dn+'</span>'+
+     '<span class="kystd">'+esc(stdTxt)+'</span></div>';
+  h+='<h1 style="color:var('+tc+');margin:.1rem 0 .5rem">'+esc(title)+'</h1>';
+  if(d.type!=='holiday' && d.type!=='test'){
+    h+='<div style="font-size:.7rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;margin-bottom:.25rem">Day type</div>';
+    h+='<div class="seg3">'+
+       '<button class="core'+(d.type==='core'?' on':'')+'" onclick="setDayType(\'core\')">Core</button>'+
+       '<button class="sdi'+(d.type==='sdi'?' on':'')+'" onclick="setDayType(\'sdi\')">SDI</button>'+
+       '<button class="rev'+(d.type==='rev'?' on':'')+'" onclick="setDayType(\'rev\')">Review &amp; Fluency</button>'+
        '</div>';
-    h+='<div class="banner info">Core ◼ maps toward MYP → Toddle. Kept separate from the IEP → IC track.</div>';
-    return h;
   }
-  // IEP/SDI day
-  h+='<h1>'+dn+' ◆ IEP / SDI</h1>';
-  h+='<div class="card">'+
-     '<button class="btn small" onclick="flipAndBack('+i+')">Make this a core day</button>'+
-     '<div style="margin:.7rem 0 .3rem"><b>Attach goals</b> (your supported students)</div>';
-  S.goals.filter(x=>['AB','CD','EF'].indexOf(x.ini)>=0).slice(0,3).forEach(function(x,idx){
-    var on = idx<2;
-    h+='<div class="attach"><div class="cb '+(on?'on':'')+'" onclick="this.classList.toggle(\'on\')">'+(on?'✓':'')+'</div>'+
-       avatar(x.ini)+
-       '<div style="flex:1"><div style="font-weight:700">'+esc(x.name)+'</div>'+
-       '<div class="rowmeta">probe: '+esc(x.probe)+'</div>'+
-       '<span class="accom">Accom/mod: extended time · read-aloud</span></div></div>';
-  });
-  h+='<div class="hook">Monitoring hook: delivering this yields 1 data point → the tracker. '+
-     'Only logs if the probe matches the goal’s behavior + condition + method.</div>';
+  h+='<div class="card" style="border:1.5px solid var('+tc+');border-left-width:4px;margin-top:.6rem">';
+  if(d.type==='core'){
+    h+='<div><b style="color:var(--plan-core)">Learning intention</b> <span class="note" style="display:inline">(from '+esc(seg.topic)+')</span></div>'+
+       '<div class="note">'+esc(d.concept)+'</div>'+
+       '<div style="margin-top:.6rem"><b>Artifacts</b></div><div class="note">guided notes · matching cards</div>'+
+       '<div style="margin-top:.6rem"><b>Checkpoint</b></div><div class="note">exit slip</div>'+
+       '<div class="greyhook">▸ Differentiate this day → down to ~3rd-grade access <span class="locked">later pass</span></div>';
+  } else if(d.type==='sdi'){
+    h+='<div style="margin:.1rem 0 .3rem"><b style="color:var(--plan-sdi)">Attach goals</b> (your supported students)</div>';
+    S.goals.filter(function(x){return ['AB','CD','EF'].indexOf(x.ini)>=0;}).slice(0,3).forEach(function(x,idx){
+      var on=idx<2;
+      h+='<div class="attach"><div class="cb '+(on?'on':'')+'" onclick="this.classList.toggle(\'on\')">'+(on?'✓':'')+'</div>'+
+         avatar(x.ini)+
+         '<div style="flex:1"><div style="font-weight:700">'+esc(x.name)+'</div>'+
+         '<div class="rowmeta">probe: '+esc(x.probe)+'</div>'+
+         '<span class="accom">Accom/mod: extended time · read-aloud</span></div></div>';
+    });
+    h+='<div class="hook">Monitoring hook: delivering this yields 1 data point → the tracker. Only logs if the probe matches the goal’s behavior + condition + method.</div>';
+  } else if(d.type==='rev'){
+    h+='<div><b style="color:var(--plan-rev)">Review &amp; Fluency (Fun Friday)</b></div>'+
+       '<div class="note">Mix core-concept review games with IEP-goal fluency practice.</div>'+
+       '<div style="margin-top:.5rem"><b>Core review</b></div><div class="note">'+esc(seg.topic)+' — game-based review</div>'+
+       '<div style="margin-top:.5rem"><b>Goal fluency</b> '+['AB','CD','GH'].map(avatarSm).join('')+'</div>'+
+       '<div class="note">short fluency probes can double as this week’s monitoring point.</div>';
+  } else {
+    h+='<div class="note">'+(d.type==='holiday'?'⛔ No school — from the calendar.':'✎ Testing day — from the calendar. Instruction pauses; monitoring still owes.')+'</div>';
+  }
   h+='</div>';
-  h+='<div class="banner ok">IEP ◆ maps toward IEP % → Infinite Campus. The same activity is never counted for both tracks.</div>';
+  if(d.type==='core') h+='<div class="banner info">Core maps toward MYP → Toddle. Kept separate from the IEP → IC track.</div>';
+  else if(d.type==='sdi') h+='<div class="banner ok">SDI maps toward IEP % → Infinite Campus. The same activity is never counted for both tracks.</div>';
+  else if(d.type==='rev') h+='<div class="banner info">Review &amp; Fluency touches both: core review (→ Toddle) and goal fluency (→ IC), each scored on its own track.</div>';
   return h;
 }
-function flipAndBack(i){ flipDay(i); go('planWeek'); }
 
 /* ---- [J] Reconciliation ---- */
 function renderReconcile(){
-  var g=S.goals;
+  var g=S.goals, seg=planSeg();
   var oweList=g.filter(x=>x.status==='owes');
-  var noSdi = ['EF']; // synthetic gap
+  var core=S.plan.days.filter(function(d){return d.type==='core';}).length;
+  var noSdi = ['EF'];
   var h='<div class="backrow"><button class="back" onclick="go(\'planWeek\')">‹ Week</button></div>';
-  h+='<h1>Reconcile · Mar 3–7</h1>';
+  h+='<h1>Reconcile · '+esc(WEEKS[S.plan.weekIdx].label.replace('Week of ',''))+'</h1>';
   h+='<div class="sub">Ambient all week, or open the checklist at close.'+
      tip('tipRecon','The strip fills in as you go so nothing piles up. The checklist is the end-of-week gate — both, so it fits how you actually work.')+'</div>';
   h+=ambientStrip();
 
   h+='<div class="card">';
-  // (a)
   h+='<div class="checkitem"><span class="cmark ok">✓</span><div class="cbody">'+
      '<div class="clabel">(a) Standard exposed?</div>'+
-     '<div class="cdetail">EE7 taught on '+S.days.filter(d=>d==='core').length+' core days.</div></div></div>';
-  // (b)
+     '<div class="cdetail">'+esc(seg.std&&seg.std.length?seg.std[0]:seg.topic)+' taught on '+core+' core day'+(core===1?'':'s')+'.</div></div></div>';
   h+='<div class="checkitem"><span class="cmark '+(noSdi.length?'bad':'ok')+'">'+(noSdi.length?'✗':'✓')+'</span><div class="cbody">'+
      '<div class="clabel">(b) Each goal given SDI time?</div>'+
      '<div class="cdetail" style="display:flex;flex-wrap:wrap;gap:.55rem;align-items:center;margin-top:.25rem">'+
        ['AB','CD','GH'].map(function(i){return '<span style="display:inline-flex;align-items:center;gap:.25rem">'+avatarSm(i)+'<span style="color:var(--logged)">✓</span></span>';}).join('')+
        (noSdi.length? noSdi.map(function(i){return '<span style="display:inline-flex;align-items:center;gap:.25rem">'+avatarSm(i)+'<span style="color:var(--danger)">✗ no SDI day</span></span>';}).join('')+'<span class="glink" onclick="go(\'dayEditor\')">attach a day</span>':'')+
      '</div></div></div>';
-  // (c)
   var ccells = g.map(function(x){
     if(x.status==='owes') return '<span class="glink" style="display:inline-flex;align-items:center;gap:.25rem" onclick="openScore(\''+x.id+'\')">'+avatarSm(x.ini)+'○ owes</span>';
     if(x.status==='nodata') return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--nodata)">'+avatarSm(x.ini)+'⊘ ('+esc(x.reason)+')</span>';
     if(x.status==='pending') return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--pending)">'+avatarSm(x.ini)+'⏳</span>';
+    if(x.status==='incomplete') return '<span class="glink" style="display:inline-flex;align-items:center;gap:.25rem;color:var(--owes)" onclick="openResolve(\''+x.id+'\')">'+avatarSm(x.ini)+'◐ incomplete</span>';
+    if(x.status==='queued') return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--accent)">'+avatarSm(x.ini)+'◷ to score</span>';
     return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--logged)">'+avatarSm(x.ini)+'●</span>';
   }).join('');
   h+='<div class="checkitem"><span class="cmark '+(oweList.length?'warn':'ok')+'">'+(oweList.length?'!':'✓')+'</span><div class="cbody">'+
@@ -1052,37 +1647,7 @@ function closeWeek(){
   go('planWeek');
 }
 
-/* ---- Carry-forward / testing week ---- */
-function renderCarryForward(){
-  var g=S.goals;
-  var h='<div class="card">';
-  h+='<div style="display:flex;justify-content:space-between;align-items:center"><b>Week of Jan 19–23</b>'+
-     '<span style="font-size:.78rem;color:var(--owes);font-weight:700">⛔ MLK Mon · ✎ MAP testing</span></div>';
-  h+='<div class="daysrow" style="margin-top:.6rem">'+ ['Mon','Tue','Wed','Thu','Fri'].map(function(dn,i){
-      var t=S.days[i]; var gl={off:'⛔',core:'◼',iep:'◆',test:'✎'}[t];
-      var lbl={off:'no school',core:'core',iep:'IEP',test:'MAP'}[t];
-      return '<div class="day '+t+'"><div class="dn">'+dn+'</div><div class="dt">'+gl+'</div><div class="dl">'+lbl+'</div></div>';
-    }).join('')+'</div>';
-  h+='</div>';
-
-  h+='<div class="banner warn">Only 1 core day fits (needed '+S.coreDays+'). EE5 segment not finished.</div>';
-  h+='<div class="card"><div style="font-weight:800;margin-bottom:.3rem">↪ Instruction slips</div>'+
-     '<div class="note">The unfinished EE5 segment carries to next week with its standard→goal links intact; next week opens pre-loaded with the remainder.</div>'+
-     '<button class="btn small primary" style="margin-top:.5rem" onclick="toast(\'EE5 carried → next week\')">Carry EE5 forward</button></div>';
-
-  h+='<div class="card"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><b>Monitoring does NOT slip</b>'+
-     tip('tipCarry','Instruction can move to next week. Monitoring can’t — every active goal still owes its point this week, even when a test eats the days.')+'</div>';
-  var owe=g.filter(x=>x.status==='owes');
-  h+='<div class="cdetail">Every active goal still owes a point this week:</div>';
-  h+='<div style="display:flex;flex-wrap:wrap;gap:.6rem;margin:.4rem 0;align-items:center">'+ g.map(function(x){
-        var st=x.status; var key=(st==='owes'?'owes':st==='nodata'?'nodata':'logged');
-        return '<span style="display:inline-flex;align-items:center;gap:.25rem;color:var(--'+key+')">'+avatarSm(x.ini)+glyph(key)+'</span>';
-     }).join('')+'</div>';
-  h+='<button class="btn wide" style="width:100%;margin-top:.3rem" onclick="bulkTesting()">Mark remaining no-data · reason: Testing</button>';
-  h+='<div class="note">One teacher-initiated action — only touches UNSCORED goals; any real points keep their value.</div>';
-  h+='</div>';
-  return h;
-}
+/* Testing-week bulk action (reached from the calendar-driven disruption section, not a manual mode) */
 function bulkTesting(){
   var n=0;
   S.goals.forEach(function(x){ if(x.status==='owes'){ x.status='nodata'; x.reason='Testing'; n++; } });
@@ -1091,7 +1656,7 @@ function bulkTesting(){
 }
 
 /* ---------------- init ---------------- */
-layoutDays();
+S.plan.segIdx=WEEKS[0].seg; S.plan.conceptStart=WEEKS[0].start||0; buildWeekDays();
 render();
 </script>
 
