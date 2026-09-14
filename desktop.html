@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teacher Assistant — Desktop mockup (TRACK)</title>
+<style>
+  /* ===== tokens: copied verbatim from prototype-p0.html — do not diverge ===== */
+  :root {
+    --bg:#e9edf3; --surface:#ffffff; --surface-2:#f4f6f9; --text:#1a1f2b; --text-dim:#586074;
+    --border:#d7dce6; --border-strong:#c2cad8;
+    --accent:#2563d9; --accent-ink:#ffffff; --accent-soft:#e8f0ff;
+    --owes:#b56a00; --owes-bg:#fff4e0; --owes-line:#e7a63a;
+    --logged:#137a41; --logged-bg:#e6f5ec;
+    --nodata:#5f6675; --nodata-bg:#eceef2;
+    --mastery:#8a6300; --mastery-bg:#fbf1d4;
+    --pending:#6a35c9; --pending-bg:#efe7fb;
+    --danger:#b5271b;
+    --shadow:0 6px 24px rgba(24,33,52,.14);
+    --radius:16px;
+    --s-ab:#0f766e; --s-cd:#4338ca; --s-ef:#0369a1; --s-gh:#6d28d9; --s-jm:#a21caf; --s-rt:#0e7490;
+  }
+  :root[data-theme="dark"] {
+    --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+    --border:#2c3a52; --border-strong:#3a4a66;
+    --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+    --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+    --logged:#54d38c; --logged-bg:#123726;
+    --nodata:#9aa7bd; --nodata-bg:#232c3b;
+    --mastery:#f4d271; --mastery-bg:#3a3111;
+    --pending:#bda2f7; --pending-bg:#2a1f45;
+    --danger:#ff8072;
+    --shadow:0 6px 26px rgba(0,0,0,.45);
+    --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+      --border:#2c3a52; --border-strong:#3a4a66;
+      --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+      --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+      --logged:#54d38c; --logged-bg:#123726;
+      --nodata:#9aa7bd; --nodata-bg:#232c3b;
+      --mastery:#f4d271; --mastery-bg:#3a3111;
+      --pending:#bda2f7; --pending-bg:#2a1f45;
+      --danger:#ff8072;
+      --shadow:0 6px 26px rgba(0,0,0,.45);
+      --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.4; padding:1.6rem;
+  }
+
+  /* ===== shared components (from prototype, unchanged meaning) ===== */
+  h1 { font-size:1.15rem; margin:.1rem 0; }
+  .sub { color:var(--text-dim); font-size:.82rem; margin:.1rem 0 .7rem; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; margin-bottom:.7rem; }
+
+  .headline { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.9rem 1rem; margin-bottom:.9rem; }
+  .three { display:flex; gap:.6rem; margin:.3rem 0 .55rem; flex-wrap:wrap; }
+  .stat { flex:1; min-width:6rem; border-radius:12px; padding:.55rem .6rem; text-align:center; }
+  .stat b { display:block; font-size:1.5rem; line-height:1.1; }
+  .stat span { font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; font-weight:700; opacity:.9; }
+  .stat.scored { background:var(--logged-bg); color:var(--logged); }
+  .stat.excused { background:var(--nodata-bg); color:var(--nodata); }
+  .stat.owe { background:var(--owes-bg); color:var(--owes); }
+  .pendnote { font-size:.76rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.3rem .5rem; margin:.15rem .3rem .15rem 0; display:inline-block; }
+  .pendnote.hold { color:var(--owes); background:var(--owes-bg); }
+  .pendnote.queue { color:var(--accent); background:var(--accent-soft); }
+
+  .grouplabel { display:flex; align-items:center; gap:.4rem; margin:.7rem .1rem .35rem; }
+  .grouplabel .ln { flex:1; height:1px; background:var(--border); }
+  .grouplabel span { font-size:.72rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+  .grouplabel.owes span { color:var(--owes); }
+
+  .row { display:flex; align-items:center; gap:.6rem; width:100%; text-align:left;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:.7rem .75rem; margin-bottom:.5rem; color:var(--text); cursor:pointer; }
+  .row:hover { border-color:var(--border-strong); }
+  .row.owes { border-color:var(--owes-line); background:var(--owes-bg); }
+  .row.selected { border-color:var(--accent); box-shadow:inset 4px 0 0 var(--accent); background:var(--accent-soft); }
+  .chip { font-size:1.35rem; width:1.6rem; text-align:center; flex:none; }
+  .chip.owes{color:var(--owes);} .chip.logged{color:var(--logged);} .chip.nodata{color:var(--nodata);}
+  .chip.mastery{color:var(--mastery);} .chip.pending{color:var(--pending);}
+  .rowmain { flex:1; min-width:0; }
+  .rowtitle { display:block; font-weight:700; font-size:.95rem; }
+  .rowmeta { display:block; font-size:.78rem; color:var(--text-dim); margin-top:.1rem; }
+  .rowright { text-align:right; flex:none; }
+  .rowval { font-weight:800; font-size:1rem; }
+  .rowval.dim { color:var(--text-dim); font-weight:600; font-size:.8rem; }
+
+  .av { flex:none; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:.82rem; }
+  .av.circle { width:2.3rem; height:2.3rem; border-radius:50%; color:#fff; }
+  .av.ab{background:var(--s-ab);} .av.cd{background:var(--s-cd);} .av.ef{background:var(--s-ef);}
+  .av.gh{background:var(--s-gh);} .av.jm{background:var(--s-jm);} .av.rt{background:var(--s-rt);}
+  .period { display:inline-block; font-size:.64rem; font-weight:800; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.03rem .3rem; margin-left:.35rem; vertical-align:middle; }
+
+  button.btn { border:0; border-radius:13px; padding:.7rem 1rem; font-size:.9rem; font-weight:800; cursor:pointer;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  button.btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  button.btn.small { padding:.5rem .7rem; font-size:.82rem; border-radius:10px; }
+  button.btn.ghost { background:transparent; }
+
+  .window { display:flex; align-items:center; gap:.35rem; font-size:1.4rem; margin:.2rem 0; }
+  .window .wl { font-size:.85rem; color:var(--text-dim); font-weight:700; margin-left:.3rem; }
+  .win-yes { color:var(--logged); } .win-no { color:var(--owes); }
+  .notyet { font-size:.8rem; color:var(--owes); font-weight:700; }
+  .note { font-size:.78rem; color:var(--text-dim); margin-top:.3rem; }
+
+  .qsummary { background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; padding:.75rem; margin:.2rem 0 0; }
+  .qsummary .big { font-size:2rem; font-weight:900; color:var(--accent); line-height:1; }
+  .qsummary .qlab { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); }
+  .dchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.35rem .7rem; font-size:.8rem; font-weight:700; cursor:pointer; }
+  .dchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+  /* draft progress statement (R3-3 honesty surface) */
+  .draft { background:var(--surface-2); border:1px solid var(--border-strong); border-radius:12px; padding:.8rem; }
+  .draft .dlab { display:flex; align-items:center; gap:.5rem; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin-bottom:.4rem; }
+  .indet { font-size:.64rem; font-weight:900; letter-spacing:.04em; color:var(--owes); background:var(--owes-bg); border:1px solid var(--owes-line); border-radius:6px; padding:.1rem .4rem; }
+  .draft p { margin:.2rem 0; font-size:.86rem; line-height:1.5; }
+  .draft .gate { font-size:.76rem; color:var(--owes); margin-top:.5rem; }
+
+  table { border-collapse:collapse; width:100%; font-size:.78rem; }
+  th, td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--border); white-space:nowrap; }
+  th { background:var(--surface-2); color:var(--text-dim); font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; }
+  tr:last-child td { border-bottom:0; }
+  .tablewrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .locked { font-size:.62rem; color:var(--nodata); background:var(--nodata-bg); border-radius:6px; padding:.05rem .35rem; }
+  .waswas { color:var(--owes); font-weight:700; font-size:.7rem; }
+  .editpt { border:1px solid var(--border); background:var(--surface-2); color:var(--accent); border-radius:7px; padding:.1rem .4rem; font-size:.72rem; font-weight:800; cursor:pointer; }
+  .mismatch { color:var(--owes); font-weight:800; }
+  .validate-strip { margin-bottom:.9rem; }
+
+  /* ===== desktop shell ===== */
+  .artboard-label { font-size:.8rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); margin:.2rem 0 .6rem; }
+  .app {
+    display:grid; grid-template-columns:15rem 1fr; height:46rem;
+    border:1px solid var(--border-strong); border-radius:14px; overflow:hidden;
+    box-shadow:var(--shadow); background:var(--bg); margin-bottom:2.4rem;
+  }
+  .sidebar { background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:.9rem .7rem; gap:.15rem; }
+  .brand { font-weight:900; font-size:.95rem; padding:.3rem .5rem .8rem; letter-spacing:.01em; }
+  .brand small { display:block; font-weight:700; font-size:.66rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:.15rem; }
+  .navitem { display:flex; align-items:center; gap:.6rem; border:0; background:transparent; color:var(--text-dim);
+    font-family:inherit; font-size:.9rem; font-weight:700; text-align:left; width:100%; padding:.6rem .6rem; border-radius:10px; cursor:pointer; }
+  .navitem:hover { background:var(--surface-2); }
+  .navitem .ic { font-size:1.1rem; width:1.3rem; text-align:center; }
+  .navitem.on { color:var(--accent); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .navitem .badge { margin-left:auto; font-size:.7rem; font-weight:800; color:var(--text-dim); background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:.05rem .45rem; }
+  .navdiv { height:1px; background:var(--border); margin:.6rem .3rem; }
+  .navsec { font-size:.64rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); padding:.2rem .6rem .2rem; }
+  .sidefoot { margin-top:auto; font-size:.68rem; color:var(--text-dim); padding:.5rem; }
+
+  .main { display:flex; flex-direction:column; min-width:0; }
+  .topbar { display:flex; align-items:center; gap:.7rem; padding:.6rem 1.1rem; background:var(--surface); border-bottom:1px solid var(--border); }
+  .topbar .title { font-weight:800; font-size:.95rem; }
+  .weeknav { display:flex; align-items:center; gap:.5rem; }
+  .weeknav button { border:0; background:transparent; color:var(--accent); font-size:1.1rem; cursor:pointer; padding:.1rem .3rem; }
+  .weeknav .wk { font-weight:700; font-size:.9rem; }
+  .topgrow { flex:1; }
+  .offline { display:inline-flex; align-items:center; gap:.35rem; font-weight:700; color:var(--owes); background:var(--owes-bg); padding:.25rem .55rem; border-radius:999px; font-size:.72rem; }
+  .roleseg { display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .roleseg button { border:0; background:var(--surface-2); color:var(--text-dim); padding:.35rem .6rem; font-size:.72rem; cursor:pointer; font-weight:700; }
+  .roleseg button.on { background:var(--accent); color:var(--accent-ink); }
+  .iconbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text); border-radius:10px; padding:.35rem .55rem; font-size:.85rem; cursor:pointer; }
+
+  .content { flex:1; overflow-y:auto; padding:1.1rem 1.3rem; }
+  .content-inner { max-width:1180px; margin:0 auto; }
+  .backlink { border:0; background:transparent; color:var(--accent); font-weight:700; font-size:.85rem; cursor:pointer; padding:0; }
+
+  .md { display:grid; grid-template-columns:24rem 1fr; gap:1.1rem; align-items:start; }
+  .mdlist { min-width:0; }
+  .mddetail { min-width:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; }
+  .listtoolbar { display:flex; justify-content:flex-end; margin-bottom:.3rem; }
+
+  .detailhead { display:flex; align-items:center; gap:.6rem; margin-bottom:.6rem; }
+  .detailhead h1 { margin:0; }
+  .chart { width:100%; height:auto; display:block; }
+
+  .twocol { display:grid; grid-template-columns:1.4fr 1fr; gap:1.1rem; align-items:start; }
+  @media (max-width:1100px){ .twocol{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<p style="max-width:1180px;margin:0 auto 1.4rem;font-size:.85rem;color:var(--text-dim)">
+  <b style="color:var(--text)">Desktop mockup — TRACK.</b> Two key screens in the app's real
+  design language (same tokens, avatars, chips, honesty copy). Static/synthetic data; layout
+  only, not wired. NEW design — needs Niah's validation.
+  <button class="iconbtn" style="margin-left:.5rem" onclick="tg()">Toggle light / dark</button>
+</p>
+
+<!-- ============================== ARTBOARD 1 ============================== -->
+<div style="max-width:1180px;margin:0 auto">
+  <div class="artboard-label">Screen 1 — Weekly Dashboard (master-detail)</div>
+</div>
+<div class="app" style="max-width:1180px;margin:0 auto 2.4rem">
+  <!-- sidebar -->
+  <aside class="sidebar">
+    <div class="brand">Teacher Assistant<small>Track · Plan</small></div>
+    <button class="navitem on"><span class="ic">&#9679;</span> Track</button>
+    <button class="navitem"><span class="ic">&#9776;</span> Plan</button>
+    <div class="navdiv"></div>
+    <div class="navsec">This week</div>
+    <button class="navitem"><span class="ic">&#9743;</span> To-score <span class="badge">2</span></button>
+    <button class="navitem"><span class="ic">&#8987;</span> Baseline / proposed <span class="badge">2</span></button>
+    <button class="navitem"><span class="ic">&#43;</span> New goal</button>
+    <div class="sidefoot">Signed in · initials only<br>TCMS · 8th math</div>
+  </aside>
+  <!-- main -->
+  <div class="main">
+    <div class="topbar">
+      <span class="title">Weekly Dashboard</span>
+      <div class="weeknav"><button>&#8249;</button><span class="wk">Week of Mar 3–7</span><button>&#8250;</button></div>
+      <span class="topgrow"></span>
+      <span class="offline">&#9925; offline · syncs later</span>
+      <div class="roleseg"><button class="on">Teacher</button><button>Para (JT)</button></div>
+      <button class="iconbtn" onclick="tg()">&#9789;</button>
+    </div>
+    <div class="content">
+      <div class="content-inner">
+
+        <!-- three-state headline (full width) -->
+        <div class="headline">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem"><b style="font-size:.85rem">Monitoring this week</b>
+            <span style="font-size:.72rem;color:var(--text-dim)">— three states, not pass/fail. A documented “no data” is excused, never a zero.</span></div>
+          <div class="three">
+            <div class="stat scored"><b>3</b><span>scored</span></div>
+            <div class="stat excused"><b>1</b><span>excused</span></div>
+            <div class="stat owe"><b>3</b><span>owe</span></div>
+          </div>
+          <div style="font-size:.82rem;color:var(--text-dim)">3 of 6 collectable scored · 1 excused · 3 owe</div>
+          <div style="margin-top:.35rem">
+            <span class="pendnote">&#9203; 1 para point awaiting your OK</span>
+            <span class="pendnote queue">&#9727; 2 collected — to score</span>
+          </div>
+        </div>
+
+        <!-- pending validation strip (full width, only when n>0) -->
+        <div class="validate-strip">
+          <div class="grouplabel"><span>Needs your OK — para points</span><span class="ln"></span></div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Student</th><th>Goal</th><th>Period</th><th>Value</th><th>Admin date</th><th>Setting</th><th>Scorer</th><th>Flag</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="av circle ab" style="width:1.5rem;height:1.5rem;font-size:.62rem">AB</span></td>
+                  <td>Two-step equations</td><td>P2</td><td><b>4/5 = 80%</b></td><td>Mar 3</td><td>Resource</td><td>JT (para)</td>
+                  <td><span class="mismatch">&#9888; total 6 vs 5</span></td>
+                  <td style="text-align:right"><button class="btn small primary">Confirm</button> <button class="btn small">Fix</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note">Each point itemized, values visible, individually correctable — no collapsed “confirm all”. Mismatch kept in the audit, excluded from the consistency window until resolved.</div>
+        </div>
+
+        <!-- master-detail -->
+        <div class="md">
+          <!-- master list -->
+          <div class="mdlist">
+            <div class="listtoolbar"><button class="btn small ghost">Group: owes-first &#9662;</button></div>
+
+            <div class="grouplabel owes"><span>Owes a point</span><span class="ln"></span></div>
+
+            <div class="row owes selected">
+              <span class="chip owes">&#9675;</span>
+              <span class="av circle ab">AB</span>
+              <span class="rowmain"><span class="rowtitle">Two-step equations</span>
+                <span class="rowmeta">P2 · 2-step · 80% × 4 probes</span></span>
+            </div>
+            <div class="row owes">
+              <span class="chip owes">&#9675;</span>
+              <span class="av circle cd">CD</span>
+              <span class="rowmain"><span class="rowtitle">Multiply fractions</span>
+                <span class="rowmeta">P2 · fractions · 80% × 4 probes</span></span>
+            </div>
+            <div class="row owes">
+              <span class="chip owes">&#9675;</span>
+              <span class="av circle gh">GH</span>
+              <span class="rowmain"><span class="rowtitle">Add integers</span>
+                <span class="rowmeta">P4 · integers · 70% × 3 probes</span></span>
+            </div>
+
+            <div class="grouplabel"><span>Done this week</span><span class="ln"></span></div>
+
+            <div class="row">
+              <span class="chip logged">&#9679;</span>
+              <span class="av circle ab">AB</span>
+              <span class="rowmain"><span class="rowtitle">Add integers</span>
+                <span class="rowmeta">P2 · integers</span></span>
+              <span class="rowright"><span class="rowval">88%</span></span>
+            </div>
+            <div class="row">
+              <span class="chip logged">&#9679;</span>
+              <span class="av circle ef">EF</span>
+              <span class="rowmain"><span class="rowtitle">Scientific notation</span>
+                <span class="rowmeta">P2 · <span style="color:var(--pending)">2×/month</span> · sci-notation</span></span>
+              <span class="rowright"><span class="rowval">60%</span></span>
+            </div>
+            <div class="row">
+              <span class="chip nodata">&#8856;</span>
+              <span class="av circle cd">CD</span>
+              <span class="rowmain"><span class="rowtitle">Number line</span>
+                <span class="rowmeta">P2 · <span style="color:var(--nodata)">reason: Absent</span></span></span>
+              <span class="rowright"><span class="rowval dim">no data</span></span>
+            </div>
+            <div class="row">
+              <span class="chip mastery">&#9733;</span>
+              <span class="av circle ef">EF</span>
+              <span class="rowmain"><span class="rowtitle">Rounding</span>
+                <span class="rowmeta" style="color:var(--mastery);font-weight:700">criterion window met — review</span></span>
+              <span class="rowright"><span class="rowval">84%</span></span>
+            </div>
+          </div>
+
+          <!-- detail pane: selected goal (AB two-step) -->
+          <div class="mddetail">
+            <div class="detailhead">
+              <span class="av circle ab">AB</span>
+              <div style="min-width:0"><h1>Two-step equations</h1>
+                <div class="sub" style="margin:.1rem 0 0">P2 · Criterion: 80% × 4 probes · Baseline 20%</div></div>
+              <span style="margin-left:auto"><button class="btn primary small">&#43; Add a point</button></span>
+            </div>
+
+            <div class="card" style="margin-bottom:.7rem">
+              <div id="chart1"></div>
+              <div class="note">&#8856; no-data probe shown as a gap, never plotted as a zero.</div>
+            </div>
+
+            <!-- DRAFT progress statement (INDETERMINATE variant) -->
+            <div class="draft" style="margin-bottom:.7rem">
+              <div class="dlab">Draft progress statement — review before copying to IC <span class="indet">Indeterminate</span></div>
+              <p>According to the 6 most recent data points (Jan 29–Mar 4), AB is averaging 80% accuracy on solving two-step equations, given a 5-item probe with read-aloud and a number line. This is a 60-point increase from the baseline of 20% and a 2-point decrease from the previous reporting period (82%). 6 data points have been collected this period; additional data are needed to establish a reliable trend toward 80%. Progress will continue to be monitored and supported through specially designed instruction.</p>
+              <div class="gate">&#9888; 6 scored points — below the 8-point / 4-week bar for a defensible trend, so no “on track” claim is made yet.</div>
+              <div style="margin-top:.5rem"><button class="btn small">Edit</button> <button class="btn small primary">Copy to IC</button></div>
+            </div>
+
+            <!-- consistency window -->
+            <div class="card" style="margin-bottom:.7rem">
+              <b style="font-size:.9rem">Consistency window</b>
+              <div class="window">
+                <span class="win-no">&#9675;</span><span class="win-yes">&#9679;</span><span class="win-yes">&#9679;</span><span class="win-no">&#9675;</span>
+                <span class="wl">2 of 4 &#8805;80%</span>
+              </div>
+              <div class="notyet">&#8627; Not yet: needs 4 consecutive &#8805;80%. A &#8856; pauses the run, never breaks it.</div>
+            </div>
+
+            <!-- quarterly summary -->
+            <div class="qsummary">
+              <div class="qlab">Quarterly progress summary</div>
+              <div style="display:flex;align-items:baseline;gap:.5rem;margin:.2rem 0">
+                <span class="big">80%</span>
+                <span style="font-size:.78rem;color:var(--text-dim)">average of last 5 points · Feb 5–Mar 4</span>
+              </div>
+              <div style="margin:.2rem 0 .3rem"><button class="dchip on">Average</button> <button class="dchip">Median</button></div>
+              <div class="note">Spans 1 no-data week (excluded from the average, shown for context).</div>
+              <button class="btn small primary" style="margin-top:.4rem">Copy for IC progress report</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== ARTBOARD 2 ============================== -->
+<div style="max-width:1180px;margin:0 auto">
+  <div class="artboard-label">Screen 2 — Goal Detail (full screen, deep-linked)</div>
+</div>
+<div class="app" style="max-width:1180px;margin:0 auto 1rem">
+  <aside class="sidebar">
+    <div class="brand">Teacher Assistant<small>Track · Plan</small></div>
+    <button class="navitem on"><span class="ic">&#9679;</span> Track</button>
+    <button class="navitem"><span class="ic">&#9776;</span> Plan</button>
+    <div class="navdiv"></div>
+    <div class="navsec">This week</div>
+    <button class="navitem"><span class="ic">&#9743;</span> To-score <span class="badge">2</span></button>
+    <button class="navitem"><span class="ic">&#8987;</span> Baseline / proposed <span class="badge">2</span></button>
+    <button class="navitem"><span class="ic">&#43;</span> New goal</button>
+    <div class="sidefoot">Signed in · initials only<br>TCMS · 8th math</div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="backlink">&#8249; Dashboard</button>
+      <span class="title" style="margin-left:.3rem">Goal Detail</span>
+      <span class="topgrow"></span>
+      <span class="offline">&#9925; offline · syncs later</span>
+      <div class="roleseg"><button class="on">Teacher</button><button>Para (JT)</button></div>
+      <button class="iconbtn" onclick="tg()">&#9789;</button>
+    </div>
+    <div class="content">
+      <div class="content-inner">
+
+        <div class="detailhead" style="margin-bottom:.9rem">
+          <span class="av circle ab">AB</span>
+          <div style="min-width:0"><h1>Two-step equations</h1>
+            <div class="sub" style="margin:.1rem 0 0">P2 · Criterion: 80% × 4 probes · Baseline 20% · read-aloud + number line</div></div>
+          <span style="margin-left:auto"><button class="btn primary">&#43; Add a point</button></span>
+        </div>
+
+        <div class="twocol">
+          <!-- LEFT: the data -->
+          <div>
+            <div class="card">
+              <b style="font-size:.9rem">Trend</b>
+              <div id="chart2" style="margin-top:.4rem"></div>
+              <div class="note">&#8856; no-data probe shown as a gap, never plotted as a zero. Dashed line = aim (baseline &#8594; criterion by IEP end).</div>
+            </div>
+
+            <div class="card">
+              <b style="font-size:.9rem">Consistency window</b>
+              <div class="window">
+                <span class="win-no">&#9675;</span><span class="win-yes">&#9679;</span><span class="win-yes">&#9679;</span><span class="win-no">&#9675;</span>
+                <span class="wl">2 of 4 &#8805;80%</span>
+              </div>
+              <div class="notyet">&#8627; Not yet: needs 4 consecutive &#8805;80%. Consecutive = consecutive probes in admin-date order; a &#8856; pauses the run.</div>
+            </div>
+
+            <div class="card">
+              <b style="font-size:.9rem">ARC history (audit)</b>
+              <div class="tablewrap" style="margin-top:.5rem">
+                <table>
+                  <thead><tr><th>Admin date</th><th>Entered</th><th>Correct/total</th><th>%</th><th>Probe</th><th>Setting</th><th>Scorer</th><th>Validated</th></tr></thead>
+                  <tbody>
+                    <tr><td>Mar 4</td><td>Mar 4 pm</td><td>4/5 <button class="editpt">edit</button></td><td>80%</td><td>2-step</td><td>Resource</td><td>NS</td><td>—</td></tr>
+                    <tr><td>Feb 26</td><td>Feb 26 pm</td><td>4/5 <button class="editpt">edit</button></td><td>80%</td><td>2-step</td><td>Home</td><td>NS</td><td>—</td></tr>
+                    <tr><td>Feb 19</td><td>Feb 20</td><td>—</td><td><span style="color:var(--nodata)">&#8856; Absent</span></td><td>—</td><td>—</td><td>NS</td><td>—</td></tr>
+                    <tr><td>Feb 12</td><td>Feb 12</td><td>4/5 <button class="editpt">edit</button></td><td>82% <span class="waswas">(was 78%)</span></td><td>2-step</td><td>Resource</td><td>JT (para)</td><td>NS 2/12</td></tr>
+                    <tr><td>Feb 5</td><td>Feb 5</td><td>3/5 <button class="editpt">edit</button></td><td>70%</td><td>2-step</td><td>Resource</td><td>NS</td><td>—</td></tr>
+                    <tr><td>Jan 29 <span class="locked">baseline</span></td><td>Jan 29</td><td>1/5</td><td>20%</td><td>2-step</td><td>Resource</td><td>NS</td><td>—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="note">Stores numerator/denominator, both dates, and validator — not just the %. Edits keep the prior value (who/when/old&#8594;new).</div>
+            </div>
+          </div>
+
+          <!-- RIGHT: the numbers that leave the app -->
+          <div>
+            <div class="draft" style="margin-bottom:.9rem">
+              <div class="dlab">Draft progress statement <span class="indet">Indeterminate</span></div>
+              <p>According to the 6 most recent data points (Jan 29–Mar 4), AB is averaging 80% accuracy on solving two-step equations, given a 5-item probe with read-aloud and a number line. This is a 60-point increase from the baseline of 20% and a 2-point decrease from the previous reporting period (82%). 6 data points have been collected this period; additional data are needed to establish a reliable trend toward 80%. Progress will continue to be monitored and supported through specially designed instruction.</p>
+              <div class="gate">&#9888; 6 scored points — below the 8-point / 4-week bar for a defensible trend. No “on track” claim yet.</div>
+              <div style="margin-top:.5rem"><button class="btn small">Edit</button> <button class="btn small primary">Copy to IC</button></div>
+              <div class="note">Draft only — never auto-submitted. You review and edit before it goes to Infinite Campus.</div>
+            </div>
+
+            <div class="qsummary">
+              <div class="qlab">Quarterly progress summary</div>
+              <div style="display:flex;align-items:baseline;gap:.5rem;margin:.2rem 0">
+                <span class="big">80%</span>
+                <span style="font-size:.78rem;color:var(--text-dim)">average of last 5 points · Feb 5–Mar 4</span>
+              </div>
+              <div style="margin:.2rem 0 .3rem"><button class="dchip on">Average</button> <button class="dchip">Median</button></div>
+              <div class="note">Spans 1 no-data week (excluded from the average, shown for context). A different IC destination than the weekly points — the progress report.</div>
+              <button class="btn small primary" style="margin-top:.4rem">Copy for IC progress report</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function tg(){
+    var r=document.documentElement;
+    var cur=r.getAttribute('data-theme');
+    var isDark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    r.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  }
+
+  /* trend chart — same geometry + ⊘-as-gap logic as prototype trendSVG(); AB g1 data */
+  function trendSVG(tr, level){
+    var W=520,H=180, padL=34,padR=14,padT=14,padB=26;
+    var plotW=W-padL-padR, plotH=H-padT-padB;
+    function X(wk){ return padL + (wk-1)/6*plotW; }
+    function Y(v){ return padT + (1-v/100)*plotH; }
+    var s='<svg viewBox="0 0 '+W+' '+H+'" class="chart" role="img" aria-label="trend">';
+    [0,20,40,60,80,100].forEach(function(v){
+      s+='<line x1="'+padL+'" y1="'+Y(v)+'" x2="'+(W-padR)+'" y2="'+Y(v)+'" stroke="var(--border)" stroke-width="1"/>';
+      s+='<text x="'+(padL-6)+'" y="'+(Y(v)+4)+'" font-size="10" fill="var(--text-dim)" text-anchor="end">'+v+'</text>';
+    });
+    s+='<line x1="'+padL+'" y1="'+Y(level)+'" x2="'+(W-padR)+'" y2="'+Y(level)+'" stroke="var(--owes-line)" stroke-width="2" stroke-dasharray="6 5"/>';
+    s+='<text x="'+(W-padR)+'" y="'+(Y(level)-5)+'" font-size="10" fill="var(--owes)" text-anchor="end">aim '+level+'%</text>';
+    var seg=[], cur=[];
+    tr.forEach(function(p){ if(p.nodata){ if(cur.length)seg.push(cur); cur=[]; } else cur.push(p); });
+    if(cur.length)seg.push(cur);
+    seg.forEach(function(arr){
+      if(arr.length<2) return;
+      var d='M'+X(arr[0].wk)+' '+Y(arr[0].v);
+      for(var i=1;i<arr.length;i++) d+=' L'+X(arr[i].wk)+' '+Y(arr[i].v);
+      s+='<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>';
+    });
+    tr.forEach(function(p){
+      if(p.nodata){
+        s+='<text x="'+X(p.wk)+'" y="'+(H-padB+18)+'" font-size="15" fill="var(--nodata)" text-anchor="middle">&#8856;</text>';
+        s+='<line x1="'+X(p.wk)+'" y1="'+padT+'" x2="'+X(p.wk)+'" y2="'+(H-padB)+'" stroke="var(--nodata)" stroke-width="1" stroke-dasharray="2 4" opacity=".6"/>';
+      } else {
+        var col = p.v>=level ? 'var(--logged)' : 'var(--accent)';
+        s+='<circle cx="'+X(p.wk)+'" cy="'+Y(p.v)+'" r="5.5" fill="'+col+'"/>';
+        if(p.base) s+='<text x="'+X(p.wk)+'" y="'+(Y(p.v)+18)+'" font-size="9" fill="var(--text-dim)" text-anchor="middle">base</text>';
+      }
+    });
+    s+='</svg>';
+    return s;
+  }
+  var TR=[ {wk:1,v:20,base:true},{wk:2,v:70},{wk:3,v:82},{wk:4,nodata:true},{wk:5,v:82},{wk:6,v:88},{wk:7,v:76} ];
+  document.getElementById('chart1').innerHTML = trendSVG(TR,80);
+  document.getElementById('chart2').innerHTML = trendSVG(TR,80);
+</script>
+</body>
+</html>
