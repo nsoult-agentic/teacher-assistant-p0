@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teacher Assistant — Materials (M10 differentiation toolkit)</title>
+<style>
+  /* ===== tokens: copied verbatim from prototype-p0.html — do not diverge ===== */
+  :root {
+    --bg:#e9edf3; --surface:#ffffff; --surface-2:#f4f6f9; --text:#1a1f2b; --text-dim:#586074;
+    --border:#d7dce6; --border-strong:#c2cad8;
+    --accent:#2563d9; --accent-ink:#ffffff; --accent-soft:#e8f0ff;
+    --owes:#b56a00; --owes-bg:#fff4e0; --owes-line:#e7a63a;
+    --logged:#137a41; --logged-bg:#e6f5ec;
+    --nodata:#5f6675; --nodata-bg:#eceef2;
+    --mastery:#8a6300; --mastery-bg:#fbf1d4;
+    --pending:#6a35c9; --pending-bg:#efe7fb;
+    --danger:#b5271b;
+    --shadow:0 6px 24px rgba(24,33,52,.14);
+    --radius:16px;
+    --s-ab:#0f766e; --s-cd:#4338ca; --s-ef:#0369a1; --s-gh:#6d28d9; --s-jm:#a21caf; --s-rt:#0e7490;
+    /* M10 NEW: access-band neutral steel ramp (Q-F) — deliberately NOT green/amber/red (status)
+       and NOT the student identity hues. A single neutral hue read as "depth of scaffolding". */
+    --band-ink:#5b6b7f; --band-empty:#c2cad8;
+  }
+  :root[data-theme="dark"] {
+    --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+    --border:#2c3a52; --border-strong:#3a4a66;
+    --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+    --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+    --logged:#54d38c; --logged-bg:#123726;
+    --nodata:#9aa7bd; --nodata-bg:#232c3b;
+    --mastery:#f4d271; --mastery-bg:#3a3111;
+    --pending:#bda2f7; --pending-bg:#2a1f45;
+    --danger:#ff8072;
+    --shadow:0 6px 26px rgba(0,0,0,.45);
+    --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+    --band-ink:#93a3b8; --band-empty:#3a4a66;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+      --border:#2c3a52; --border-strong:#3a4a66;
+      --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+      --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+      --logged:#54d38c; --logged-bg:#123726;
+      --nodata:#9aa7bd; --nodata-bg:#232c3b;
+      --mastery:#f4d271; --mastery-bg:#3a3111;
+      --pending:#bda2f7; --pending-bg:#2a1f45;
+      --danger:#ff8072;
+      --shadow:0 6px 26px rgba(0,0,0,.45);
+      --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+      --band-ink:#93a3b8; --band-empty:#3a4a66;
+    }
+  }
+
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.4;
+  }
+
+  /* ===== responsive shell: <900 = full-bleed mobile (tabbar+statusbar); >=900 = sidebar+topbar ===== */
+  .app { display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+  .sidebar { display:none; }
+  .topbar  { display:none; }
+
+  /* mobile top status bar (reused from p0) */
+  .statusbar { display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    background:var(--surface); border-bottom:1px solid var(--border); font-size:.8rem; flex:none; }
+  .statusbar .grow { flex:1; }
+  .offline { display:inline-flex; align-items:center; gap:.35rem; font-weight:600; color:var(--owes);
+    background:var(--owes-bg); padding:.2rem .5rem; border-radius:999px; font-size:.72rem; }
+  .iconbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+    border-radius:10px; padding:.3rem .5rem; font-size:.85rem; cursor:pointer; }
+  .roleseg { display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .roleseg button { border:0; background:var(--surface-2); color:var(--text-dim); padding:.3rem .55rem; font-size:.72rem; cursor:pointer; font-weight:600; }
+  .roleseg button.on { background:var(--accent); color:var(--accent-ink); }
+
+  .screen { flex:1; overflow-y:auto; overflow-x:hidden; padding:.9rem .9rem 1.4rem; position:relative; }
+  .screen::-webkit-scrollbar { width:0; }
+  .pagewrap { }
+
+  /* mobile bottom nav (reused from p0) */
+  .tabbar { display:flex; background:var(--surface); border-top:1px solid var(--border); flex:none; }
+  .tabbar button { flex:1; border:0; background:transparent; color:var(--text-dim); padding:.6rem 0 .7rem;
+    font-size:.72rem; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:.15rem; }
+  .tabbar button .ic { font-size:1.15rem; line-height:1; }
+  .tabbar button.on { color:var(--accent); }
+
+  @media (min-width:900px){
+    .app { display:grid; grid-template-columns:15rem 1fr; }
+    .main { display:flex; flex-direction:column; min-width:0; }
+    .statusbar { display:none; }
+    .tabbar { display:none; }
+    .sidebar { display:flex; flex-direction:column; padding:.9rem .7rem; gap:.15rem;
+      background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; }
+    .topbar { display:flex; align-items:center; gap:.7rem; padding:.6rem 1.1rem;
+      background:var(--surface); border-bottom:1px solid var(--border); flex:none; }
+    .topbar .title { font-weight:800; font-size:.95rem; }
+    .topgrow { flex:1; }
+    .screen { padding:1.1rem 1.3rem 2rem; }
+    .screen::-webkit-scrollbar { width:10px; }
+    .screen::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:6px; }
+    .pagewrap { max-width:1180px; margin:0 auto; }
+  }
+
+  .brand { font-weight:900; font-size:.95rem; padding:.3rem .5rem .8rem; letter-spacing:.01em; }
+  .brand small { display:block; font-weight:700; font-size:.66rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:.15rem; }
+  .navitem { display:flex; align-items:center; gap:.6rem; border:0; background:transparent; color:var(--text-dim);
+    font-family:inherit; font-size:.9rem; font-weight:700; text-align:left; width:100%; padding:.6rem .6rem; border-radius:10px; cursor:pointer; }
+  .navitem:hover { background:var(--surface-2); }
+  .navitem .ic { font-size:1.1rem; width:1.3rem; text-align:center; }
+  .navitem.on { color:var(--accent); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .navitem .badge { margin-left:auto; font-size:.7rem; font-weight:800; color:var(--text-dim); background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:.05rem .45rem; }
+  .navdiv { height:1px; background:var(--border); margin:.6rem .3rem; }
+  .navsec { font-size:.64rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); padding:.2rem .6rem; }
+  .subnav { border:0; background:transparent; color:var(--text-dim); font-family:inherit; font-size:.84rem;
+    font-weight:700; text-align:left; width:100%; padding:.45rem .6rem .45rem 1.5rem; border-radius:9px; cursor:pointer; }
+  .subnav:hover { background:var(--surface-2); }
+  .subnav.on { color:var(--accent); background:var(--accent-soft); }
+  .sidefoot { margin-top:auto; font-size:.68rem; color:var(--text-dim); padding:.5rem; }
+
+  /* ===== shared components (from p0) ===== */
+  h1 { font-size:1.2rem; margin:.1rem 0; }
+  h2 { font-size:1rem; margin:1rem 0 .5rem; }
+  .sub { color:var(--text-dim); font-size:.82rem; margin:.1rem 0 .7rem; }
+  .backrow { display:flex; align-items:center; gap:.4rem; margin-bottom:.4rem; }
+  .back { border:0; background:transparent; color:var(--accent); font-weight:700; font-size:.9rem; cursor:pointer; padding:.2rem 0; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; margin-bottom:.7rem; }
+
+  button.btn { border:0; border-radius:13px; padding:.8rem 1rem; font-size:.92rem; font-weight:800; cursor:pointer;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  button.btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  button.btn.wide { flex:1; }
+  button.btn.small { padding:.5rem .7rem; font-size:.82rem; border-radius:10px; }
+  button.btn.ghost { background:transparent; }
+  button.btn.danger { color:var(--danger); border-color:var(--danger); }
+  button.btn:disabled { opacity:.5; cursor:default; }
+  .btnrow { display:flex; gap:.6rem; margin-top:.5rem; }
+
+  .note { font-size:.78rem; color:var(--text-dim); margin-top:.3rem; }
+  .req { color:var(--danger); font-size:.8rem; font-weight:700; }
+  .reqmark { color:var(--danger); }
+
+  .banner { border-radius:12px; padding:.6rem .7rem; margin:.5rem 0; font-size:.85rem; }
+  .banner.warn { background:var(--owes-bg); color:var(--owes); border:1px solid var(--owes-line); }
+  .banner.info { background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); }
+  .banner.ok { background:var(--logged-bg); color:var(--logged); }
+
+  /* avatars — LOCKED identity hues, initials only */
+  .av { flex:none; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:.82rem; }
+  .av.circle { width:2.3rem; height:2.3rem; border-radius:50%; color:#fff; }
+  .av.sm { width:1.6rem; height:1.6rem; font-size:.64rem; border-radius:50%; color:#fff; }
+  .av.ab{background:var(--s-ab);} .av.cd{background:var(--s-cd);} .av.ef{background:var(--s-ef);}
+  .av.gh{background:var(--s-gh);} .av.jm{background:var(--s-jm);} .av.rt{background:var(--s-rt);}
+  .period { display:inline-block; font-size:.64rem; font-weight:800; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.03rem .3rem; margin-left:.35rem; vertical-align:middle; }
+
+  /* filter chips (reused .rchip) */
+  .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; }
+  .rchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.5rem .85rem; font-size:.86rem; font-weight:700; cursor:pointer; }
+  .rchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+  /* forms (reused) */
+  .form label { display:block; font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin:.75rem 0 .2rem; }
+  .form input.tin, .form select.tin, .form textarea.tin { width:100%; border:1px solid var(--border-strong); border-radius:10px;
+    background:var(--surface); color:var(--text); font-size:.9rem; padding:.55rem .6rem; font-family:inherit; }
+  .form textarea.tin { min-height:4rem; resize:vertical; }
+  .toggle2 { display:inline-flex; border:1.5px solid var(--border-strong); border-radius:11px; overflow:hidden; }
+  .toggle2 button { border:0; background:var(--surface-2); color:var(--text-dim); font-weight:800; font-size:.95rem; padding:.4rem 1rem; cursor:pointer; }
+  .toggle2 button.on { background:var(--accent); color:var(--accent-ink); }
+
+  /* tooltip */
+  .tip { position:relative; display:inline-flex; }
+  .tipbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); border-radius:999px; width:1.3rem; height:1.3rem; font-size:.75rem; font-weight:800; cursor:pointer; line-height:1; }
+  .tipbody { display:none; margin-top:.4rem; background:var(--accent-soft); border:1px solid var(--accent); color:var(--text); border-radius:10px; padding:.5rem .6rem; font-size:.78rem; }
+  .tipbody.open { display:block; }
+
+  /* toast + sheet/modal (sheet becomes centered modal >=900) */
+  .toast { position:fixed; left:50%; bottom:5rem; transform:translateX(-50%) translateY(1rem); z-index:60;
+    background:var(--text); color:var(--bg); padding:.6rem .9rem; border-radius:10px; font-size:.85rem; font-weight:700;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; max-width:88%; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .scrim { position:fixed; inset:0; background:rgba(10,15,25,.5); display:none; z-index:40; }
+  .scrim.open { display:block; }
+  .sheet { position:fixed; left:0; right:0; bottom:0; z-index:41; background:var(--surface);
+    border-top-left-radius:22px; border-top-right-radius:22px; padding:.6rem 1rem 1.3rem;
+    transform:translateY(102%); transition:transform .22s ease; max-height:90%; overflow-y:auto;
+    box-shadow:0 -8px 30px rgba(0,0,0,.25); }
+  .sheet.open { transform:translateY(0); }
+  .grip { width:2.6rem; height:.3rem; border-radius:999px; background:var(--border-strong); margin:.2rem auto .7rem; }
+  .sheetx { display:none; }
+  @media (min-width:900px){
+    .sheet { left:50%; right:auto; bottom:auto; top:50%; width:30rem; max-width:92vw; max-height:86vh;
+      transform:translate(-50%,-46%) scale(.98); opacity:0; border-radius:18px; padding:1rem 1.2rem 1.2rem;
+      transition:transform .18s ease, opacity .18s ease; box-shadow:var(--shadow); }
+    .sheet.open { transform:translate(-50%,-50%) scale(1); opacity:1; }
+    .grip { display:none; }
+    .sheetx { display:inline-flex; position:absolute; top:.7rem; right:.8rem; }
+  }
+  .whowhat { font-weight:800; font-size:1.05rem; }
+  .ctx { color:var(--text-dim); font-size:.82rem; margin:.1rem 0 .2rem; }
+
+  /* "Tell us" affordance for Niah's open questions (Q-A / Q-C / Q-I) */
+  .tellus { display:inline-flex; align-items:center; gap:.3rem; font-size:.68rem; font-weight:800; color:var(--accent);
+    background:var(--accent-soft); border:1px dashed var(--accent); border-radius:999px; padding:.15rem .55rem; cursor:pointer; }
+
+  /* ===== M10 NEW components ===== */
+  /* access-band pips (Q-F) */
+  .pips { display:inline-flex; gap:2px; vertical-align:middle; }
+  .pip { width:.5rem; height:.5rem; border-radius:2px; background:var(--band-empty); }
+  .pip.on { background:var(--band-ink); }
+  .reachlab { font-size:.74rem; font-weight:700; color:var(--band-ink); display:inline-flex; align-items:center; gap:.35rem; }
+
+  /* accom/mod badge — strongest element on the card; NEVER red */
+  .mbadge { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+    border-radius:6px; padding:.14rem .45rem; }
+  .mbadge.accom { background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); }
+  .mbadge.mod { background:transparent; color:var(--pending); border:1.5px solid var(--pending); }
+
+  .stdchip { font-size:.72rem; font-weight:800; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:.06rem .4rem; }
+  .tagchip { font-size:.68rem; font-weight:700; color:var(--text-dim); background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:.12rem .5rem; }
+  .metaline { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; margin-top:.4rem; }
+
+  .mcard { cursor:pointer; }
+  .mcard:hover { border-color:var(--border-strong); }
+  .mtitle { display:flex; justify-content:space-between; align-items:flex-start; gap:.6rem; font-weight:800; font-size:1.02rem; }
+  .mkind { font-size:.72rem; color:var(--text-dim); font-weight:700; white-space:nowrap; }
+  .cardgrid { display:grid; grid-template-columns:1fr; gap:.7rem; }
+  @media (min-width:900px){ .cardgrid { grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); } }
+  @media (min-width:1400px){ .cardgrid { grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); } }
+
+  /* library layout: rail (desktop) | main; sheet trigger (mobile) */
+  .libwrap { display:block; }
+  .filterrail { display:none; }
+  .libfilterbtn { display:inline-flex; }
+  @media (min-width:900px){
+    .libwrap { display:grid; grid-template-columns:15rem 1fr; gap:1.1rem; align-items:start; }
+    .filterrail { display:block; position:sticky; top:0; }
+    .libfilterbtn { display:none; }
+  }
+  .searchbar { display:flex; gap:.5rem; align-items:center; margin-bottom:.4rem; }
+  .searchin { flex:1; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface); color:var(--text);
+    font-size:.9rem; padding:.6rem .7rem; font-family:inherit; }
+  .facetgroup { margin-bottom:.7rem; }
+  .facetlab { font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); margin:.2rem 0 .3rem; }
+  .fchips { display:flex; flex-wrap:wrap; gap:.35rem; }
+  .fchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.28rem .6rem; font-size:.76rem; font-weight:700; cursor:pointer; }
+  .fchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .railcard { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; }
+
+  /* FAB (mobile add) */
+  .fab { position:fixed; right:1rem; bottom:4.6rem; z-index:30; border:0; border-radius:999px;
+    background:var(--accent); color:var(--accent-ink); font-weight:800; font-size:.95rem;
+    padding:.8rem 1.1rem; box-shadow:var(--shadow); cursor:pointer; }
+  @media (min-width:900px){ .fab { display:none; } }
+
+  /* radio-ladder (access band + accom/mod conscious choice) */
+  .ladder { display:flex; flex-direction:column; gap:.5rem; margin:.3rem 0; }
+  .lopt { display:flex; gap:.6rem; align-items:flex-start; border:1.5px solid var(--border-strong); background:var(--surface);
+    color:var(--text); border-radius:12px; padding:.65rem .7rem; cursor:pointer; text-align:left; font-family:inherit; width:100%; }
+  .lopt:hover { border-color:var(--accent); }
+  .lopt.on { border-color:var(--accent); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .lopt.dis { opacity:.5; cursor:not-allowed; }
+  .lopt .rdot { width:1.15rem; height:1.15rem; border-radius:50%; border:2px solid var(--border-strong); flex:none; margin-top:.1rem; }
+  .lopt.on .rdot { border-color:var(--accent); background:radial-gradient(circle at center, var(--accent) 45%, transparent 48%); }
+  .lopt .lt { font-weight:800; font-size:.9rem; }
+  .lopt .ld { font-size:.78rem; color:var(--text-dim); margin-top:.15rem; }
+  .interlock { font-size:.78rem; color:var(--owes); background:var(--owes-bg); border:1px solid var(--owes-line); border-radius:8px; padding:.45rem .55rem; margin-top:.35rem; }
+
+  /* MYP fenced block */
+  .mypblock { border:1.5px dashed var(--border-strong); border-radius:12px; padding:.75rem; margin:.7rem 0; background:var(--surface-2); }
+  .mypblock .mh { font-size:.78rem; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:.03em; }
+  .critchip { border:1.5px solid var(--border-strong); background:var(--surface); color:var(--text); border-radius:9px;
+    width:2.6rem; height:2.6rem; font-size:1rem; font-weight:900; cursor:pointer; }
+  .critchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+  /* gap dimensions */
+  .gapsum { font-size:1.05rem; font-weight:800; margin:.4rem 0 .2rem; }
+  .dim { border:1px solid var(--border); border-radius:12px; padding:.7rem .8rem; margin-bottom:.55rem; background:var(--surface); }
+  .dimhd { display:flex; align-items:center; gap:.5rem; }
+  .dimhd .dn { flex:1; font-weight:800; font-size:.92rem; }
+  .cov { font-size:.76rem; font-weight:800; color:var(--logged); display:inline-flex; align-items:center; gap:.25rem; }
+  .gapmark { font-size:.76rem; font-weight:800; color:var(--text-dim); display:inline-flex; align-items:center; gap:.25rem; }
+  .havemiss { font-size:.8rem; color:var(--text-dim); margin-top:.35rem; }
+  .havemiss b { color:var(--text); }
+  .findbtn { border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:800;
+    font-size:.78rem; border-radius:9px; padding:.35rem .6rem; cursor:pointer; margin:.35rem .35rem 0 0; }
+  .promptbtn { border:1px dashed var(--border-strong); background:transparent; color:var(--text-dim); font-weight:800;
+    font-size:.76rem; border-radius:9px; padding:.35rem .6rem; cursor:pointer; margin:.35rem 0 0 0; }
+
+  /* prompt cards */
+  .caution { background:var(--owes-bg); border:1px solid var(--owes-line); color:var(--owes); border-radius:12px;
+    padding:.6rem .7rem; font-size:.82rem; font-weight:700; margin-bottom:.7rem; }
+  .caution .small { font-weight:600; color:var(--owes); }
+  .pcard { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; margin-bottom:.7rem; }
+  .pbody { display:none; margin:.5rem 0; background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+    padding:.6rem .7rem; font-size:.82rem; white-space:pre-wrap; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .pbody.open { display:block; }
+  .cautionrow { font-size:.76rem; color:var(--owes); font-weight:700; margin:.4rem 0; }
+
+  /* SDI supports section (Goal Detail) */
+  .harddiv { height:2px; background:var(--border-strong); margin:1.1rem 0 .2rem; border-radius:2px; }
+  .sdihead { display:flex; align-items:center; gap:.5rem; margin:.6rem 0 .1rem; }
+  .sdihead .h { font-weight:800; font-size:1rem; }
+  .roflag { font-size:.66rem; font-weight:800; text-transform:uppercase; color:var(--nodata); background:var(--nodata-bg); border-radius:6px; padding:.1rem .4rem; }
+  .sdicap { font-size:.8rem; color:var(--text-dim); font-style:italic; margin:.1rem 0 .5rem; }
+  .sdirow { display:flex; align-items:center; gap:.55rem; width:100%; text-align:left; background:var(--surface);
+    border:1px solid var(--border); border-radius:11px; padding:.6rem .7rem; margin-bottom:.45rem; color:var(--text); cursor:pointer; font-family:inherit; }
+  .sdirow:hover { border-color:var(--border-strong); }
+  .sdirow .t { flex:1; font-weight:700; font-size:.9rem; }
+  .sdifence { border:1px solid var(--border); border-radius:14px; padding:.2rem .8rem .8rem; background:var(--surface-2); }
+  .collapsehdr { display:flex; align-items:center; gap:.5rem; cursor:pointer; padding:.6rem 0 .2rem; }
+
+  /* starter pack grouping */
+  .shead { display:flex; align-items:center; gap:.5rem; padding:.5rem 0 .3rem; cursor:pointer; }
+  .shead .sc { font-weight:800; font-size:.92rem; }
+  .starterflag { font-size:.64rem; font-weight:800; text-transform:uppercase; color:var(--mastery); background:var(--mastery-bg); border-radius:6px; padding:.1rem .4rem; }
+
+  .kv { display:flex; justify-content:space-between; gap:1rem; padding:.4rem 0; border-bottom:1px dashed var(--border); font-size:.86rem; }
+  .kv:last-child { border-bottom:0; }
+  .kv .k { color:var(--text-dim); }
+  .kv .v { font-weight:700; text-align:right; }
+
+  .empty { text-align:center; color:var(--text-dim); padding:2rem 1rem; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- desktop sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">Teacher Assistant<small>Track · Plan · Materials</small></div>
+    <button class="navitem" data-nav="track" onclick="go('track')"><span class="ic">&#9679;</span> Track</button>
+    <button class="navitem" data-nav="plan" onclick="go('plan')"><span class="ic">&#9776;</span> Plan</button>
+    <button class="navitem" data-nav="materials" onclick="go('library')"><span class="ic">&#9783;</span> Materials</button>
+    <div id="matsub"></div>
+    <div class="sidefoot">Signed in · initials only<br>TCMS · 8th math</div>
+  </aside>
+
+  <div class="main">
+    <!-- mobile status bar -->
+    <div class="statusbar">
+      <span class="offline" id="offlineBadge">&#9925; offline &middot; syncs later</span>
+      <span class="grow"></span>
+      <div class="roleseg" id="roleSeg">
+        <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
+        <button data-role="para" onclick="setRole('para')">Para (JT)</button>
+      </div>
+      <button class="iconbtn" onclick="toggleTheme()" id="themeBtnM">&#9789;</button>
+    </div>
+    <!-- desktop top bar -->
+    <div class="topbar">
+      <span class="title" id="topTitle">Materials</span>
+      <span class="topgrow"></span>
+      <span class="offline">&#9925; offline &middot; syncs later</span>
+      <div class="roleseg">
+        <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
+        <button data-role="para" onclick="setRole('para')">Para (JT)</button>
+      </div>
+      <button class="iconbtn" onclick="toggleTheme()" id="themeBtnD">&#9789;</button>
+    </div>
+
+    <div class="screen" id="screen"></div>
+
+    <!-- mobile bottom nav -->
+    <div class="tabbar" id="tabbar">
+      <button data-tab="track" onclick="go('track')"><span class="ic">&#9679;</span>Track</button>
+      <button data-tab="plan" onclick="go('plan')"><span class="ic">&#9776;</span>Plan</button>
+      <button data-tab="materials" class="on" onclick="go('library')"><span class="ic">&#9783;</span>Materials</button>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ================= helpers ================= */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show');},2600); }
+function toggleTheme(){
+  var root=document.documentElement, cur=root.getAttribute('data-theme');
+  var isDark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  root.setAttribute('data-theme', isDark?'light':'dark');
+  var g = isDark ? '☀' : '☽';
+  $('themeBtnM').innerHTML=g; $('themeBtnD').innerHTML=g;
+}
+var HUE={AB:'ab',CD:'cd',EF:'ef',GH:'gh',JM:'jm',RT:'rt'};
+function avatar(ini,sm){ var i=(''+ini).toUpperCase(); return '<span class="av circle '+(sm?'sm ':'')+(HUE[i]||'ab')+'" role="img" aria-label="student '+esc(i)+'">'+esc(i)+'</span>'; }
+function tip(id,text){ return '<span class="tip"><button class="tipbtn" onclick="toggleTip(\''+id+'\')" aria-label="why">?</button></span><div class="tipbody" id="'+id+'">'+text+'</div>'; }
+function toggleTip(id){ var e=$(id); if(e) e.classList.toggle('open'); }
+function tellus(q){ return '<span class="tellus" onclick="askNiah(\''+q+'\')">✎ Tell us</span>'; }
+function askNiah(q){
+  var m={
+    A:'Q-A — We named this section “Materials”. Tell us in a comment if you’d rather call it “Differentiate”, “My toolkit”, or “Supports”.',
+    C:'Q-C — This is the accommodation-vs-modification wording. It matches what your SED reviewer signed off. Tell us in a comment if any word doesn’t match how you’d say it.',
+    I:'Q-I — This is the one-time caution shown the first time you copy a prompt. Tell us in a comment if you’d word the warning differently.'
+  };
+  toast(m[q]||'Tell us what you think in a comment.');
+}
+
+/* ================= reference enums / display maps ================= */
+var REACH={ on_grade:{lab:'on grade',lvl:1}, scaffolded:{lab:'grade-level scaffolded',lvl:2}, bridge:{lab:'foundational bridge',lvl:3}, access:{lab:'access — foundational',lvl:4} };
+function reachPips(r){
+  var lvl=(REACH[r]||REACH.on_grade).lvl, s='';
+  for(var i=1;i<=4;i++) s+='<span class="pip'+(i<=lvl?' on':'')+'"></span>';
+  return '<span class="reachlab"><span class="pips" title="depth of scaffolding — more filled = further below grade level">'+s+'</span>Reach: '+(REACH[r]||REACH.on_grade).lab+'</span>';
+}
+function accomBadge(a){ if(a==='accommodation') return '<span class="mbadge accom">Accommodation</span>'; if(a==='modification') return '<span class="mbadge mod">Modification</span>'; return ''; }
+function craAbbr(c){ return {concrete:'C',representational:'R',abstract:'A'}[c]||c; }
+function udlAbbr(u){ return {representation:'repr',action_expression:'action',engagement:'engage'}[u]||u; }
+/* LOCKED §12 display glosses */
+var CRA_GLOSS={concrete:'hands-on',representational:'picture',abstract:'numbers'};
+var UDL_GLOSS={representation:'ways to show it',action_expression:'ways to respond',engagement:'ways to stay engaged'};
+
+var STD_LIST=['8.NS.1','8.NS.2','8.EE.1','8.EE.2','8.EE.3','8.EE.4','8.EE.7','8.EE.8','8.F.1','8.F.4','8.G.7','8.G.9','8.SP.1'];
+var SUPPORT_LIST=['worked example','keyword','anchor/symbol','visual scaffold','reference tool','manipulative','practice set','CRA support','step chunked','modified assessment'];
+var BLOCK_LIST=['I DO','WE DO','YOU DO'];
+var CRA_LIST=['concrete','representational','abstract'];
+var UDL_LIST=['representation','action_expression','engagement'];
+var SOURCE_LIST=[['mine','my material'],['colleague','colleague'],['arc','ARC binder'],['purchased','purchased'],['imported_seed','imported starter']];
+function sourceLabel(s){ for(var i=0;i<SOURCE_LIST.length;i++) if(SOURCE_LIST[i][0]===s) return SOURCE_LIST[i][1]; return s; }
+
+/* ================= synthetic data (initials only; tranche-1 exemplars) ================= */
+var SEQ=100;
+function mkid(){ return 'm'+(SEQ++); }
+var M = {
+  role:'teacher',
+  dest:'library',
+  matId:null,
+  goalId:'g1',
+  search:'',
+  filters:{ std:[], support:[], reach:[], block:[], cra:[], udl:[], accommod:[], retired:false },
+  add:null,
+  attach:null,
+  firstCopyDone:false,
+  gapTarget:{ kind:'standard', id:'8.EE.1' },
+  starterOpen:{ '8.EE.1':true, '8.NS.1':false, '8.NS.2':false, '8.EE.4':false },
+  sdiCollapsed:false,
+  library:[
+    {id:'m1', t:0, title:'Perfect-squares chart', kind:'link', url:'https://example.org/perfect-squares', label:'Perfect squares 1–20',
+     stds:['8.EE.1'], supports:['visual scaffold','reference tool'], reach:'scaffolded', accom_mod:'accommodation',
+     blocks:['I DO','WE DO'], cra:['representational','abstract'], udl:['representation'], source:'mine', myp:[], retired:false},
+    {id:'m2', t:1, title:'Repeating-decimal worked example', kind:'text', text:'Step 1: write the repeating decimal as x.\nStep 2: multiply so the repeat lines up.\nStep 3: subtract, solve for x, reduce.',
+     stds:['8.NS.1'], supports:['worked example','keyword'], reach:'scaffolded', accom_mod:'accommodation',
+     blocks:['I DO'], cra:['abstract'], udl:['representation'], source:'mine', myp:[], retired:false},
+    {id:'m3', t:2, title:'Number line strip (fractions)', kind:'link', url:'https://example.org/numberline', label:'0–1 by eighths',
+     stds:['8.NS.2'], supports:['visual scaffold','manipulative'], reach:'bridge', accom_mod:'accommodation',
+     blocks:['WE DO','YOU DO'], cra:['concrete','representational'], udl:['representation','action_expression'], source:'colleague', myp:[], retired:false},
+    {id:'m4', t:3, title:'Smaller-number practice set (2-step)', kind:'text', text:'10 two-step problems, all whole numbers under 20. One worked model at top.',
+     stds:['8.EE.7'], supports:['practice set'], reach:'access', accom_mod:'modification',
+     blocks:['YOU DO'], cra:['abstract'], udl:['action_expression'], source:'mine', myp:[], retired:false},
+    {id:'m5', t:4, title:'Roots keyword / vocab card', kind:'text', text:'square root, radical, perfect square, index — each with a picture cue.',
+     stds:['8.EE.1'], supports:['keyword'], reach:'scaffolded', accom_mod:'accommodation',
+     blocks:['I DO'], cra:['abstract'], udl:['representation'], source:'mine', myp:[], retired:false},
+    {id:'m6', t:5, title:'Cube-root anchor chart', kind:'link', url:'https://example.org/cube-root', label:'Cube roots 1–10',
+     stds:['8.EE.1'], supports:['anchor/symbol','reference tool','worked example','CRA support'], reach:'access', accom_mod:'accommodation',
+     blocks:['I DO','WE DO','YOU DO'], cra:['concrete'], udl:['representation'], source:'arc', myp:[], retired:false},
+    {id:'m7', t:6, title:'Sci-notation modified quiz', kind:'text', text:'6 items, all powers of ten ±3, calculator allowed. Modified from the gen-ed unit test.',
+     stds:['8.EE.4'], supports:['modified assessment'], reach:'access', accom_mod:'modification',
+     blocks:['YOU DO'], cra:['abstract'], udl:['action_expression'], source:'mine', myp:['A','B'], retired:false},
+    {id:'m8', t:7, title:'Decimals → fractions manipulative script', kind:'text', text:'Base-ten blocks → grid picture → fraction. Teacher script, 4 steps.',
+     stds:['8.NS.1'], supports:['CRA support','manipulative'], reach:'bridge', accom_mod:'accommodation',
+     blocks:['WE DO'], cra:['concrete','representational'], udl:['representation'], source:'colleague', myp:[], retired:false},
+    {id:'m9', t:8, title:'Old integer worksheet (retired)', kind:'link', url:'https://example.org/old', label:'',
+     stds:['8.EE.7'], supports:['practice set'], reach:'access', accom_mod:'modification',
+     blocks:['YOU DO'], cra:['abstract'], udl:['action_expression'], source:'mine', myp:[], retired:true}
+  ],
+  goals:[
+    {id:'g1', ini:'AB', period:'P2', name:'Two-step equations', crit:'80% × 4 probes',
+     supports:[{matId:'m1',accom_mod:'accommodation'},{matId:'m4',accom_mod:'modification'}]},
+    {id:'g2', ini:'CD', period:'P2', name:'Multiply fractions', crit:'80% × 4 probes',
+     supports:[{matId:'m3',accom_mod:'accommodation'}]},
+    {id:'g3', ini:'EF', period:'P4', name:'Rounding decimals', crit:'80% × 4 probes', supports:[]},
+    {id:'g4', ini:'GH', period:'P4', name:'Add integers', crit:'70% × 3 probes', supports:[]}
+  ]
+};
+
+var PROMPTS=[
+  {id:'p1', title:'Step-chunked worked example (I DO)', support:'step chunked',
+   body:'Make a worked example for ___ (skill).\nBreak it into 3–4 numbered steps.\nFor each step, show the math and leave one ___ blank for the student to fill.\nKeep every number under ___.'},
+  {id:'p2', title:'Smaller-number practice set', support:'practice set',
+   body:'Make a ___-item practice set for ___.\nKeep all numbers under ___.\nPut ___ fully-worked example(s) at the top as a model.'},
+  {id:'p3', title:'Keyword / vocab support', support:'keyword',
+   body:'List the ___ key math words a student needs for ___.\nFor each word, give a student-friendly meaning and a ___ picture cue.'},
+  {id:'p4', title:'CRA / manipulative script', support:'CRA support',
+   body:'Write a short teacher script that moves ___ from hands-on (___) to a picture to numbers.\nName the manipulative and the ___ steps.'},
+  {id:'p5', title:'Anchor chart / cue card', support:'anchor/symbol',
+   body:'Design an anchor chart for ___ with ___ steps, one worked example, and a ___ cue the student can copy.'}
+];
+
+var STARTER={
+  '8.NS.1':[
+    {title:'Repeating-decimal worked example', supports:['worked example','keyword'], reach:'scaffolded'},
+    {title:'Decimals → fractions manipulative script', supports:['CRA support','manipulative'], reach:'bridge'},
+    {title:'Rational-number keyword card', supports:['keyword'], reach:'scaffolded'}
+  ],
+  '8.NS.2':[
+    {title:'Number line strip (0–1 by eighths)', supports:['visual scaffold','manipulative'], reach:'bridge'},
+    {title:'Compare-and-order anchor chart', supports:['anchor/symbol','reference tool'], reach:'scaffolded'}
+  ],
+  '8.EE.1':[
+    {title:'Perfect-squares chart', supports:['visual scaffold','reference tool'], reach:'scaffolded'},
+    {title:'Cube-root anchor chart', supports:['anchor/symbol','worked example'], reach:'scaffolded'},
+    {title:'Exponent-rules cue card', supports:['keyword','anchor/symbol'], reach:'scaffolded'}
+  ],
+  '8.EE.4':[
+    {title:'Scientific-notation worked example', supports:['worked example'], reach:'scaffolded'},
+    {title:'Powers-of-ten reference strip', supports:['reference tool','visual scaffold'], reach:'scaffolded'}
+  ]
+};
+
+/* ================= shell / nav ================= */
+function isMaterialsDest(d){ return ['library','matDetail','add','gaps','starter','prompts'].indexOf(d)>=0; }
+var TITLES={ library:'Materials · Library', matDetail:'Material', add:'Add / edit material', gaps:'Materials · Gaps',
+  starter:'Materials · Starter pack', prompts:'Materials · Prompts', goalDetail:'Goal detail', track:'Track', plan:'Plan', paraBlock:'Materials' };
+
+function go(dest){
+  if(M.role==='para' && (isMaterialsDest(dest)||dest==='goalDetail')) dest='paraBlock';
+  M.dest=dest; closeSheet(); paint(); $('screen').scrollTop=0;
+}
+function paint(){
+  $('topTitle').textContent = TITLES[M.dest]||'Materials';
+  var isMat = isMaterialsDest(M.dest);
+  // top nav active states (sidebar + tabbar)
+  document.querySelectorAll('#sidebar .navitem').forEach(function(b){
+    var k=b.dataset.nav;
+    b.classList.toggle('on', (k==='materials'&&isMat)||(k==='track'&&(M.dest==='track'||M.dest==='goalDetail'))||(k==='plan'&&M.dest==='plan'));
+  });
+  document.querySelectorAll('#tabbar button').forEach(function(b){
+    var k=b.dataset.tab;
+    b.classList.toggle('on', (k==='materials'&&isMat)||(k==='track'&&(M.dest==='track'||M.dest==='goalDetail'))||(k==='plan'&&M.dest==='plan'));
+  });
+  // Materials sub-destinations in the sidebar (desktop) — hidden in Para
+  var sub=$('matsub');
+  if(isMat && M.role==='teacher'){
+    var mk=function(d,label,cls){ return '<button class="subnav'+(M.dest===d?' on':'')+'" onclick="go(\''+d+'\')">'+label+'</button>'; };
+    sub.innerHTML='<div class="navdiv"></div><div class="navsec">Materials</div>'+
+      mk('library','Library')+mk('gaps','Gaps')+mk('starter','Starter pack')+mk('prompts','Prompts')+
+      '<button class="subnav" onclick="openAdd()">＋ Add material</button>';
+  } else sub.innerHTML='';
+  render();
+}
+function setRole(r){
+  M.role=r;
+  document.querySelectorAll('#roleSeg button, .topbar .roleseg button').forEach(function(b){ b.classList.toggle('on', b.dataset.role===r); });
+  // hide Materials nav entirely in Para (teacher-only)
+  var showMat = r==='teacher';
+  document.querySelectorAll('[data-nav="materials"],[data-tab="materials"]').forEach(function(b){ b.style.display=showMat?'':'none'; });
+  document.querySelectorAll('[data-nav="plan"],[data-tab="plan"]').forEach(function(b){ b.style.display=showMat?'':'none'; });
+  if(r==='para') go('paraBlock'); else go('library');
+}
+
+function render(){
+  var fns={ library:renderLibrary, matDetail:renderMatDetail, add:renderAdd, gaps:renderGaps,
+    starter:renderStarter, prompts:renderPrompts, goalDetail:renderGoalDetail,
+    track:renderTrack, plan:renderPlan, paraBlock:renderParaBlock };
+  $('screen').innerHTML='<div class="pagewrap">'+((fns[M.dest]||renderLibrary)())+'</div>';
+}
+
+/* ================= LIBRARY (§2) ================= */
+function activeFilterCount(){
+  var f=M.filters; return f.std.length+f.support.length+f.reach.length+f.block.length+f.cra.length+f.udl.length+f.accommod.length;
+}
+function filtered(){
+  var f=M.filters, q=M.search.trim().toLowerCase();
+  return M.library.filter(function(m){
+    if(!f.retired && m.retired) return false;
+    if(q && m.title.toLowerCase().indexOf(q)<0) return false;
+    if(f.std.length && !f.std.some(function(s){return m.stds.indexOf(s)>=0;})) return false;
+    if(f.support.length && !f.support.some(function(s){return m.supports.indexOf(s)>=0;})) return false;
+    if(f.reach.length && f.reach.indexOf(m.reach)<0) return false;
+    if(f.block.length && !f.block.some(function(b){return m.blocks.indexOf(b)>=0;})) return false;
+    if(f.cra.length && !f.cra.some(function(c){return m.cra.indexOf(c)>=0;})) return false;
+    if(f.udl.length && !f.udl.some(function(u){return m.udl.indexOf(u)>=0;})) return false;
+    if(f.accommod.length && f.accommod.indexOf(m.accom_mod)<0) return false;
+    return true;
+  }).sort(function(a,b){ return b.t-a.t; }); /* Q-D recent-first */
+}
+function matCard(m){
+  var meta=[];
+  if(m.blocks.length) meta.push(m.blocks.join(' · '));
+  if(m.cra.length) meta.push('CRA: '+m.cra.map(craAbbr).join(' '));
+  if(m.udl.length) meta.push('UDL: '+m.udl.map(udlAbbr).join(' '));
+  return '<div class="card mcard" onclick="openMat(\''+m.id+'\')">'+
+    '<div class="mtitle"><span>'+esc(m.title)+(m.retired?' <span class="tagchip" style="color:var(--nodata)">retired</span>':'')+'</span>'+
+      '<span class="mkind">'+(m.kind==='link'?'🔗 link':'¶ text')+'</span></div>'+
+    '<div style="margin:.35rem 0 .1rem">'+m.stds.map(function(s){return '<span class="stdchip">'+esc(s)+'</span>';}).join(' ')+'</div>'+
+    '<div class="metaline">'+(accomBadge(m.accom_mod)||'')+reachPips(m.reach)+'</div>'+
+    '<div class="metaline">'+m.supports.map(function(s){return '<span class="tagchip">'+esc(s)+'</span>';}).join('')+'</div>'+
+    (meta.length?'<div class="note" style="margin-top:.4rem">'+esc(meta.join('   ·   '))+'</div>':'')+
+    '</div>';
+}
+function facetGroup(label,key,items,labels){
+  var f=M.filters[key];
+  var chips=items.map(function(it,i){
+    var lab=labels?labels[i]:it;
+    return '<button class="fchip'+(f.indexOf(it)>=0?' on':'')+'" onclick="toggleFacet(\''+key+'\',\''+it+'\')">'+esc(lab)+'</button>';
+  }).join('');
+  return '<div class="facetgroup"><div class="facetlab">'+esc(label)+'</div><div class="fchips">'+chips+'</div></div>';
+}
+function facetBody(){
+  var reachLabels=['on grade','grade-level scaffolded','foundational bridge','access — foundational'];
+  return facetGroup('Standard','std',STD_LIST)+
+    facetGroup('Support','support',SUPPORT_LIST)+
+    facetGroup('Reach','reach',['on_grade','scaffolded','bridge','access'],reachLabels)+
+    facetGroup('Block','block',BLOCK_LIST)+
+    facetGroup('CRA','cra',CRA_LIST,CRA_LIST.map(function(c){return c+' ('+CRA_GLOSS[c]+')';}))+
+    facetGroup('UDL','udl',UDL_LIST,UDL_LIST.map(function(u){return udlAbbr(u);}))+
+    facetGroup('Accom / mod','accommod',['accommodation','modification'])+
+    '<label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:700;margin:.3rem 0 .2rem;cursor:pointer">'+
+      '<input type="checkbox" '+(M.filters.retired?'checked':'')+' onchange="toggleRetired(this.checked)"> Show retired materials</label>'+
+    '<div class="note">Within a group = OR · across groups = AND.</div>';
+}
+function toggleFacet(key,val){ var a=M.filters[key], i=a.indexOf(val); if(i>=0)a.splice(i,1); else a.push(val); render(); }
+function toggleRetired(v){ M.filters.retired=v; render(); }
+function clearFilters(){ M.filters={std:[],support:[],reach:[],block:[],cra:[],udl:[],accommod:[],retired:false}; render(); }
+function setSearch(v){ M.search=v; var res=filtered(); var c=$('libcount'); if(c) c.textContent=libCountText(res); var grid=$('cardgrid'); if(grid) grid.innerHTML=res.length?res.map(matCard).join(''):emptyLib(); }
+function libCountText(res){ return res.length+' material'+(res.length===1?'':'s')+(activeFilterCount()?' · '+activeFilterCount()+' filter'+(activeFilterCount()===1?'':'s'):''); }
+function emptyLib(){ return '<div class="empty">No materials match. <br><button class="btn small" style="margin-top:.6rem" onclick="clearFilters()">Clear filters</button></div>'; }
+
+function renderLibrary(){
+  var res=filtered(), n=activeFilterCount();
+  var h='<div class="backrow"><h1 style="margin:0">Library</h1>'+
+        '<span style="margin-left:auto">'+tellus('A')+'</span></div>';
+  h+='<div class="sub">Your own materials — fully offline. '+tip('tipLib','Your library, filtering, gaps, attach and import are all local — they work with no network. The starter pack and prompts need one online fetch to cache, then work offline.')+'</div>';
+  h+='<div class="libwrap">';
+  // desktop rail
+  h+='<div class="filterrail"><div class="railcard"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">'+
+     '<b style="font-size:.9rem">Filters</b><button class="btn small ghost" onclick="clearFilters()">Clear all</button></div>'+
+     facetBody()+'</div></div>';
+  // main column
+  h+='<div class="libmain">';
+  h+='<div class="searchbar"><input class="searchin" placeholder="🔍 search title…" value="'+esc(M.search)+'" oninput="setSearch(this.value)">'+
+     '<button class="btn small libfilterbtn" onclick="openFilterSheet()">Filters'+(n?' · '+n:'')+'</button></div>';
+  h+='<div class="note" id="libcount" style="margin:0 0 .6rem">'+libCountText(res)+'</div>';
+  h+='<div class="cardgrid" id="cardgrid">'+(res.length?res.map(matCard).join(''):emptyLib())+'</div>';
+  h+='<div class="btnrow" style="margin-top:.9rem"><button class="btn primary wide" onclick="openAdd()">＋ Add material</button></div>';
+  h+='</div></div>';
+  h+='<button class="fab" onclick="openAdd()">＋ Add</button>';
+  return h;
+}
+function openFilterSheet(){
+  var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
+  h+='<div class="whowhat">Filters</div><div class="ctx">Within a group = OR · across groups = AND.</div>';
+  h+=facetBody();
+  h+='<div class="btnrow"><button class="btn wide" onclick="clearFilters();render();">Clear all</button>'+
+     '<button class="btn primary wide" onclick="closeSheet()">Show '+filtered().length+'</button></div>';
+  $('sheet').innerHTML=h; openSheet();
+}
+
+/* ================= MATERIAL DETAIL (§3.1) ================= */
+function openMat(id){ M.matId=id; go('matDetail'); }
+function findMat(id){ for(var i=0;i<M.library.length;i++) if(M.library[i].id===id) return M.library[i]; return null; }
+function goalsWithMat(id){ return M.goals.filter(function(g){ return g.supports.some(function(s){return s.matId===id;}); }); }
+function renderMatDetail(){
+  var m=findMat(M.matId); if(!m) return renderLibrary();
+  var attachedGoals=goalsWithMat(m.id);
+  var h='<div class="backrow"><button class="back" onclick="go(\'library\')">‹ Library</button></div>';
+  h+='<div class="card">';
+  h+='<div class="mtitle"><span>'+esc(m.title)+'</span><span class="mkind">'+(m.kind==='link'?'🔗 link':'¶ text')+'</span></div>';
+  h+='<div class="metaline" style="margin-top:.5rem">'+(accomBadge(m.accom_mod)||'')+reachPips(m.reach)+'</div>';
+  h+='<div class="kv" style="margin-top:.6rem"><span class="k">Standards</span><span class="v">'+m.stds.map(function(s){return '<span class="stdchip">'+esc(s)+'</span>';}).join(' ')+'</span></div>';
+  h+='<div class="kv"><span class="k">Support</span><span class="v">'+esc(m.supports.join(' · '))+'</span></div>';
+  h+='<div class="kv"><span class="k">Block</span><span class="v">'+esc(m.blocks.join(' · ')||'—')+'</span></div>';
+  h+='<div class="kv"><span class="k">CRA</span><span class="v">'+(m.cra.length?m.cra.map(function(c){return craAbbr(c)+' ('+CRA_GLOSS[c]+')';}).join(', '):'—')+'</span></div>';
+  h+='<div class="kv"><span class="k">UDL</span><span class="v">'+(m.udl.length?m.udl.map(function(u){return udlAbbr(u)+' ('+UDL_GLOSS[u]+')';}).join(', '):'—')+'</span></div>';
+  h+='<div class="kv"><span class="k">Source</span><span class="v">'+esc(sourceLabel(m.source))+'</span></div>';
+  if(m.myp.length) h+='<div class="kv"><span class="k">MYP criteria</span><span class="v">'+m.myp.join(' ')+' <span class="note" style="display:inline">(scores live in Toddle)</span></span></div>';
+  h+='</div>';
+  // content
+  h+='<div class="card"><b style="font-size:.85rem">Content</b>';
+  if(m.kind==='link') h+='<div style="margin-top:.5rem"><button class="btn small" onclick="toast(\'Opening a link is handled by your browser — stored offline either way.\')">Open link ↗</button> <span class="note" style="display:inline">'+esc(m.label||m.url)+'</span></div>';
+  else h+='<div class="pbody open" style="margin-top:.5rem">'+esc(m.text)+'</div>';
+  h+='</div>';
+  // attached
+  h+='<div class="card"><b style="font-size:.85rem">Attached to</b>';
+  if(attachedGoals.length){
+    h+='<div class="metaline" style="margin-top:.5rem">'+attachedGoals.map(function(g){return avatar(g.ini,true)+' <span class="note" style="display:inline">'+esc(g.name)+'</span>';}).join(' &nbsp; ')+'</div>';
+  } else h+='<div class="note">Not attached to any goal yet.</div>';
+  h+='<div class="btnrow"><button class="btn small wide" onclick="openAttachGoal(\''+m.id+'\')">Attach to a goal</button>'+
+     '<button class="btn small wide" onclick="openAttachStudent(\''+m.id+'\')">Attach to a student</button></div>';
+  h+='</div>';
+  h+='<div class="btnrow"><button class="btn wide" onclick="openAdd(\''+m.id+'\')">Edit</button>'+
+     '<button class="btn wide danger" onclick="retireMat(\''+m.id+'\')">'+(m.retired?'Un-retire':'Retire')+'</button></div>';
+  h+='<div class="note">Retire is a soft hide — nothing is deleted; retired materials leave the goal-support lists.</div>';
+  return h;
+}
+function retireMat(id){ var m=findMat(id); if(!m)return; m.retired=!m.retired; toast(m.retired?'Material retired':'Material restored'); render(); }
+
+/* ================= ADD / EDIT (§3.2–3.4) ================= */
+function freshAdd(){ return { id:null, title:'', kind:'link', url:'', label:'', text:'', stds:[], supports:[], reach:'', accom_mod:'', blocks:[], cra:[], udl:[], source:'mine', myp:[], fineOpen:false }; }
+function openAdd(id){
+  if(id){ var m=findMat(id); M.add={ id:m.id, title:m.title, kind:m.kind, url:m.url||'', label:m.label||'', text:m.text||'',
+    stds:m.stds.slice(), supports:m.supports.slice(), reach:m.reach, accom_mod:m.accom_mod, blocks:m.blocks.slice(),
+    cra:m.cra.slice(), udl:m.udl.slice(), source:m.source, myp:m.myp.slice(), fineOpen:true }; }
+  else M.add=freshAdd();
+  go('add');
+}
+function addSet(k,v){ M.add[k]=v; render(); }
+function addToggle(key,val){ var a=M.add[key], i=a.indexOf(val); if(i>=0)a.splice(i,1); else a.push(val); afterAddChange(); render(); }
+function addSetReach(r){ M.add.reach=r; if(r!=='on_grade' && M.add.accom_mod==='none') M.add.accom_mod=''; render(); }
+function addSetAccom(a){
+  if(a==='none' && M.add.reach && M.add.reach!=='on_grade') return; // interlock 1
+  M.add.accom_mod=a; render();
+}
+function isModifiedAssessment(){ return M.add.supports.indexOf('modified assessment')>=0; }
+function afterAddChange(){
+  if(isModifiedAssessment()){ M.add.accom_mod='modification'; } // interlock 2
+}
+function addValid(){
+  var a=M.add;
+  if(!a.title.trim()) return false;
+  if(a.kind==='link' && !a.url.trim()) return false;
+  if(a.kind==='text' && !a.text.trim()) return false;
+  if(!a.stds.length) return false;
+  if(!a.supports.length) return false;
+  if(!a.reach) return false;
+  if(!a.accom_mod) return false;
+  if(isModifiedAssessment() && !a.myp.length) return false;
+  return true;
+}
+function renderAdd(){
+  var a=M.add, editing=!!a.id;
+  var h='<div class="backrow"><button class="back" onclick="go(\''+(editing?'matDetail':'library')+'\')">‹ '+(editing?'Material':'Library')+'</button></div>';
+  h+='<h1>'+(editing?'Edit material':'Add a material')+'</h1>';
+  h+='<div class="sub">Initials only — no student names anywhere on a material.</div>';
+  h+='<div class="form card">';
+  // title
+  h+='<label>Title <span class="reqmark">*</span></label><input class="tin" value="'+esc(a.title)+'" placeholder="Perfect-squares chart" oninput="M.add.title=this.value;updateAddGate()">';
+  // content
+  h+='<label>Content <span class="reqmark">*</span></label>';
+  h+='<div class="toggle2"><button class="'+(a.kind==='link'?'on':'')+'" onclick="addSet(\'kind\',\'link\')">Link</button><button class="'+(a.kind==='text'?'on':'')+'" onclick="addSet(\'kind\',\'text\')">Text</button></div>';
+  if(a.kind==='link'){
+    h+='<input class="tin" style="margin-top:.5rem" value="'+esc(a.url)+'" placeholder="https://…" oninput="M.add.url=this.value;updateAddGate()">';
+    h+='<input class="tin" style="margin-top:.4rem" value="'+esc(a.label)+'" placeholder="label (optional)" oninput="M.add.label=this.value">';
+  } else {
+    h+='<textarea class="tin" style="margin-top:.5rem" placeholder="type or paste the material…" oninput="M.add.text=this.value;updateAddGate()">'+esc(a.text)+'</textarea>';
+  }
+  h+='<div class="note">ℹ Scanning / PDF attachments coming later.</div>';
+  // standards
+  h+='<label>Standard(s) <span class="reqmark">*</span> <span style="text-transform:none;font-weight:600">(power standards first)</span></label>';
+  h+='<div class="fchips">'+STD_LIST.map(function(s){return '<button class="fchip'+(a.stds.indexOf(s)>=0?' on':'')+'" onclick="addToggle(\'stds\',\''+s+'\')">'+s+'</button>';}).join('')+'</div>';
+  // support
+  h+='<label>Support type(s) <span class="reqmark">*</span></label>';
+  h+='<div class="fchips">'+SUPPORT_LIST.map(function(s){return '<button class="fchip'+(a.supports.indexOf(s)>=0?' on':'')+'" onclick="addToggle(\'supports\',\''+s+'\')">'+esc(s)+'</button>';}).join('')+'</div>';
+  // reach ladder
+  h+='<div style="height:1px;background:var(--border);margin:.9rem 0 .2rem"></div>';
+  h+='<label>Reach &amp; posture (required)</label>';
+  h+='<div style="font-size:.72rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;margin:.3rem 0 .1rem">Access band <span class="reqmark">*</span></div>';
+  var reachOpts=[['on_grade','On grade','unadapted 8th-grade'],['scaffolded','Grade-level scaffolded','same skill, easier to access'],['bridge','Foundational bridge','a ramp skill'],['access','Access / foundational','~3rd-grade skill']];
+  h+='<div class="ladder">'+reachOpts.map(function(o){
+    return '<button class="lopt'+(a.reach===o[0]?' on':'')+'" onclick="addSetReach(\''+o[0]+'\')"><span class="rdot"></span><span><span class="lt">'+o[1]+'</span><span class="ld">'+o[2]+'</span></span></button>';
+  }).join('')+'</div>';
+  // accom/mod conscious choice (§3.3, §12 LOCKED wording)
+  h+='<div style="display:flex;align-items:center;gap:.5rem;margin:.9rem 0 .1rem"><span style="font-size:.72rem;font-weight:800;color:var(--text-dim);text-transform:uppercase">This material is a… <span class="reqmark">*</span></span>'+tellus('C')+'</div>';
+  var modLock=isModifiedAssessment();
+  var noneDisabled = a.reach && a.reach!=='on_grade';
+  h+='<div class="ladder">';
+  h+='<button class="lopt'+(a.accom_mod==='accommodation'?' on':'')+(modLock?' dis':'')+'" '+(modLock?'':'onclick="addSetAccom(\'accommodation\')"')+'><span class="rdot"></span><span><span class="lt">Accommodation</span><span class="ld">SAME 8th-grade skill, changed only how it’s accessed.</span></span></button>';
+  h+='<button class="lopt'+(a.accom_mod==='modification'?' on':'')+'" onclick="addSetAccom(\'modification\')"><span class="rdot"></span><span><span class="lt">Modification</span><span class="ld">a DIFFERENT, below-grade skill (a prerequisite or easier one). Changes WHAT she’s expected to do.</span></span></button>';
+  h+='<button class="lopt'+(a.accom_mod==='none'?' on':'')+((noneDisabled||modLock)?' dis':'')+'" '+((noneDisabled||modLock)?'':'onclick="addSetAccom(\'none\')"')+'><span class="rdot"></span><span><span class="lt">Neither — plain grade-level material, nothing changed.</span></span></button>';
+  h+='</div>';
+  if(noneDisabled && !modLock) h+='<div class="interlock">You’ve adapted this material, so it’s not plain grade-level anymore — it’s either an accommodation or a modification. Pick one.</div>';
+  if(modLock) h+='<div class="interlock">A modified test is always a modification.</div>';
+  h+='<div class="note">You’ll confirm this again for each goal you attach it to — the same material can be an accommodation for one goal and a modification for another.</div>';
+  // MYP block (conditional) §3.4
+  if(modLock){
+    h+='<div class="mypblock"><div class="mh">MYP criteria this test covers <span class="reqmark">*</span></div>';
+    h+='<div class="metaline" style="margin:.5rem 0">'+['A','B','C','D'].map(function(c){return '<button class="critchip'+(a.myp.indexOf(c)>=0?' on':'')+'" onclick="addToggle(\'myp\',\''+c+'\')">'+c+'</button>';}).join(' ')+'</div>';
+    h+='<div class="note">(pick 1+; use the same criteria as the gen-ed test — you can drop one it doesn’t need, but never add one it doesn’t have)</div>';
+    h+='<div class="note" style="margin-top:.4rem">ℹ Scores still live in Toddle. This only tags which criteria the test assesses.</div>';
+    h+='</div>';
+  }
+  // fine-tune (encouraged, not hidden)
+  h+='<div style="height:1px;background:var(--border);margin:.9rem 0 .2rem"></div>';
+  h+='<button class="btn small ghost" style="padding-left:0" onclick="M.add.fineOpen=!M.add.fineOpen;render()">'+(a.fineOpen?'▾':'▸')+' Fine-tune (helps the gap finder)</button>';
+  if(a.fineOpen){
+    h+='<label>Lesson block</label><div class="fchips">'+BLOCK_LIST.map(function(b){return '<button class="fchip'+(a.blocks.indexOf(b)>=0?' on':'')+'" onclick="addToggle(\'blocks\',\''+b+'\')">'+b+'</button>';}).join('')+'</div>';
+    h+='<label>CRA stage</label><div class="fchips">'+CRA_LIST.map(function(c){return '<button class="fchip'+(a.cra.indexOf(c)>=0?' on':'')+'" onclick="addToggle(\'cra\',\''+c+'\')">'+c+' ('+CRA_GLOSS[c]+')</button>';}).join('')+'</div>';
+    h+='<label>UDL</label><div class="fchips">'+UDL_LIST.map(function(u){return '<button class="fchip'+(a.udl.indexOf(u)>=0?' on':'')+'" onclick="addToggle(\'udl\',\''+u+'\')">'+udlAbbr(u)+'</button>';}).join('')+'</div>';
+    h+='<label>Source</label><select class="tin" onchange="M.add.source=this.value">'+SOURCE_LIST.map(function(s){return '<option value="'+s[0]+'"'+(a.source===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('')+'</select>';
+  }
+  h+='<button class="btn primary wide" id="saveMat" style="width:100%;margin-top:1rem" '+(addValid()?'':'disabled')+' onclick="saveMat()">'+(editing?'Save changes':'Save material')+'</button>';
+  h+='</div>';
+  return h;
+}
+function updateAddGate(){ var b=$('saveMat'); if(b) b.disabled=!addValid(); }
+function saveMat(){
+  if(!addValid()) return;
+  var a=M.add;
+  if(a.id){ var m=findMat(a.id);
+    ['title','kind','url','label','text','stds','supports','reach','accom_mod','blocks','cra','udl','source','myp'].forEach(function(k){ m[k]=a[k]; });
+    if(!isModifiedAssessment()) m.myp=[];
+    toast('Saved — stored offline'); go('matDetail');
+  } else {
+    var id=mkid();
+    M.library.push({ id:id, t:Date.now(), title:a.title, kind:a.kind, url:a.url, label:a.label, text:a.text,
+      stds:a.stds.slice(), supports:a.supports.slice(), reach:a.reach, accom_mod:a.accom_mod, blocks:a.blocks.slice(),
+      cra:a.cra.slice(), udl:a.udl.slice(), source:a.source, myp:isModifiedAssessment()?a.myp.slice():[], retired:false });
+    M.matId=id; toast('Added to your library — stored offline'); go('matDetail');
+  }
+}
+
+/* ================= ATTACH (§4) ================= */
+function openAttachGoal(matId){
+  M.attach={ matId:matId, goalId:null, accom_mod:null };
+  var m=findMat(matId);
+  var locked = m.supports.indexOf('modified assessment')>=0;
+  M.attach.defaultAM = locked?'modification':m.accom_mod;
+  drawAttachGoal(); openSheet();
+}
+function drawAttachGoal(){
+  var at=M.attach, m=findMat(at.matId);
+  var locked=m.supports.indexOf('modified assessment')>=0;
+  var noneOk = m.reach==='on_grade';
+  if(at.accom_mod===null) at.accom_mod=at.defaultAM;
+  var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
+  h+='<div class="whowhat">Attach to a goal</div>';
+  h+='<div class="ctx">Material: '+esc(m.title)+'</div>';
+  h+='<div style="font-size:.8rem;font-weight:800;margin:.6rem 0 .3rem">1) Pick a goal</div>';
+  h+='<div class="ladder">'+M.goals.map(function(g){
+    return '<button class="lopt'+(at.goalId===g.id?' on':'')+'" onclick="M.attach.goalId=\''+g.id+'\';drawAttachGoal()"><span class="rdot"></span><span style="display:flex;align-items:center;gap:.5rem">'+avatar(g.ini,true)+'<span><span class="lt">'+esc(g.name)+'</span><span class="ld">'+g.period+' · '+g.ini+'</span></span></span></button>';
+  }).join('')+'</div>';
+  h+='<div style="font-size:.8rem;font-weight:800;margin:.7rem 0 .3rem">2) This support is, for THIS goal:</div>';
+  h+='<div class="chips">';
+  h+='<button class="rchip'+(at.accom_mod==='accommodation'?' on':'')+'" '+(locked?'disabled style="opacity:.5"':'onclick="M.attach.accom_mod=\'accommodation\';drawAttachGoal()"')+'>Accommodation</button>';
+  h+='<button class="rchip'+(at.accom_mod==='modification'?' on':'')+'" onclick="M.attach.accom_mod=\'modification\';drawAttachGoal()">Modification</button>';
+  if(noneOk && !locked) h+='<button class="rchip'+(at.accom_mod==='none'?' on':'')+'" onclick="M.attach.accom_mod=\'none\';drawAttachGoal()">Neither</button>';
+  h+='</div>';
+  if(locked) h+='<div class="interlock">A modified test is always a modification.</div>';
+  else h+='<div class="note">ℹ Pre-filled from the material — change it if it’s different for this goal.</div>';
+  h+='<div class="btnrow"><button class="btn wide" onclick="closeSheet()">Cancel</button>'+
+     '<button class="btn primary wide" '+(at.goalId&&at.accom_mod?'':'disabled')+' onclick="doAttachGoal()">Attach</button></div>';
+  $('sheet').innerHTML=h;
+}
+function doAttachGoal(){
+  var at=M.attach; if(!at.goalId||!at.accom_mod) return;
+  var g=M.goals.filter(function(x){return x.id===at.goalId;})[0];
+  g.supports=g.supports.filter(function(s){return s.matId!==at.matId;});
+  g.supports.push({matId:at.matId, accom_mod:at.accom_mod});
+  toast('Attached to '+g.ini+' · '+g.name); closeSheet(); render();
+}
+function openAttachStudent(matId){
+  var m=findMat(matId);
+  var students=['AB','CD','EF','GH','JM','RT'];
+  var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
+  h+='<div class="whowhat">Attach to a student</div><div class="ctx">Material: '+esc(m.title)+'</div>';
+  h+='<div class="note">A student link carries no accom/mod — that’s set per goal only.</div>';
+  h+='<div class="metaline" style="margin:.6rem 0">'+students.map(function(s){return '<button class="rchip" style="display:inline-flex;align-items:center;gap:.4rem" onclick="toast(\'Attached to '+s+'\');closeSheet()">'+avatar(s,true)+s+'</button>';}).join('')+'</div>';
+  h+='<div class="btnrow"><button class="btn wide" onclick="closeSheet()">Cancel</button></div>';
+  $('sheet').innerHTML=h; openSheet();
+}
+
+/* ================= GOAL DETAIL + SDI supports (§4.3) ================= */
+function openGoalDetail(id){ M.goalId=id; go('goalDetail'); }
+function renderGoalDetail(){
+  var g=M.goals.filter(function(x){return x.id===M.goalId;})[0]||M.goals[0];
+  var h='<div class="backrow"><button class="back" onclick="go(\'track\')">‹ Track</button></div>';
+  h+='<div style="display:flex;align-items:center;gap:.6rem;margin:.1rem 0 .4rem">'+avatar(g.ini)+
+     '<div><h1 style="margin:0">'+esc(g.name)+'</h1><div class="sub" style="margin:.1rem 0 0">'+g.period+' · Criterion: '+esc(g.crit)+'</div></div></div>';
+  // monitoring block (stub of the real TRACK Goal Detail)
+  h+='<div class="card"><b style="font-size:.9rem">Monitoring</b>'+
+     '<div class="note" style="margin-top:.3rem">Trend chart · consistency window · quarterly summary · ARC history live here (see the TRACK prototype). This screen shows how the differentiation supports attach below — separated from the data.</div>'+
+     '<div style="margin-top:.5rem;height:5rem;border:1px dashed var(--border-strong);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem">[ trend + honesty surfaces — unchanged from TRACK ]</div>'+
+     '</div>';
+  // HARD DIVIDER then SDI supports (below the monitoring block, §12 placement)
+  h+='<div class="harddiv"></div>';
+  var supports=g.supports.filter(function(s){return !(findMat(s.matId)||{}).retired;});
+  h+='<div class="sdifence">';
+  h+='<div class="collapsehdr" onclick="M.sdiCollapsed=!M.sdiCollapsed;render()">'+
+     '<span style="font-weight:800;font-size:1rem">SDI supports attached</span>'+
+     '<span class="roflag">read-only</span>'+
+     '<span style="margin-left:auto;color:var(--text-dim);font-weight:800">'+(M.sdiCollapsed?'▸':'▾')+'</span></div>';
+  if(!M.sdiCollapsed){
+    h+='<div class="sdicap">Planning references only — these don’t change the goal, the scores, or the graph.</div>';
+    if(supports.length){
+      h+=supports.map(function(s){ var m=findMat(s.matId); return '<button class="sdirow" onclick="openMat(\''+m.id+'\')"><span class="t">'+esc(m.title)+'</span>'+accomBadge(s.accom_mod)+'<span style="color:var(--text-dim)">›</span></button>'; }).join('');
+    } else h+='<div class="note">No supports attached yet.</div>';
+    h+='<button class="btn small wide" style="width:100%;margin-top:.4rem" onclick="openAttachGoal(null,\''+g.id+'\')">＋ Add a support</button>';
+    h+='<button class="btn small ghost wide" style="width:100%;margin-top:.4rem" onclick="openGapForGoal(\''+g.id+'\')">Check supports for this goal</button>';
+  }
+  h+='</div>';
+  return h;
+}
+/* attach opened from Goal Detail: pre-scope to that goal (skip goal-pick) */
+var _origOpenAttachGoal=openAttachGoal;
+openAttachGoal=function(matId,preGoal){
+  if(preGoal){
+    // choose a material to attach FROM the library, pre-scoped to this goal
+    M.attach={ matId:null, goalId:preGoal, accom_mod:null, pick:true };
+    drawPickMaterial(); openSheet(); return;
+  }
+  _origOpenAttachGoal(matId);
+};
+function drawPickMaterial(){
+  var g=M.goals.filter(function(x){return x.id===M.attach.goalId;})[0];
+  var mats=M.library.filter(function(m){return !m.retired;});
+  var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
+  h+='<div class="whowhat">Add a support</div><div class="ctx">Goal: '+esc(g.ini)+' · '+esc(g.name)+'</div>';
+  h+='<div class="note">Pick a material — you’ll confirm the accom/mod for this goal next.</div>';
+  h+='<div style="margin-top:.5rem">'+mats.map(function(m){
+    return '<button class="sdirow" onclick="pickMaterialForGoal(\''+m.id+'\')"><span class="t">'+esc(m.title)+'</span>'+accomBadge(m.accom_mod)+'<span style="color:var(--text-dim)">›</span></button>';
+  }).join('')+'</div>';
+  $('sheet').innerHTML=h;
+}
+function pickMaterialForGoal(matId){
+  var gid=M.attach.goalId; _origOpenAttachGoal(matId); M.attach.goalId=gid; drawAttachGoal();
+}
+
+/* ================= GAP VIEW (§5) ================= */
+function openGapForGoal(gid){ M.gapTarget={kind:'goal', id:gid}; go('gaps'); }
+function gapStandard(){
+  if(M.gapTarget.kind==='standard') return M.gapTarget.id;
+  var g=M.goals.filter(function(x){return x.id===M.gapTarget.id;})[0];
+  // map a goal to a representative standard via its attached materials, else default
+  if(g){ for(var i=0;i<g.supports.length;i++){ var m=findMat(g.supports[i].matId); if(m&&m.stds.length) return m.stds[0]; } }
+  return '8.EE.1';
+}
+function computeGaps(std){
+  var mats=M.library.filter(function(m){return !m.retired && m.stds.indexOf(std)>=0;});
+  function union(key){ var out=[]; mats.forEach(function(m){ m[key].forEach(function(v){ if(out.indexOf(v)<0)out.push(v); }); }); return out; }
+  var craHave=union('cra'), udlHave=union('udl'), blockHave=union('blocks');
+  var reachHave = mats.some(function(m){ return m.reach==='bridge'||m.reach==='access'; });
+  var floor=['keyword','anchor/symbol','worked example','CRA support'];
+  var floorHave=floor.filter(function(f){ return mats.some(function(m){return m.supports.indexOf(f)>=0;}); });
+  var dims=[
+    { name:'Reaches ~3rd-grade access', covered:reachHave, gloss:null,
+      have: reachHave?['a foundational / access-level material']:[], missing: reachHave?[]:['a material that reaches down to ~3rd-grade access'], facet:{key:'reach',vals:['bridge','access']} },
+    { name:'CRA ladder — hands-on → picture → numbers', covered:(craHave.length>=3),
+      have:craHave.map(function(c){return CRA_GLOSS[c];}), missing:CRA_LIST.filter(function(c){return craHave.indexOf(c)<0;}).map(function(c){return {enum:c,gloss:CRA_GLOSS[c]};}), facet:{key:'cra'} },
+    { name:'Key supports', covered:(floorHave.length===floor.length),
+      have:floorHave, missing:floor.filter(function(f){return floorHave.indexOf(f)<0;}).map(function(f){return {enum:f}; }), facet:{key:'support'} },
+    { name:'Ways to access (UDL)', covered:(udlHave.length>=3),
+      have:udlHave.map(function(u){return UDL_GLOSS[u];}), missing:UDL_LIST.filter(function(u){return udlHave.indexOf(u)<0;}).map(function(u){return {enum:u,gloss:UDL_GLOSS[u]};}), facet:{key:'udl'} },
+    { name:'Lesson blocks (I/WE/YOU DO)', covered:(blockHave.length>=3),
+      have:blockHave, missing:BLOCK_LIST.filter(function(b){return blockHave.indexOf(b)<0;}).map(function(b){return {enum:b}; }), facet:{key:'block'} }
+  ];
+  return dims;
+}
+function renderGaps(){
+  var std=gapStandard(), dims=computeGaps(std);
+  var coveredN=dims.filter(function(d){return d.covered;}).length;
+  var h='<div class="backrow"><h1 style="margin:0">Gaps</h1></div>';
+  h+='<div class="sub">The app reveals the gap; you fill it. No titles, no ranking, no generated content.</div>';
+  // target picker
+  h+='<div class="card"><div class="metaline"><span style="font-weight:800;font-size:.85rem">Gaps for:</span>';
+  h+='<select class="tin" style="width:auto;flex:1" onchange="setGapTarget(this.value)">';
+  h+='<optgroup label="Standard">'+STD_LIST.map(function(s){return '<option value="std:'+s+'"'+(M.gapTarget.kind==='standard'&&M.gapTarget.id===s?' selected':'')+'>'+s+'</option>';}).join('')+'</optgroup>';
+  h+='<optgroup label="Goal">'+M.goals.map(function(g){return '<option value="goal:'+g.id+'"'+(M.gapTarget.kind==='goal'&&M.gapTarget.id===g.id?' selected':'')+'>'+g.ini+' · '+g.name+'</option>';}).join('')+'</optgroup>';
+  h+='</select></div>';
+  h+='<div class="gapsum">Supports in place: '+coveredN+' of 5 areas</div>';
+  if(M.gapTarget.kind==='goal') h+='<div class="note">Reading standard '+std+' (from the goal’s attached supports).</div>';
+  h+='</div>';
+  dims.forEach(function(d,i){
+    h+='<div class="dim"><div class="dimhd"><span style="color:var(--text-dim);font-weight:800">'+(i+1)+'</span><span class="dn">'+esc(d.name)+'</span>'+
+       (d.covered?'<span class="cov">✓ covered</span>':'<span class="gapmark">gap</span>')+'</div>';
+    if(!d.covered){
+      var haveTxt=d.have.length?d.have.join(', '):'none yet';
+      var missTxt=d.missing.map(function(x){ if(typeof x==='string')return x; return x.gloss?(x.gloss):(x.enum); }).join(', ');
+      h+='<div class="havemiss">have: <b>'+esc(haveTxt)+'</b> · missing: <b>'+esc(missTxt)+'</b></div>';
+      h+='<div>'+d.missing.map(function(x){
+        var val = (typeof x==='string')?null:x.enum;
+        var lab = (typeof x==='string')?x:(x.gloss||x.enum);
+        return '<button class="findbtn" onclick="findOrAdd(\''+std+'\',\''+d.facet.key+'\',\''+(val||'')+'\')">find or add: '+esc(lab)+'</button>';
+      }).join('')+'</div>';
+      if(d.facet.key==='support'||d.name.indexOf('CRA')>=0){
+        h+='<div><button class="promptbtn" onclick="go(\'prompts\');toast(\'Prompts — copy one to make this support.\')">copy a prompt to make one</button></div>';
+      }
+    } else {
+      h+='<div class="havemiss">have: <b>'+esc((d.have.length?d.have.join(', '):'✓')) +'</b></div>';
+    }
+    h+='</div>';
+  });
+  h+='<div class="note">A ~3rd-grade access material is Niah’s #1 need, so it’s listed first.</div>';
+  return h;
+}
+function setGapTarget(v){ var p=v.split(':'); M.gapTarget={kind:p[0]==='std'?'standard':'goal', id:p[1]}; render(); }
+function findOrAdd(std,key,val){
+  clearFilters();
+  M.filters.std=[std];
+  if(key==='reach'){ M.filters.reach=['bridge','access']; }
+  else if(val && M.filters[key]!==undefined){ M.filters[key]=[val]; }
+  go('library'); toast('Library filtered to '+std+(val?(' · '+val):'')+' — find one or add a new material.');
+}
+
+/* ================= PROMPTS (§6) ================= */
+function renderPrompts(){
+  var h='<div class="backrow"><h1 style="margin:0">Prompts</h1></div>';
+  h+='<div class="caution">⚠ AI can be wrong about math and about what a student needs — check every problem and every step before you use it.<br>'+
+     '<span class="small">You paste these into your OWN AI tool. The app never runs them.</span></div>';
+  PROMPTS.forEach(function(p){
+    h+='<div class="pcard"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'+
+       '<b style="font-size:.95rem">'+esc(p.title)+'</b><span class="tagchip">'+esc(p.support)+'</span></div>';
+    h+='<button class="btn small ghost" style="padding-left:0;margin-top:.3rem" onclick="togglePrompt(\''+p.id+'\')">▸ show prompt</button>';
+    h+='<div class="pbody" id="pb_'+p.id+'">'+esc(p.body)+'</div>';
+    h+='<div class="cautionrow">⚠ AI can be wrong — check every step.</div>';
+    h+='<div class="btnrow"><button class="btn small primary" onclick="copyPrompt(\''+p.id+'\')">Copy</button></div>';
+    h+='</div>';
+  });
+  h+='<div class="note">Copy only — no Run, Send, or Generate. The ___ blanks copy through so you fill them in your own tool. Cached seed content: works offline, zero egress.</div>';
+  return h;
+}
+function togglePrompt(id){ var e=$('pb_'+id); if(e){ e.classList.toggle('open'); var b=e.previousElementSibling; if(b) b.innerHTML=(e.classList.contains('open')?'▾ hide prompt':'▸ show prompt'); } }
+function copyPrompt(id){
+  if(!M.firstCopyDone){ drawFirstCopy(id); openSheet(); return; }
+  doCopy(id);
+}
+function drawFirstCopy(id){
+  var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
+  h+='<div style="display:flex;align-items:center;gap:.5rem"><div class="whowhat">Before you copy</div>'+tellus('I')+'</div>';
+  h+='<div class="ctx" style="margin-top:.5rem;font-size:.9rem;line-height:1.5">This prompt goes to whatever AI tool YOU choose. The app doesn’t run it or check it. AI can be wrong about math — check every problem and every step.</div>';
+  h+='<div class="btnrow"><button class="btn wide" onclick="closeSheet()">Cancel</button>'+
+     '<button class="btn primary wide" onclick="M.firstCopyDone=true;closeSheet();doCopy(\''+id+'\')">Copy</button></div>';
+  h+='<div class="note">Shown once. You won’t see this again.</div>';
+  $('sheet').innerHTML=h;
+}
+function doCopy(id){
+  var p=PROMPTS.filter(function(x){return x.id===id;})[0];
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(p.body); }catch(e){}
+  toast('Copied — paste into your own AI tool. Check every step.');
+}
+
+/* ================= STARTER PACK (§7) ================= */
+function renderStarter(){
+  var h='<div class="backrow"><h1 style="margin:0">Starter pack</h1></div>';
+  h+='<div class="banner info">⛅ offline: cached · one online fetch loads the pack, then it works offline.</div>';
+  h+='<div class="sub">Ready-made, teacher-vetted. Add any to your library, then edit your copy freely.</div>';
+  Object.keys(STARTER).forEach(function(std){
+    var open=M.starterOpen[std];
+    h+='<div class="card">';
+    h+='<div class="shead" onclick="M.starterOpen[\''+std+'\']=!M.starterOpen[\''+std+'\'];render()">'+
+       '<span style="color:var(--text-dim);font-weight:800">'+(open?'▾':'▸')+'</span><span class="stdchip">'+std+'</span><span class="sc" style="font-weight:600;color:var(--text-dim);font-size:.82rem">'+STARTER[std].length+' exemplars</span></div>';
+    if(open){
+      STARTER[std].forEach(function(seed,i){
+        h+='<div class="card" style="margin:.5rem 0 0;background:var(--surface-2)">'+
+           '<div class="mtitle" style="font-size:.95rem"><span>'+esc(seed.title)+'</span><span class="starterflag">Starter</span></div>'+
+           '<div class="metaline" style="margin-top:.4rem"><span class="mbadge accom">Accommodation</span>'+reachPips(seed.reach)+'</div>'+
+           '<div class="metaline">'+seed.supports.map(function(s){return '<span class="tagchip">'+esc(s)+'</span>';}).join('')+'</div>'+
+           '<div class="btnrow"><button class="btn small primary wide" onclick="importSeed(\''+std+'\','+i+')">Add to library</button></div>'+
+           '</div>';
+      });
+      h+='<button class="btn small ghost wide" style="width:100%;margin-top:.5rem" onclick="importAll(\''+std+'\')">Add all for '+std+'</button>';
+    }
+    h+='</div>';
+  });
+  h+='<div class="note">Import copies the seed into YOUR library (you can edit it freely). Import-time posture is pre-filled to Accommodation — you can change it on your copy; the conscious-choice rule still applies if you edit.</div>';
+  return h;
+}
+function importSeed(std,i){
+  var seed=STARTER[std][i], id=mkid();
+  M.library.push({ id:id, t:Date.now(), title:seed.title, kind:'text', url:'', label:'', text:'(imported starter — edit your copy)',
+    stds:[std], supports:seed.supports.slice(), reach:seed.reach, accom_mod:'accommodation', blocks:[], cra:[], udl:[], source:'imported_seed', myp:[], retired:false });
+  toast('Added to your library — edit anytime.');
+  render();
+}
+function importAll(std){
+  STARTER[std].forEach(function(seed){ var id=mkid();
+    M.library.push({ id:id, t:Date.now(), title:seed.title, kind:'text', url:'', label:'', text:'(imported starter — edit your copy)',
+      stds:[std], supports:seed.supports.slice(), reach:seed.reach, accom_mod:'accommodation', blocks:[], cra:[], udl:[], source:'imported_seed', myp:[], retired:false }); });
+  toast('Added '+STARTER[std].length+' to your library — edit anytime.'); render();
+}
+
+/* ================= TRACK / PLAN stubs + Para block ================= */
+function renderTrack(){
+  var h='<h1>Track</h1><div class="sub">Weekly monitoring lives in the TRACK prototype. Shown here so you can reach a Goal Detail and see how differentiation supports attach.</div>';
+  h+=M.goals.map(function(g){
+    return '<button class="sdirow" onclick="openGoalDetail(\''+g.id+'\')">'+avatar(g.ini,true)+'<span class="t" style="margin-left:.3rem">'+esc(g.name)+'</span>'+
+      '<span class="note" style="display:inline;margin:0">'+g.period+' · '+g.supports.length+' support'+(g.supports.length===1?'':'s')+'</span><span style="color:var(--text-dim);margin-left:.4rem">›</span></button>';
+  }).join('');
+  return h;
+}
+function renderPlan(){ return '<h1>Plan</h1><div class="sub">Weekly planning lives in the TRACK/PLAN prototype (prototype-p0). This prototype focuses on Materials.</div><div class="card"><div class="note">Open the goal-tracker prototype to see Plan.</div></div>'; }
+function renderParaBlock(){
+  return '<div class="empty"><div style="font-size:2rem">🔒</div><h1 style="margin:.4rem 0">Teacher-only</h1>'+
+    '<div class="sub">Materials (differentiation) is only for the teacher. In the Para role this whole section — the nav and every screen — is hidden. Switch back to Teacher to use it.</div></div>';
+}
+
+/* ================= sheet ================= */
+function openSheet(){ $('scrim').classList.add('open'); requestAnimationFrame(function(){ $('sheet').classList.add('open'); }); }
+function closeSheet(){ $('sheet').classList.remove('open'); $('scrim').classList.remove('open'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
+
+/* ================= init ================= */
+paint();
+</script>
+</body>
+</html>
