@@ -9,4 +9,4 @@ Live: https://nsoult-agentic.github.io/teacher-assistant-p0/
 wrapped verbatim in a minimal HTML document so GitHub Pages serves it as `text/html`
 and the inline JavaScript executes. Do not hand-edit — regenerate from the source.
 
-Short-lived stakeholder-review host for the Design gate; archive/delete when the gate closes.
+Short-lived stakeholder-review host for the Design gate. Teardown: see TEACH ticket "Tear down teacher-assistant-p0".
