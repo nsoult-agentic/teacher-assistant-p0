@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teacher Assistant — Weekly probes + quick-save (sketch)</title>
+<style>
+  /* ===== tokens: copied verbatim from prototype-p0.html / prototype-m10.html — do not diverge ===== */
+  :root {
+    --bg:#e9edf3; --surface:#ffffff; --surface-2:#f4f6f9; --text:#1a1f2b; --text-dim:#586074;
+    --border:#d7dce6; --border-strong:#c2cad8;
+    --accent:#2563d9; --accent-ink:#ffffff; --accent-soft:#e8f0ff;
+    --owes:#b56a00; --owes-bg:#fff4e0; --owes-line:#e7a63a;
+    --logged:#137a41; --logged-bg:#e6f5ec;
+    --nodata:#5f6675; --nodata-bg:#eceef2;
+    --mastery:#8a6300; --mastery-bg:#fbf1d4;
+    --pending:#6a35c9; --pending-bg:#efe7fb;
+    --danger:#b5271b;
+    --shadow:0 6px 24px rgba(24,33,52,.14);
+    --radius:16px;
+    --s-ab:#0f766e; --s-cd:#4338ca; --s-ef:#0369a1; --s-gh:#6d28d9; --s-jm:#a21caf; --s-rt:#0e7490;
+  }
+  :root[data-theme="dark"] {
+    --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+    --border:#2c3a52; --border-strong:#3a4a66;
+    --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+    --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+    --logged:#54d38c; --logged-bg:#123726;
+    --nodata:#9aa7bd; --nodata-bg:#232c3b;
+    --mastery:#f4d271; --mastery-bg:#3a3111;
+    --pending:#bda2f7; --pending-bg:#2a1f45;
+    --danger:#ff8072;
+    --shadow:0 6px 26px rgba(0,0,0,.45);
+    --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+      --border:#2c3a52; --border-strong:#3a4a66;
+      --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+      --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+      --logged:#54d38c; --logged-bg:#123726;
+      --nodata:#9aa7bd; --nodata-bg:#232c3b;
+      --mastery:#f4d271; --mastery-bg:#3a3111;
+      --pending:#bda2f7; --pending-bg:#2a1f45;
+      --danger:#ff8072;
+      --shadow:0 6px 26px rgba(0,0,0,.45);
+      --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+    }
+  }
+
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:16px; line-height:1.4; }
+
+  /* ===== responsive shell (from m10): <900 = mobile tabbar+statusbar; >=900 = sidebar+topbar ===== */
+  .app { display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+  .main { display:flex; flex-direction:column; flex:1; min-height:0; }
+  .sidebar { display:none; }
+  .topbar  { display:none; }
+  .statusbar { display:flex; align-items:center; gap:.5rem; padding:.55rem .9rem;
+    background:var(--surface); border-bottom:1px solid var(--border); font-size:.8rem; flex:none; }
+  .statusbar .grow { flex:1; }
+  .offline { display:inline-flex; align-items:center; gap:.35rem; font-weight:600; color:var(--owes);
+    background:var(--owes-bg); padding:.2rem .5rem; border-radius:999px; font-size:.72rem; border:0; cursor:pointer; font-family:inherit; }
+  .offline.now { color:var(--accent-ink); background:var(--owes); }
+  .iconbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+    border-radius:10px; padding:.3rem .5rem; font-size:.85rem; cursor:pointer; }
+  .iconbtn:disabled { opacity:.4; cursor:default; }
+  .roleseg { display:inline-flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .roleseg button { border:0; background:var(--surface-2); color:var(--text-dim); padding:.3rem .55rem; font-size:.72rem; cursor:pointer; font-weight:600; }
+  .roleseg button.on { background:var(--accent); color:var(--accent-ink); }
+  .screen { flex:1; overflow-y:auto; overflow-x:hidden; padding:.9rem .9rem 1.4rem; position:relative; min-height:0; }
+  .tabbar { display:flex; background:var(--surface); border-top:1px solid var(--border); flex:none; }
+  .tabbar button { flex:1; border:0; background:transparent; color:var(--text-dim); padding:.6rem 0 .7rem;
+    font-size:.72rem; font-weight:700; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:.15rem; }
+  .tabbar button .ic { font-size:1.15rem; line-height:1; }
+  .tabbar button.on { color:var(--accent); }
+
+  @media (min-width:900px){
+    .app { display:grid; grid-template-columns:15rem 1fr; grid-template-rows:minmax(0,1fr); }
+    .main { display:flex; flex-direction:column; min-width:0; min-height:0; }
+    .statusbar { display:none; }
+    .tabbar { display:none; }
+    .sidebar { display:flex; flex-direction:column; padding:.9rem .7rem; gap:.15rem;
+      background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; }
+    .topbar { display:flex; align-items:center; gap:.7rem; padding:.6rem 1.1rem;
+      background:var(--surface); border-bottom:1px solid var(--border); flex:none; }
+    .topbar .title { font-weight:800; font-size:.95rem; }
+    .topgrow { flex:1; }
+    .screen { padding:1.1rem 1.3rem 2rem; }
+    .screen::-webkit-scrollbar { width:10px; }
+    .screen::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:6px; }
+    .pagewrap { max-width:1100px; margin:0 auto; }
+  }
+  .brand { font-weight:900; font-size:.95rem; padding:.3rem .5rem .8rem; }
+  .brand small { display:block; font-weight:700; font-size:.66rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:.15rem; }
+  .navitem { display:flex; align-items:center; gap:.6rem; border:0; background:transparent; color:var(--text-dim);
+    font-family:inherit; font-size:.9rem; font-weight:700; text-align:left; width:100%; padding:.6rem .6rem; border-radius:10px; cursor:pointer; }
+  .navitem:hover { background:var(--surface-2); }
+  .navitem .ic { font-size:1.1rem; width:1.3rem; text-align:center; }
+  .navitem.on { color:var(--accent); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .subnav { border:0; background:transparent; color:var(--text-dim); font-family:inherit; font-size:.84rem;
+    font-weight:700; text-align:left; width:100%; padding:.45rem .6rem .45rem 2.2rem; border-radius:9px; cursor:pointer; }
+  .subnav:hover { background:var(--surface-2); }
+  .subnav.on { color:var(--accent); background:var(--accent-soft); }
+  .sidefoot { margin-top:auto; font-size:.68rem; color:var(--text-dim); padding:.5rem; }
+  .sketchnote { font-size:.68rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.4rem .5rem; margin:.5rem .3rem 0; }
+
+  /* mobile Track sub-tabs (desktop uses the sidebar) */
+  .segtabs { display:flex; gap:.4rem; margin:0 0 .8rem; }
+  .segtabs button { flex:1; border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text-dim);
+    border-radius:11px; padding:.5rem .4rem; font:inherit; font-size:.84rem; font-weight:800; cursor:pointer; }
+  .segtabs button.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  @media (min-width:900px){ .segtabs { display:none; } }
+
+  /* ===== shared components (from p0/m10) ===== */
+  h1 { font-size:1.25rem; margin:.1rem 0; }
+  .sub { color:var(--text-dim); font-size:.84rem; margin:.15rem 0 .8rem; }
+  .backrow { display:flex; align-items:center; gap:.4rem; margin-bottom:.4rem; }
+  .back { border:0; background:transparent; color:var(--accent); font-weight:700; font-size:.9rem; cursor:pointer; padding:.2rem 0; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; margin-bottom:.7rem; }
+  button.btn { border-radius:13px; padding:.8rem 1rem; font-size:.92rem; font-weight:800; cursor:pointer;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border); font-family:inherit; }
+  button.btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  button.btn.wide { flex:1; }
+  button.btn.small { padding:.5rem .7rem; font-size:.82rem; border-radius:10px; }
+  button.btn.ghost { background:transparent; }
+  button.btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btnrow { display:flex; gap:.6rem; margin-top:.7rem; }
+  .note { font-size:.78rem; color:var(--text-dim); margin-top:.3rem; }
+  .reqmark { color:var(--danger); }
+  .banner { border-radius:12px; padding:.6rem .7rem; margin:.5rem 0; font-size:.85rem; }
+  .banner.info { background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); }
+  .caution { background:var(--owes-bg); border:1px solid var(--owes-line); color:var(--owes); border-radius:12px;
+    padding:.6rem .7rem; font-size:.86rem; font-weight:700; margin:.6rem 0; }
+  .interlock { font-size:.8rem; color:var(--owes); background:var(--owes-bg); border:1px solid var(--owes-line); border-radius:8px; padding:.45rem .55rem; margin-top:.4rem; }
+
+  .av { flex:none; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:.82rem; }
+  .av.circle { width:2.3rem; height:2.3rem; border-radius:50%; color:#fff; }
+  .av.sm { width:1.6rem; height:1.6rem; font-size:.64rem; border-radius:50%; color:#fff; }
+  .av.ab{background:var(--s-ab);} .av.cd{background:var(--s-cd);} .av.ef{background:var(--s-ef);}
+  .av.gh{background:var(--s-gh);} .av.jm{background:var(--s-jm);} .av.rt{background:var(--s-rt);}
+  .period { display:inline-block; font-size:.64rem; font-weight:800; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.03rem .3rem; margin-left:.35rem; vertical-align:middle; }
+
+  .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; }
+  .rchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.45rem .8rem; font-size:.84rem; font-weight:700; cursor:pointer; font-family:inherit; }
+  .rchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .fchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.28rem .6rem; font-size:.78rem; font-weight:700; cursor:pointer; font-family:inherit; }
+  .fchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .tagchip { font-size:.7rem; font-weight:700; color:var(--text-dim); background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; }
+  .stdchip { font-size:.72rem; font-weight:800; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:.06rem .4rem; }
+
+  .form label { display:block; font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin:.75rem 0 .25rem; }
+  .form input.tin, .form select.tin { width:100%; border:1px solid var(--border-strong); border-radius:10px;
+    background:var(--surface); color:var(--text); font-size:.95rem; padding:.6rem .65rem; font-family:inherit; }
+  .inrow { display:flex; gap:.5rem; align-items:center; }
+  .inrow input { flex:1; min-width:0; }
+  .toggle2 { display:inline-flex; border:1.5px solid var(--border-strong); border-radius:11px; overflow:hidden; }
+  .toggle2 button { border:0; background:var(--surface-2); color:var(--text-dim); font-weight:800; font-size:.9rem; padding:.4rem .9rem; cursor:pointer; font-family:inherit; }
+  .toggle2 button.on { background:var(--accent); color:var(--accent-ink); }
+  .toggle2 button:disabled { cursor:not-allowed; opacity:.6; }
+
+  .ladder { display:flex; flex-direction:column; gap:.5rem; margin:.3rem 0; }
+  .lopt { display:flex; gap:.6rem; align-items:flex-start; border:1.5px solid var(--border-strong); background:var(--surface);
+    color:var(--text); border-radius:12px; padding:.6rem .7rem; cursor:pointer; text-align:left; font-family:inherit; width:100%; }
+  .lopt:hover { border-color:var(--accent); }
+  .lopt.on { border-color:var(--accent); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .lopt .rdot { width:1.15rem; height:1.15rem; border-radius:50%; border:2px solid var(--border-strong); flex:none; margin-top:.1rem; }
+  .lopt.on .rdot { border-color:var(--accent); background:radial-gradient(circle at center, var(--accent) 45%, transparent 48%); }
+  .lopt .lt { display:block; font-weight:800; font-size:.9rem; }
+  .lopt .ld { display:block; font-size:.78rem; color:var(--text-dim); margin-top:.15rem; }
+
+  /* toast + sheet (sheet = centered modal >=900) */
+  .toast { position:fixed; left:50%; bottom:5rem; transform:translateX(-50%) translateY(1rem); z-index:60;
+    background:var(--text); color:var(--bg); padding:.6rem .9rem; border-radius:10px; font-size:.85rem; font-weight:700;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; max-width:88%; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .scrim { position:fixed; inset:0; background:rgba(10,15,25,.5); display:none; z-index:40; }
+  .scrim.open { display:block; }
+  .sheet { position:fixed; left:0; right:0; bottom:0; z-index:41; background:var(--surface);
+    border-top-left-radius:22px; border-top-right-radius:22px; padding:.6rem 1rem 1.3rem;
+    transform:translateY(102%); transition:transform .22s ease; max-height:90%; overflow-y:auto;
+    box-shadow:0 -8px 30px rgba(0,0,0,.25); }
+  .sheet.open { transform:translateY(0); }
+  .grip { width:2.6rem; height:.3rem; border-radius:999px; background:var(--border-strong); margin:.2rem auto .7rem; }
+  .sheetx { display:none; }
+  @media (min-width:900px){
+    .sheet { left:50%; right:auto; bottom:auto; top:50%; width:32rem; max-width:92vw; max-height:88vh;
+      transform:translate(-50%,-46%) scale(.98); opacity:0; border-radius:18px; padding:1rem 1.2rem 1.2rem;
+      transition:transform .18s ease, opacity .18s ease; box-shadow:var(--shadow); pointer-events:none; }
+    .sheet.open { transform:translate(-50%,-50%) scale(1); opacity:1; pointer-events:auto; }
+    .grip { display:none; }
+    .sheetx { display:inline-flex; position:absolute; top:.7rem; right:.8rem; }
+  }
+  .whowhat { font-weight:800; font-size:1.05rem; padding-right:2rem; }
+  .ctx { color:var(--text-dim); font-size:.84rem; margin:.15rem 0 .2rem; display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+
+  /* score entry (from p0 Quick-Score) */
+  .scorewrap { text-align:center; margin:.9rem 0 .3rem; }
+  .scorelab { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin-bottom:.35rem; }
+  .scoreline { display:flex; align-items:center; justify-content:center; gap:.6rem; }
+  .stepbtn { width:3.2rem; height:3.2rem; border-radius:16px; border:1px solid var(--border-strong);
+    background:var(--surface-2); color:var(--text); font-size:1.8rem; font-weight:700; cursor:pointer; }
+  .numin { width:4.2rem; height:3.2rem; text-align:center; font-size:2rem; font-weight:800;
+    border:1px solid var(--border-strong); border-radius:14px; background:var(--surface); color:var(--text); }
+  .ofwrap { display:flex; align-items:center; justify-content:center; gap:.4rem; margin-top:.6rem; color:var(--text-dim); font-size:.9rem; }
+  .ofin { width:3.2rem; height:2.3rem; text-align:center; font-size:1.1rem; font-weight:800; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); }
+  .pct { font-size:2.4rem; font-weight:900; margin:.4rem 0 .1rem; }
+
+  /* history table (from p0, scoped) */
+  .tablewrap { width:100%; overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+  .htable { border-collapse:collapse; width:100%; font-size:.86rem; }
+  .htable th, .htable td { text-align:left; padding:.55rem .65rem; border-bottom:1px solid var(--border); white-space:nowrap; vertical-align:middle; }
+  .htable th { background:var(--surface-2); color:var(--text-dim); font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; }
+  .htable tr:last-child td { border-bottom:0; }
+  .plusbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); border-radius:8px; width:2rem; height:1.8rem; font-size:1rem; font-weight:800; cursor:pointer; }
+
+  /* ===== NEW: probe log ===== */
+  .weekstep { display:inline-flex; align-items:center; gap:.35rem; }
+  .weekstep .wl { font-weight:800; font-size:.92rem; min-width:8.5rem; text-align:center; }
+  .headrow { display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; justify-content:space-between; }
+  .desk { display:none; }
+  .mob { display:block; }
+  @media (min-width:900px){ .desk { display:block; } .mob { display:none; } }
+  .ptable { width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .ptable th { text-align:left; background:var(--surface-2); color:var(--text-dim); font-size:.68rem; text-transform:uppercase; letter-spacing:.03em; padding:.55rem .8rem; border-bottom:1px solid var(--border); }
+  .ptable td { vertical-align:middle; padding:.7rem .8rem; border-bottom:1px solid var(--border); }
+  .ptable tr:last-child td { border-bottom:0; }
+  .ptable td.acts { text-align:right; white-space:nowrap; width:1%; }
+  .ptable td.grp { background:var(--surface-2); padding:.45rem .8rem; }
+  .pdname { font-weight:800; font-size:1rem; margin-bottom:.3rem; }
+  .pdmeta { font-size:.74rem; color:var(--text-dim); margin-top:.25rem; }
+  .openbtn { border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:800; border-radius:9px;
+    padding:.35rem .65rem; font-size:.84rem; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .nolink { color:var(--text-dim); font-weight:600; font-size:.9rem; }
+  .textbtn { border:0; background:none; color:var(--accent); font-weight:700; cursor:pointer; font-size:.84rem; padding:.15rem .25rem; font-family:inherit; }
+  .schip { display:inline-flex; align-items:center; gap:.4rem; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.22rem .7rem .22rem .22rem; margin:.2rem .35rem .2rem 0; font-family:inherit; font-size:.86rem; cursor:pointer; text-align:left; }
+  .schip:hover { border-color:var(--accent); }
+  .schip .gs { font-weight:700; }
+  .stt { font-weight:800; font-size:.78rem; white-space:nowrap; }
+  .stt.done { color:var(--logged); } .stt.to { color:var(--text-dim); } .stt.nd { color:var(--nodata); } .stt.future { color:var(--text-dim); font-weight:600; }
+  .pcard { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:.75rem .8rem; margin-bottom:.6rem; }
+  .pcard .top { display:flex; align-items:center; gap:.5rem; justify-content:space-between; }
+  .pcard .acts { display:flex; gap:.3rem; margin-top:.4rem; flex-wrap:wrap; }
+  .sectlab { font-size:.72rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); margin:1rem 0 .45rem; }
+  .probeline { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:12px; padding:.5rem .65rem; margin:.65rem 0 .2rem; font-size:.86rem; }
+  .probeline .pl { color:var(--text-dim); font-weight:700; }
+
+  /* attach sheet */
+  .bigopts { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:.5rem; margin:.7rem 0 .2rem; }
+  .bigopt { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text); border-radius:12px; padding:.7rem .4rem;
+    font-family:inherit; font-weight:800; font-size:.88rem; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:.15rem; }
+  .bigopt.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .bigopt:disabled { opacity:.5; cursor:not-allowed; border-style:dashed; }
+  .soon { font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); }
+  .lastbox { background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:.6rem .7rem; margin:.7rem 0 .2rem; font-size:.86rem; }
+  .lastbox .btns { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.45rem; }
+  .samenote { font-size:.8rem; color:var(--text); background:var(--accent-soft); border:1px solid var(--accent); border-radius:9px; padding:.45rem .55rem; margin-top:.45rem; }
+  .tickrow { display:flex; align-items:center; gap:.55rem; padding:.5rem 0; border-bottom:1px dashed var(--border); cursor:pointer; }
+  .tickrow:last-child { border-bottom:0; }
+  .cb { width:1.5rem; height:1.5rem; border:2px solid var(--border-strong); border-radius:6px; flex:none; display:flex; align-items:center; justify-content:center;
+    font-weight:900; color:var(--accent-ink); background:var(--surface); font-size:.9rem; }
+  .cb.on { background:var(--accent); border-color:var(--accent); }
+  .tickrow .tg { flex:1; font-weight:700; font-size:.9rem; }
+  .sharesum { font-size:.84rem; font-weight:700; margin-top:.4rem; }
+
+  /* ===== NEW: materials drawer ===== */
+  .searchin { width:100%; border:1px solid var(--border-strong); border-radius:11px; background:var(--surface); color:var(--text);
+    font-size:.95rem; padding:.6rem .7rem; font-family:inherit; }
+  .mrow { display:flex; align-items:center; gap:.6rem; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:.65rem .8rem; margin-bottom:.5rem; }
+  .mrow .mm { flex:1; min-width:0; cursor:pointer; }
+  .mname { font-weight:800; font-size:1rem; }
+  .mmeta { font-size:.8rem; color:var(--text-dim); margin-top:.15rem; display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
+  .minibtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); border-radius:9px; min-width:2.2rem; height:2.2rem;
+    padding:0 .4rem; font-size:1.05rem; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex:none; font-family:inherit; }
+  .moretoggle { background:transparent; border:0; color:var(--accent); font-weight:700; cursor:pointer; padding:.5rem 0 .2rem; font-size:.88rem; font-family:inherit; }
+  .morebody { border-top:1px solid var(--border); margin-top:.3rem; padding-top:.2rem; }
+  .kv { display:flex; justify-content:space-between; gap:1rem; padding:.4rem 0; border-bottom:1px dashed var(--border); font-size:.86rem; }
+  .kv:last-child { border-bottom:0; }
+  .kv .k { color:var(--text-dim); } .kv .v { font-weight:700; text-align:right; }
+  .starterflag { font-size:.64rem; font-weight:800; text-transform:uppercase; color:var(--mastery); background:var(--mastery-bg); border-radius:6px; padding:.1rem .4rem; }
+  .pbody { margin:.5rem 0; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:.7rem .8rem; font-size:.95rem; white-space:pre-wrap; line-height:1.55; }
+  .kbdtip { font-size:.78rem; color:var(--text-dim); margin:.2rem 0 .6rem; }
+  kbd { font-family:inherit; font-size:.72rem; font-weight:800; border:1px solid var(--border-strong); border-bottom-width:2px; border-radius:5px; padding:0 .3rem; background:var(--surface-2); color:var(--text); }
+  .empty { text-align:center; color:var(--text-dim); padding:2rem 1rem; }
+  .menulist button { display:block; width:100%; text-align:left; border:0; border-bottom:1px solid var(--border); background:transparent; color:var(--text);
+    font-family:inherit; font-size:.95rem; font-weight:700; padding:.8rem .2rem; cursor:pointer; }
+  .menulist button:last-child { border-bottom:0; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">Teacher Assistant<small>Track · Plan · Materials</small></div>
+    <button class="navitem" data-nav="track" onclick="go('probes')"><span class="ic">&#9679;</span> Track</button>
+    <div id="tracksub"></div>
+    <button class="navitem" data-nav="plan" onclick="go('plan')"><span class="ic">&#9776;</span> Plan</button>
+    <button class="navitem" data-nav="materials" onclick="go('materials')"><span class="ic">&#9783;</span> Materials</button>
+    <div class="sketchnote">Sketch only. Made-up students and links. Nothing you do here is saved.</div>
+    <div class="sidefoot">Signed in · initials only<br>TCMS · 8th math</div>
+  </aside>
+
+  <div class="main">
+    <div class="statusbar">
+      <button class="offline" id="offM" onclick="toggleOffline()">&#9925; works without internet</button>
+      <span class="grow"></span>
+      <div class="roleseg">
+        <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
+        <button data-role="para" onclick="setRole('para')">Para (JT)</button>
+      </div>
+      <button class="iconbtn" onclick="toggleTheme()" id="themeBtnM" aria-label="light or dark">&#9789;</button>
+    </div>
+    <div class="topbar">
+      <span class="title" id="topTitle">Track</span>
+      <span class="topgrow"></span>
+      <button class="offline" id="offD" onclick="toggleOffline()">&#9925; works without internet</button>
+      <div class="roleseg">
+        <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
+        <button data-role="para" onclick="setRole('para')">Para (JT)</button>
+      </div>
+      <button class="iconbtn" onclick="toggleTheme()" id="themeBtnD" aria-label="light or dark">&#9789;</button>
+    </div>
+
+    <div class="screen" id="screen"></div>
+
+    <div class="tabbar" id="tabbar">
+      <button data-tab="track" class="on" onclick="go('probes')"><span class="ic">&#9679;</span>Track</button>
+      <button data-tab="plan" onclick="go('plan')"><span class="ic">&#9776;</span>Plan</button>
+      <button data-tab="materials" onclick="go('materials')"><span class="ic">&#9783;</span>Materials</button>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<script>
+/* ================= helpers ================= */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* build an inline handler call; ids are simple tokens, numbers pass through */
+function call(fn){
+  var a=[].slice.call(arguments,1).map(function(x){ return typeof x==='number' ? String(x) : "'"+String(x).replace(/[^A-Za-z0-9 ._:-]/g,'')+"'"; });
+  return fn+'('+a.join(',')+')';
+}
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); },3000); }
+function toggleTheme(){
+  var root=document.documentElement, cur=root.getAttribute('data-theme');
+  var isDark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  root.setAttribute('data-theme', isDark?'light':'dark');
+  var g = isDark ? '&#9789;' : '&#9728;';
+  $('themeBtnM').innerHTML=g; $('themeBtnD').innerHTML=g;
+}
+var HUE={AB:'ab',CD:'cd',EF:'ef',GH:'gh'};
+function avatar(ini,sm){ var i=(''+ini).toUpperCase(); return '<span class="av circle '+(sm?'sm ':'')+(HUE[i]||'ab')+'" role="img" aria-label="student '+esc(i)+'">'+esc(i)+'</span>'; }
+function pct(c,n){ return n ? Math.round(c/n*100) : 0; }
+function sheetHead(){ return '<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()" aria-label="close">&#10005;</button>'; }
+function openSheet(){ $('scrim').classList.add('open'); requestAnimationFrame(function(){ $('sheet').classList.add('open'); }); }
+function closeSheet(){ $('sheet').classList.remove('open'); $('scrim').classList.remove('open'); S.sheet=null; }
+function sheetOpen(){ return $('sheet').classList.contains('open'); }
+
+/* ================= copy (SME-bound wording; keep verbatim) ================= */
+var HONEST='Written by AI helpers on our team, not reviewed by a teacher. Check every problem before you use it.';
+var SAME_NOTE='Heads up: if you type over this doc each week, older weeks will open this week’s version, not the one the student took. Your scores stay the same. To keep each week’s probe, make a copy in Google Docs (File > Make a copy) and paste the new link instead.';
+var PROMPT_CAUTION='AI can be wrong about math. Before you use it, solve every problem yourself and check the answer key. Put it side by side with last week’s probe: same number of problems, same kinds of problems, same steps, same supports. If the new one is harder or easier, the score will change because of the form, not because the student learned or lost the skill. Never paste a student’s name or initials into an AI tool.';
+var NEXT_PROMPT='Here is last week’s probe: [paste the problems only, no names]\n\nMake next week’s version of it.\nKeep the same skill, the same number of problems, the same kinds of problems, and the same steps.\nChange only the numbers, and keep them about the same size as last week’s.\nGive me an answer key with every step shown.';
+var ACC_DEF='SAME 8th-grade skill, changed only how it’s accessed.';
+var MOD_DEF='a DIFFERENT, below-grade skill (a prerequisite or easier one). Changes WHAT the student is expected to do.';
+var MOD_FLAG='A modification changes what this student is expected to learn. Make sure the IEP supports it before you use it.';
+
+/* ================= synthetic data (initials only) ================= */
+var CUR=6;                          /* "this week" in the sketch */
+var WEEKS={2:'Sep 7–11',3:'Sep 14–18',4:'Sep 21–25',5:'Sep 28–Oct 2',6:'Oct 5–9',7:'Oct 12–16'};
+var GIVEN={2:'9/09',3:'9/16',4:'9/23',5:'9/30',6:'10/07',7:'10/14'};
+function U(k){ return 'https://docs.google.com/document/d/EXAMPLE-'+k+'/edit'; }
+
+var GOALS=[
+  {id:'g1', ini:'AB', per:'P2', name:'Goal 1 · Two-step equations', n:5,  setting:'Resource', crit:'80% on 4 probes in a row'},
+  {id:'g2', ini:'AB', per:'P2', name:'Goal 2 · Multiply fractions',  n:4,  setting:'Resource', crit:'75% on 3 probes in a row'},
+  {id:'g3', ini:'CD', per:'P2', name:'Goal 1 · Two-step equations', n:5,  setting:'Resource', crit:'80% on 4 probes in a row'},
+  {id:'g4', ini:'CD', per:'P2', name:'Goal 2 · Rounding decimals',   n:10, setting:'Gen-ed',   crit:'80% on 4 probes in a row'},
+  {id:'g5', ini:'EF', per:'P4', name:'Goal 1 · Two-step equations', n:5,  setting:'Resource', crit:'80% on 4 probes in a row'},
+  {id:'g6', ini:'GH', per:'P4', name:'Goal 1 · Add integers',        n:3,  setting:'Resource', crit:'2 of 3 on 3 probes in a row'},
+  {id:'g7', ini:'GH', per:'P4', name:'Goal 2 · Compare fractions',   n:5,  setting:'Resource', crit:'80% on 4 probes in a row'}
+];
+/* probe links: one record per doc per week. goals[] of 1 = that student's own; >1 = shared.
+   Shared groups come from LAST WEEK's ticks only (no probe-definition grouping in the MVP).
+   A goal may have more than one doc in a week. */
+var DOCS=[
+  {id:'pd1',  wk:2, goals:['g1','g3','g5'], url:U('ab-cd-ef-wk2'), label:'AB CD EF wk2'},
+  {id:'pd2',  wk:3, goals:['g1','g3','g5'], url:U('ab-cd-ef-wk3'), label:'AB CD EF wk3'},
+  {id:'pd3',  wk:4, goals:['g1','g3','g5'], url:U('ab-cd-ef-wk4'), label:'AB CD EF wk4'},
+  {id:'pd4',  wk:4, goals:['g2'], url:U('ab-wk4'), label:'AB wk4'},
+  {id:'pd5',  wk:4, goals:['g6'], url:U('gh-integers'), label:'GH wk4'},
+  {id:'pd6',  wk:5, goals:['g1','g3','g5'], url:U('ab-cd-ef-wk5'), label:'AB CD EF wk5'},
+  {id:'pd7',  wk:5, goals:['g2'], url:U('ab-wk5'), label:'AB wk5'},
+  {id:'pd8',  wk:5, goals:['g4'], url:U('cd-wk5'), label:'CD wk5'},
+  {id:'pd9',  wk:5, goals:['g6'], url:U('gh-integers'), label:'GH wk5'},
+  {id:'pd10', wk:5, goals:['g7'], url:U('gh-fractions-wk5'), label:'GH wk5 fractions'},
+  {id:'pd11', wk:6, goals:['g1','g3','g5'], url:U('ab-cd-ef-wk6'), label:'AB CD EF wk6'},
+  {id:'pd12', wk:6, goals:['g6'], url:U('gh-integers'), label:'GH wk6'}
+];
+/* scores: [correct,total] | 'reason' (no data) | absent key = to score */
+var SC={
+  g1:{2:[3,5],3:[3,5],4:[4,5],5:[3,5],6:[4,5]},
+  g2:{2:[1,4],3:[2,4],4:'Absent',5:[2,4]},
+  g3:{2:[2,5],3:[3,5],4:[3,5],5:[4,5]},
+  g4:{2:[5,10],3:[6,10],4:[6,10],5:[7,10]},
+  g5:{2:[2,5],3:[2,5],4:'Absent',5:[3,5]},
+  g6:{2:[1,3],3:[2,3],4:[2,3],5:[2,3]},
+  g7:{2:[2,5],3:[3,5],4:[3,5],5:[3,5]}
+};
+
+var LEVELS=[['on_grade','on grade level'],['scaffolded','grade level + supports'],['bridge','a step below grade level'],['access','about 3rd-grade level']];
+function levelWords(k){ for(var i=0;i<LEVELS.length;i++) if(LEVELS[i][0]===k) return LEVELS[i][1]; return ''; }
+var SUPPORTS=['worked example','practice set','reference chart','vocab card','visual','hands-on','broken into steps','smaller numbers'];
+var SOURCES=['made by me','from a colleague','from the co-teacher','purchased'];
+var STDS=['8.NS.1','8.NS.2','8.EE.1','8.EE.2','8.EE.7','8.EE.8','8.F.1','8.G.7'];
+var STUDENTS=['AB','CD','EF','GH'];
+
+var MATS=[
+  {id:'m1', t:6, title:'Slope From a Table Task Cards – modified', url:'https://www.teacherspayteachers.com/Product/Slope-From-a-Table-Task-Cards-EXAMPLE', when:'today', stds:[], week:'', sup:[], block:[], level:'', src:'from a colleague', starter:false},
+  {id:'m2', t:5, title:'Co-teacher slides wk6', url:'https://docs.google.com/presentation/d/EXAMPLE-coteach-wk6/edit', when:'yesterday', stds:['8.EE.7'], week:'Wk 6', sup:[], block:['I DO','WE DO'], level:'on_grade', src:'from the co-teacher', starter:false},
+  {id:'m3', t:4, title:'Two-step practice – small numbers', url:U('twostep-small-numbers'), when:'Fri', stds:['8.EE.7'], week:'Wk 6', sup:['practice set','smaller numbers'], block:['YOU DO'], level:'access', src:'made by me', starter:false},
+  {id:'m4', t:3, title:'Perfect-squares chart', url:'https://drive.google.com/file/d/EXAMPLE-perfect-squares/view', when:'Sep 28', stds:['8.EE.2'], week:'', sup:['reference chart'], block:[], level:'scaffolded', src:'made by me', starter:false},
+  {id:'m5', t:2, title:'Integer chips mat', url:U('integer-chips-mat'), when:'Sep 24', stds:[], week:'', sup:[], block:[], level:'', src:'', starter:false},
+  {id:'m6', t:1, title:'Unit 1 vocab cards', url:U('unit1-vocab-cards'), when:'Sep 15', stds:['8.EE.2'], week:'', sup:['vocab card'], block:[], level:'', src:'made by me', starter:false}
+];
+
+var STARTER=[
+  {id:'s1', std:'8.EE.7', title:'Two-step equation, worked example', level:'scaffolded', sup:'worked example',
+   body:'Solve 2x + 3 = 11.\n\nStep 1. Undo the + 3. Take away 3 from both sides.\n        2x = 8\nStep 2. Undo the × 2. Divide both sides by 2.\n        x = 4\nStep 3. Check. Put 4 back in.\n        2(4) + 3 = 8 + 3 = 11  ✓\n\nYour turn:  3x + 2 = 14'},
+  {id:'s2', std:'8.EE.7', title:'Two-step equations, cue card', level:'scaffolded', sup:'broken into steps',
+   body:'1. Circle the letter.\n2. Undo adding or taking away first.\n3. Undo times or divide next.\n4. Check: put your answer back in.'},
+  {id:'s3', std:'8.EE.2', title:'Perfect-squares chart', level:'scaffolded', sup:'reference chart',
+   body:'1 × 1 = 1\n2 × 2 = 4\n3 × 3 = 9\n4 × 4 = 16\n5 × 5 = 25\n6 × 6 = 36\n7 × 7 = 49\n8 × 8 = 64\n9 × 9 = 81\n10 × 10 = 100\n11 × 11 = 121\n12 × 12 = 144\n\n√49 = 7, because 7 × 7 = 49.'},
+  {id:'s4', std:'8.EE.2', title:'Cube-roots chart', level:'scaffolded', sup:'reference chart',
+   body:'1 × 1 × 1 = 1\n2 × 2 × 2 = 8\n3 × 3 × 3 = 27\n4 × 4 × 4 = 64\n5 × 5 × 5 = 125\n\n∛27 = 3, because 3 × 3 × 3 = 27.'},
+  {id:'s5', std:'8.NS.1', title:'Fraction and decimal strip, 0 to 1', level:'bridge', sup:'visual',
+   body:'0 — 1/8 — 2/8 — 3/8 — 4/8 — 5/8 — 6/8 — 7/8 — 1\n\n2/8 = 1/4 = 0.25\n4/8 = 1/2 = 0.5\n6/8 = 3/4 = 0.75\n\nCut it out. Lay it under a number line to compare.'}
+];
+
+/* ================= state ================= */
+var S={ role:'teacher', dest:'probes', prev:'probes', week:CUR, offline:false, goalId:'g1', seq:100,
+  sheet:null, qs:null, att:null, sv:null, md:null, ma:null, sp:null,
+  mat:{ chip:'recent', q:'' }, pasteN:0 };
+
+function goal(id){ for(var i=0;i<GOALS.length;i++) if(GOALS[i].id===id) return GOALS[i]; return null; }
+function docById(id){ for(var i=0;i<DOCS.length;i++) if(DOCS[i].id===id) return DOCS[i]; return null; }
+function docsFor(gid,wk){ return DOCS.filter(function(d){ return d.wk===wk && d.goals.indexOf(gid)>=0; }); }
+function lastWeekDoc(gid,wk){ var l=docsFor(gid,wk-1); return l.length?l[0]:null; }
+function docsInWeek(wk){ return DOCS.filter(function(d){ return d.wk===wk; }); }
+/* "same doc as Wk N": this doc's link matches a doc from the week before */
+function sameAsPrev(d){
+  for(var i=0;i<DOCS.length;i++){ var p=DOCS[i]; if(p.wk===d.wk-1 && p.url===d.url) return 'same doc as Wk '+p.wk; }
+  return '';
+}
+function status(gid,wk){
+  var v=(SC[gid]||{})[wk];
+  if(Array.isArray(v)) return {k:'done', txt:v[0]+'/'+v[1]+' · '+pct(v[0],v[1])+'%'};
+  if(typeof v==='string') return {k:'nd', txt:'⊘ '+v};
+  if(wk>CUR) return {k:'future', txt:'not given yet'};
+  return {k:'to', txt:'to score'};
+}
+function initialsOf(gids){
+  var seen=[]; GOALS.forEach(function(g){ if(gids.indexOf(g.id)>=0 && seen.indexOf(g.ini)<0) seen.push(g.ini); });
+  return seen;
+}
+
+/* ================= shell / nav ================= */
+var TITLES={ probes:'Track › This week’s probes', toscore:'Track › To-score', goal:'Track › Goal detail', materials:'Materials', plan:'Plan' };
+function isTrack(d){ return d==='probes'||d==='toscore'||d==='goal'; }
+function go(dest){
+  if(S.role==='para' && (dest==='probes'||dest==='goal'||dest==='materials'||dest==='plan')) dest='toscore';
+  if(dest!=='goal') S.prev=dest;
+  S.dest=dest; closeSheet(); paint(); $('screen').scrollTop=0;
+}
+function goGoal(gid){ if(S.role!=='teacher') return; S.goalId=gid; if(S.dest!=='goal') S.prev=S.dest; S.dest='goal'; closeSheet(); paint(); $('screen').scrollTop=0; }
+function paint(){
+  $('topTitle').textContent=TITLES[S.dest]||'Track';
+  document.querySelectorAll('#sidebar .navitem').forEach(function(b){
+    var k=b.dataset.nav; b.classList.toggle('on',(k==='track'&&isTrack(S.dest))||k===S.dest);
+  });
+  document.querySelectorAll('#tabbar button').forEach(function(b){
+    var k=b.dataset.tab; b.classList.toggle('on',(k==='track'&&isTrack(S.dest))||k===S.dest);
+  });
+  var sub=$('tracksub');
+  if(isTrack(S.dest)){
+    var mk=function(d,label){ return '<button class="subnav'+(S.dest===d?' on':'')+'" onclick="go(\''+d+'\')">'+label+'</button>'; };
+    sub.innerHTML=mk('toscore','To-score')+(S.role==='teacher'?mk('probes','This week’s probes'):'')+
+      (S.dest==='goal'?'<button class="subnav on">Goal detail</button>':'');
+  } else sub.innerHTML='';
+  render();
+}
+function render(){
+  var fns={ probes:renderProbes, toscore:renderToScore, goal:renderGoal, materials:renderMaterials, plan:renderPlan };
+  $('screen').innerHTML='<div class="pagewrap">'+(fns[S.dest]||renderProbes)()+'</div>';
+}
+function trackTabs(){
+  if(S.role!=='teacher') return '';
+  return '<div class="segtabs"><button class="'+(S.dest==='toscore'?'on':'')+'" onclick="go(\'toscore\')">To-score</button>'+
+    '<button class="'+(S.dest==='probes'?'on':'')+'" onclick="go(\'probes\')">This week’s probes</button></div>';
+}
+function setRole(r){
+  S.role=r;
+  document.querySelectorAll('.roleseg button').forEach(function(b){ b.classList.toggle('on', b.dataset.role===r); });
+  var t=r==='teacher';
+  document.querySelectorAll('[data-nav="materials"],[data-tab="materials"],[data-nav="plan"],[data-tab="plan"]').forEach(function(b){ b.style.display=t?'':'none'; });
+  go(t?'probes':'toscore');
+  if(!t) toast('Para view: scoring only. Probe links are teacher-only.');
+}
+function toggleOffline(){
+  S.offline=!S.offline;
+  ['offM','offD'].forEach(function(id){ var b=$(id); b.classList.toggle('now',S.offline);
+    b.innerHTML=S.offline?'&#9925; offline now · still saves':'&#9925; works without internet'; });
+  toast(S.offline?'Pretending you have no internet. Saving still works; it syncs later.':'Back online.');
+  if(sheetOpen() && S.sheet==='att') drawAttach();
+}
+function openLink(url){
+  if(S.offline){ toast('No internet right now. Google links open when you are back online. Saving still works.'); return; }
+  var short=url.replace(/^https?:\/\//,'').slice(0,48);
+  toast('Opens your doc in a new tab: '+short+'…  (sketch: made-up link)');
+}
+function openDocLink(id){ var d=docById(id); if(d) openLink(d.url); }
+
+/* ================= TRACK › This week's probes ================= */
+function weekStepper(){
+  return '<div class="weekstep"><button class="iconbtn" onclick="stepWeek(-1)" '+(S.week<=2?'disabled':'')+' aria-label="earlier week">&#8249;</button>'+
+    '<span class="wl">Wk '+S.week+' · '+WEEKS[S.week]+'</span>'+
+    '<button class="iconbtn" onclick="stepWeek(1)" '+(S.week>=7?'disabled':'')+' aria-label="later week">&#8250;</button>'+
+    (S.week!==CUR?' <button class="textbtn" onclick="S.week=CUR;render()">This week</button>':'')+'</div>';
+}
+function stepWeek(d){ S.week=Math.max(2,Math.min(7,S.week+d)); render(); }
+function studentChip(gid,wk){
+  var g=goal(gid), st=status(gid,wk);
+  return '<button class="schip" onclick="'+call('openQS',gid,wk)+'" title="Score this goal">'+avatar(g.ini,true)+
+    '<span class="gs">'+esc(g.name)+'</span><span class="stt '+st.k+'">'+esc(st.txt)+'</span></button>';
+}
+function renderProbes(){
+  var wk=S.week, docs=docsInWeek(wk);
+  var withDoc={}; docs.forEach(function(d){ d.goals.forEach(function(x){ withDoc[x]=true; }); });
+  var without=GOALS.filter(function(g){ return !withDoc[g.id]; });
+  var h=trackTabs();
+  h+='<div class="headrow"><h1>'+(wk===CUR?'This week’s probes':'Probes · Wk '+wk)+'</h1>'+weekStepper()+'</div>';
+  h+='<div class="sub">Your probe docs for the week, next to the students who use them. Tap a student to score. Tap <b>Open</b> to print from Google.</div>';
+
+  /* desktop: one table, no sideways scroll at 1366 */
+  var t='<table class="ptable"><thead><tr><th style="width:28%">Probe doc</th><th>Used for · score</th><th></th></tr></thead><tbody>';
+  docs.forEach(function(d){
+    var same=sameAsPrev(d);
+    t+='<tr><td><div class="pdname">'+esc(d.label)+'</div><button class="openbtn" onclick="'+call('openDocLink',d.id)+'">Open &#8599;</button>'+
+      (d.goals.length>1?'<div class="pdmeta">One doc shared by '+d.goals.length+' students</div>':'')+
+      (same?'<div class="pdmeta">'+same+'</div>':'')+'</td>'+
+      '<td>'+d.goals.map(function(x){ return studentChip(x,wk); }).join('')+'</td>'+
+      '<td class="acts"><button class="btn small" onclick="'+call('openAttach',d.goals[0],wk,d.id,'',0)+'">Change</button> '+
+      '<button class="btn small ghost" onclick="'+call('openAttach',d.goals[0],wk,d.id,'',1)+'">＋ Student</button></td></tr>';
+  });
+  if(without.length) t+='<tr><td class="grp" colspan="3"><span class="sectlab" style="margin:0">No probe yet</span></td></tr>';
+  without.forEach(function(g){
+    t+='<tr><td><span class="nolink">—</span></td><td>'+studentChip(g.id,wk)+'</td>'+
+      '<td class="acts"><button class="btn small" onclick="'+call('openAttach',g.id,wk,'','',0)+'">＋ Attach</button></td></tr>';
+  });
+  t+='</tbody></table>';
+  h+='<div class="desk">'+t+'</div>';
+
+  /* phone: cards */
+  var m='';
+  docs.forEach(function(d){
+    var same=sameAsPrev(d);
+    m+='<div class="pcard"><div class="top"><div class="pdname" style="margin:0">'+esc(d.label)+'</div>'+
+      '<button class="openbtn" onclick="'+call('openDocLink',d.id)+'">Open &#8599;</button></div>'+
+      (same?'<div class="pdmeta">'+same+'</div>':'')+
+      '<div style="margin-top:.35rem">'+d.goals.map(function(x){ return studentChip(x,wk); }).join('')+'</div>'+
+      '<div class="acts"><button class="textbtn" onclick="'+call('openAttach',d.goals[0],wk,d.id,'',0)+'">Change</button>'+
+      '<button class="textbtn" onclick="'+call('openAttach',d.goals[0],wk,d.id,'',1)+'">＋ Student</button></div></div>';
+  });
+  if(without.length){
+    m+='<div class="sectlab">No probe yet</div>';
+    without.forEach(function(g){
+      m+='<div class="pcard"><div class="top"><div style="min-width:0">'+studentChip(g.id,wk)+'</div>'+
+        '<button class="btn small" onclick="'+call('openAttach',g.id,wk,'','',0)+'">＋ Attach</button></div></div>';
+    });
+  }
+  h+='<div class="mob">'+m+'</div>';
+  h+='<div class="note" style="margin-top:.7rem">Saving a probe link is optional. Scoring works the same with or without one. The app never opens or reads your docs; it only keeps the link.</div>';
+  return h;
+}
+
+/* ================= TRACK › To-score (existing screen, unchanged look: no probe indicator) ================= */
+function renderToScore(){
+  var h=trackTabs()+'<h1>To-score</h1><div class="sub">Wk '+CUR+' · '+WEEKS[CUR]+'. Tap a student to score.</div>';
+  var todo=GOALS.filter(function(g){ return status(g.id,CUR).k==='to'; });
+  var done=GOALS.filter(function(g){ return status(g.id,CUR).k!=='to'; });
+  todo.concat(done).forEach(function(g,i){
+    if(i===todo.length && done.length) h+='<div class="sectlab">Scored this week</div>';
+    var st=status(g.id,CUR);
+    h+='<div class="mrow"><div class="mm" style="display:flex;align-items:center;gap:.6rem" onclick="'+call('openQS',g.id,CUR)+'">'+avatar(g.ini)+
+      '<div style="min-width:0"><div class="mname">'+esc(g.name)+'<span class="period">'+g.per+'</span></div>'+
+      '<div class="mmeta"><span class="stt '+st.k+'">'+esc(st.txt)+'</span></div></div></div>'+
+      (S.role==='teacher'?'<button class="minibtn" onclick="'+call('goGoal',g.id)+'" title="History" aria-label="history">&#8250;</button>':'')+'</div>';
+  });
+  return h;
+}
+
+/* ================= Quick-Score sheet (existing, + one neutral probe line) ================= */
+function openQS(gid,wk){
+  var g=goal(gid), v=(SC[gid]||{})[wk];
+  S.qs={gid:gid, wk:wk, c:Array.isArray(v)?v[0]:null, n:Array.isArray(v)?v[1]:g.n, nd:false};
+  S.sheet='qs'; drawQS(); if(!sheetOpen()) openSheet();
+}
+/* attach from Quick-Score files under the week of the point's admin date (wk), never "today" */
+function probeLine(gid,wk,ret){
+  var ds=docsFor(gid,wk);
+  var lab=wk===CUR?'This week’s probe:':'Wk '+wk+' probe:';
+  var h='<div class="probeline"><span class="pl">'+lab+'</span>';
+  if(ds.length){
+    ds.forEach(function(d){
+      h+='<button class="openbtn" onclick="'+call('openDocLink',d.id)+'">'+esc(d.label)+' &#8599;</button>'+
+         '<button class="textbtn" onclick="'+call('openAttach',gid,wk,d.id,ret,0)+'">change</button>';
+    });
+    h+='<button class="textbtn" onclick="'+call('openAttach',gid,wk,'',ret,0)+'">＋ another</button>';
+  } else {
+    h+='<button class="btn small" onclick="'+call('openAttach',gid,wk,'',ret,0)+'">＋ Attach '+(wk===CUR?'this week’s':'Wk '+wk)+' probe</button>';
+  }
+  return h+'</div>';
+}
+function drawQS(){
+  var q=S.qs, g=goal(q.gid);
+  var h=sheetHead();
+  h+='<div style="display:flex;align-items:center;gap:.6rem">'+avatar(g.ini)+'<div><div class="whowhat">'+g.ini+' · '+g.per+'</div>'+
+     '<div class="ctx" style="margin:0">'+esc(g.name)+'</div></div></div>';
+  h+='<div class="ctx">Wk '+q.wk+' · given '+GIVEN[q.wk]+' · '+g.n+'-item probe · Setting: '+g.setting+'</div>';
+  if(S.role==='teacher') h+=probeLine(q.gid,q.wk,'qs');
+  if(q.nd){
+    h+='<div class="scorelab" style="margin-top:1rem">No data this week: why?</div><div class="chips">'+
+      ['Absent','School event','Probe not given'].map(function(r){ return '<button class="rchip" onclick="'+call('qsNoData',r)+'">'+r+'</button>'; }).join('')+'</div>'+
+      '<button class="textbtn" onclick="S.qs.nd=false;drawQS()">‹ Back to score</button>';
+  } else {
+    h+='<div class="scorewrap"><div class="scorelab"># correct</div><div class="scoreline">'+
+      '<button class="stepbtn" onclick="qsStep(-1)" aria-label="minus one">−</button>'+
+      '<input class="numin" id="qsC" inputmode="numeric" value="'+(q.c==null?'':q.c)+'" placeholder="?" oninput="qsType(this.value)" onkeydown="if(event.key===\'Enter\')qsSave()">'+
+      '<button class="stepbtn" onclick="qsStep(1)" aria-label="plus one">+</button></div>'+
+      '<div class="ofwrap">of <input class="ofin" id="qsN" inputmode="numeric" value="'+q.n+'" oninput="qsTotal(this.value)"> items</div>'+
+      '<div class="pct" id="qsPct">'+(q.c==null?'—':pct(q.c,q.n)+'%')+'</div>'+
+      '<div class="note">You type the number correct. The app works out the %.</div></div>';
+    h+='<div class="btnrow"><button class="btn primary wide" onclick="qsSave()">Save</button><button class="btn" onclick="S.qs.nd=true;drawQS()">No data</button></div>';
+  }
+  if(S.role==='teacher') h+='<div style="text-align:center;margin-top:.6rem"><button class="textbtn" onclick="'+call('goGoal',q.gid)+'">See this goal’s history &#8250;</button></div>';
+  $('sheet').innerHTML=h;
+}
+function qsStep(d){ var q=S.qs; q.c=Math.max(0,Math.min(q.n,(q.c==null?0:q.c)+d)); drawQS(); }
+function qsType(v){ var q=S.qs, n=parseInt(v,10); q.c=isNaN(n)?null:Math.max(0,Math.min(q.n,n)); $('qsPct').textContent=q.c==null?'—':pct(q.c,q.n)+'%'; }
+function qsTotal(v){ var q=S.qs, n=parseInt(v,10); if(!isNaN(n)&&n>0){ q.n=n; if(q.c!=null&&q.c>n) q.c=n; } $('qsPct').textContent=q.c==null?'—':pct(q.c,q.n)+'%'; }
+function qsSave(){
+  var q=S.qs; if(q.c==null){ toast('Type how many were correct first.'); return; }
+  SC[q.gid][q.wk]=[q.c,q.n];
+  toast('Scored '+q.c+'/'+q.n+' · '+pct(q.c,q.n)+'% (sketch only, not saved)'+(S.offline?' · syncs when online':''));
+  closeSheet(); render();
+}
+function qsNoData(r){ var q=S.qs; SC[q.gid][q.wk]=r; toast('No data: '+r+' (sketch only)'); closeSheet(); render(); }
+
+/* ================= Attach sheet (probe link) ================= */
+/* openAttach(goalId, week, docId|'', returnTo 'qs'|'', showAll 0|1) */
+function openAttach(gid,wk,docId,ret,showAll){
+  if(S.role!=='teacher') return;
+  var editing=docId?docById(docId):null;
+  var last=lastWeekDoc(gid,wk);
+  var ticks={};
+  if(editing) editing.goals.forEach(function(x){ ticks[x]=true; });
+  else if(last) last.goals.forEach(function(x){ ticks[x]=true; });   /* remembered group = last week's ticks */
+  ticks[gid]=true;
+  S.att={ gid:gid, wk:wk, docId:editing?editing.id:'', url:editing?editing.url:'', label:editing?editing.label:'',
+    labelEdited:!!editing, ticks:ticks, showAll:!!showAll, ret:ret||'', fromLast:!editing&&!!last&&last.goals.length>1 };
+  if(!editing) S.att.label=autoLabel();
+  S.sheet='att'; drawAttach(); if(!sheetOpen()) openSheet();
+}
+function tickedIds(){ var a=S.att; return GOALS.filter(function(g){ return a.ticks[g.id]; }).map(function(g){ return g.id; }); }
+function autoLabel(){ return initialsOf(tickedIds()).join(' ')+' wk'+S.att.wk; }
+function attSameAsLast(){ var a=S.att, last=lastWeekDoc(a.gid,a.wk); return !!(last && a.url.trim() && a.url.trim()===last.url); }
+function attCandidates(){
+  var a=S.att, last=lastWeekDoc(a.gid,a.wk), set={};
+  if(a.showAll){ GOALS.forEach(function(g){ set[g.id]=true; }); }
+  else {
+    if(last) last.goals.forEach(function(x){ set[x]=true; });
+    Object.keys(a.ticks).forEach(function(x){ if(a.ticks[x]) set[x]=true; });
+  }
+  return GOALS.filter(function(g){ return set[g.id]; });
+}
+/* gentle FERPA hint: label looks like a first + last name */
+function looksLikeName(s){ return /\b[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\b/.test(s||''); }
+function drawAttach(){
+  var a=S.att, g=goal(a.gid), last=lastWeekDoc(a.gid,a.wk);
+  var h=sheetHead();
+  h+='<div class="whowhat">'+(a.wk===CUR?'This week’s probe':'Probe for Wk '+a.wk)+' · Wk '+a.wk+' <span style="color:var(--text-dim);font-weight:700">('+WEEKS[a.wk]+')</span></div>';
+  h+='<div class="ctx">'+avatar(g.ini,true)+' '+g.ini+' · '+g.per+' · '+esc(g.name)+'</div>';
+  if(a.wk!==CUR) h+='<div class="note">Saved under Wk '+a.wk+', the week this probe was given.</div>';
+  h+='<div class="bigopts"><button class="bigopt primary" onclick="attPaste()">&#128203; Paste link</button>'+
+     '<button class="bigopt" disabled title="Not in the first version">Upload PDF<span class="soon">coming later</span></button>'+
+     '<button class="bigopt" disabled title="Not in the first version">Photo<span class="soon">coming later</span></button></div>';
+  h+='<div class="note">For now the app keeps a link only. Your doc stays in your Google Drive.</div>';
+  h+='<div class="form"><label for="attUrl">Link</label>'+
+     '<input class="tin" id="attUrl" value="'+esc(a.url)+'" placeholder="Paste a Google Docs or Drive link" oninput="attUrlIn(this.value)" onkeydown="if(event.key===\'Enter\')attSave()">';
+  h+='<div id="attSameSlot">'+(attSameAsLast()?'<div class="samenote">'+SAME_NOTE+'</div>':'')+'</div>';
+  if(last && !a.docId){
+    h+='<div class="lastbox">&#8635; Last week: <b>'+esc(last.label)+'</b>'+
+       '<div class="btns"><button class="openbtn" onclick="'+call('openDocLink',last.id)+'">Open last week’s &#8599;</button>'+
+       '<button class="btn small" onclick="attSame()">Same doc as last week</button></div>'+
+       '<div class="note">Making a new one? Open last week’s, use File &gt; Make a copy in Google Docs, then paste the new link above.</div></div>';
+  }
+  h+='<label for="attLabel">Name</label><input class="tin" id="attLabel" value="'+esc(a.label)+'" oninput="attLabelIn(this.value)" onkeydown="if(event.key===\'Enter\')attSave()">'+
+     '<div class="note">Use initials only, for example “'+esc(initialsOf([a.gid])[0]||'AB')+' wk'+a.wk+'”.</div>'+
+     '<div id="attNameSlot">'+(looksLikeName(a.label)?'<div class="interlock">This looks like it might be a name. Please use initials only.</div>':'')+'</div>';
+  var cands=attCandidates();
+  if(cands.length>1 || a.showAll){
+    h+='<label>Used for</label><div>';
+    cands.forEach(function(c){
+      var on=!!a.ticks[c.id];
+      h+='<div class="tickrow" onclick="'+call('attTick',c.id)+'"><span class="cb'+(on?' on':'')+'">'+(on?'&#10003;':'')+'</span>'+avatar(c.ini,true)+
+         '<span class="tg">'+esc(c.name)+'<span class="period">'+c.per+'</span></span></div>';
+    });
+    h+='</div>';
+    var ids=tickedIds(), ini=initialsOf(ids);
+    h+='<div class="sharesum">'+(ids.length<=1?'Saves as '+ini.join('')+'’s own probe.':'Saves as one shared probe for '+ini.join(', ')+'.')+'</div>';
+    if(a.fromLast) h+='<div class="note">Ticked the same as last week. Untick anyone who is not using it.</div>';
+    if(!a.showAll) h+='<button class="textbtn" style="margin-top:.3rem" onclick="S.att.showAll=true;drawAttach()">＋ Another student uses it</button>';
+  } else {
+    h+='<button class="textbtn" style="margin-top:.5rem" onclick="S.att.showAll=true;drawAttach()">Shared with other students? Pick them</button>';
+  }
+  h+='</div>';
+  if(S.offline) h+='<div class="banner info">You are offline. This saves on this device and syncs later.</div>';
+  h+='<div class="btnrow"><button class="btn primary wide" id="attSaveBtn" onclick="attSave()" '+(attReady()?'':'disabled')+'>Save</button>'+
+     '<button class="btn" onclick="attCancel()">Cancel</button></div>';
+  if(a.docId) h+='<div style="text-align:center;margin-top:.5rem"><button class="textbtn" onclick="attRemove()">Remove this link</button></div>';
+  $('sheet').innerHTML=h;
+}
+function attReady(){ return !!S.att.url.trim() && tickedIds().length>0; }
+function attPaste(){
+  var a=S.att; a.url=U(initialsOf(tickedIds()).join('-').toLowerCase()+'-wk'+a.wk+'-copy');
+  drawAttach(); toast('Pasted from your clipboard (sketch: made-up link)');
+}
+function attSame(){ var a=S.att, last=lastWeekDoc(a.gid,a.wk); if(!last) return; a.url=last.url; drawAttach(); }
+function attUrlIn(v){
+  S.att.url=v; $('attSaveBtn').disabled=!attReady();
+  $('attSameSlot').innerHTML=attSameAsLast()?'<div class="samenote">'+SAME_NOTE+'</div>':'';
+}
+function attLabelIn(v){
+  S.att.label=v; S.att.labelEdited=true;
+  $('attNameSlot').innerHTML=looksLikeName(v)?'<div class="interlock">This looks like it might be a name. Please use initials only.</div>':'';
+}
+function attTick(id){
+  var a=S.att; if(a.ticks[id] && tickedIds().length===1){ toast('Keep at least one student ticked.'); return; }
+  a.ticks[id]=!a.ticks[id]; a.fromLast=false;
+  if(!a.labelEdited) a.label=autoLabel();
+  drawAttach();
+}
+function attSave(){
+  var a=S.att; if(!attReady()){ toast('Paste a link first.'); return; }
+  var ids=tickedIds();
+  if(a.docId){ var d=docById(a.docId); d.url=a.url.trim(); d.label=a.label.trim()||autoLabel(); d.goals=ids; }
+  else DOCS.push({ id:'pd'+(S.seq++), wk:a.wk, goals:ids, url:a.url.trim(), label:a.label.trim()||autoLabel() });
+  toast('Probe link saved under Wk '+a.wk+' (sketch only, nothing is stored)'+(S.offline?' · syncs when online':''));
+  attDone(false);
+}
+function attRemove(){ var a=S.att; DOCS=DOCS.filter(function(d){ return d.id!==a.docId; }); toast('Link removed (sketch only). Scores are not touched.'); attDone(false); }
+function attCancel(){ attDone(true); }
+function attDone(cancel){ var a=S.att; if(a.ret==='qs'){ openQS(a.gid,a.wk); } else closeSheet(); if(!cancel) render(); }
+
+/* ================= TRACK › Goal detail (history + Probe column) ================= */
+function renderGoal(){
+  var g=goal(S.goalId);
+  var backLab={probes:'This week’s probes',toscore:'To-score'}[S.prev]||'Back';
+  var h='<div class="backrow"><button class="back" onclick="'+call('go',S.prev||'probes')+'">&#8249; '+backLab+'</button></div>';
+  h+='<div style="display:flex;align-items:center;gap:.6rem;margin:.1rem 0 .3rem">'+avatar(g.ini)+
+     '<div><h1 style="margin:0">'+esc(g.name)+'</h1><div class="sub" style="margin:.1rem 0 0">'+g.ini+' · '+g.per+' · '+g.n+'-item probe · Goal: '+esc(g.crit)+'</div></div></div>';
+  h+='<div class="btnrow" style="margin:.6rem 0 .3rem"><button class="btn primary" onclick="'+call('openQS',g.id,CUR)+'">＋ Add a point</button></div>';
+  h+='<div class="card" style="margin-top:.8rem"><div style="font-weight:800;margin-bottom:.5rem">History</div><div class="tablewrap"><table class="htable"><thead><tr>'+
+     '<th>Week</th><th>Given</th><th>Correct / total</th><th>%</th><th>Probe</th></tr></thead><tbody>';
+  for(var wk=CUR; wk>=2; wk--){
+    var v=(SC[g.id]||{})[wk], ds=docsFor(g.id,wk), sc, pc, given=GIVEN[wk];
+    if(Array.isArray(v)){ sc=v[0]+'/'+v[1]; pc=pct(v[0],v[1])+'%'; }
+    else if(typeof v==='string'){ sc='<span style="color:var(--nodata)">⊘ '+esc(v)+'</span>'; pc=''; }
+    else { sc='<button class="textbtn" onclick="'+call('openQS',g.id,wk)+'">to score</button>'; pc=''; given='—'; }
+    var pcell='';
+    if(ds.length){
+      pcell=ds.map(function(d){ var same=sameAsPrev(d);
+        return '<button class="openbtn" onclick="'+call('openDocLink',d.id)+'" title="Open">&#128279; '+esc(d.label)+' &#8599;</button>'+
+          (same?' <span class="note" style="margin:0">'+same+'</span>':''); }).join(' ');
+    } else {
+      pcell='<button class="plusbtn" onclick="'+call('openAttach',g.id,wk,'','',0)+'" aria-label="Attach a probe link for week '+wk+'" title="Attach a probe link">＋</button>';
+    }
+    h+='<tr><td><b>Wk '+wk+'</b></td><td>'+given+'</td><td>'+sc+'</td><td><b>'+pc+'</b></td><td>'+pcell+'</td></tr>';
+  }
+  h+='</tbody></table></div>';
+  h+='<div class="note">The probe link sits next to the score for your records. It never changes the score, the %, the trend, or anything sent to Infinite Campus.</div></div>';
+  h+='<div class="note">Trend chart, goal window, and progress summary stay as they are now (not shown in this sketch).</div>';
+  return h;
+}
+
+/* ================= MATERIALS (quick-save drawer) ================= */
+function kindOf(u){
+  if(/docs\.google\.com\/document/.test(u)) return 'Google Doc';
+  if(/docs\.google\.com\/presentation/.test(u)) return 'Google Slides';
+  if(/docs\.google\.com\/spreadsheets/.test(u)) return 'Google Sheet';
+  if(/drive\.google\.com/.test(u)) return 'Drive file';
+  if(/teacherspayteachers\.com/.test(u)) return 'Teachers Pay Teachers';
+  return 'Link';
+}
+function nameFromUrl(u){
+  if(!u) return '';
+  var m=u.match(/teacherspayteachers\.com\/Product\/([^\/?#]+)/i);
+  if(m) return m[1].replace(/-EXAMPLE.*$/i,'').replace(/-\d+$/,'').replace(/-/g,' ');
+  var k=kindOf(u);
+  if(k!=='Link') return k+' · saved Oct 4';
+  var host=u.replace(/^https?:\/\//,'').split('/')[0];
+  return host?host+' · saved Oct 4':'';
+}
+function stdsInUse(){ var s=[]; MATS.forEach(function(m){ m.stds.forEach(function(x){ if(s.indexOf(x)<0) s.push(x); }); }); return s.sort(); }
+function isUnsorted(m){ return !m.stds.length && !m.week && !m.sup.length && !m.block.length && !m.level; }
+function matList(){
+  var c=S.mat.chip, q=S.mat.q.trim().toLowerCase();
+  return MATS.filter(function(m){
+    if(q && m.title.toLowerCase().indexOf(q)<0) return false;
+    if(c==='week') return m.week==='Wk 6'||m.when==='today'||m.when==='yesterday';
+    if(c==='unsorted') return isUnsorted(m);
+    if(c.indexOf('std:')===0) return m.stds.indexOf(c.slice(4))>=0;
+    return true;
+  }).sort(function(a,b){ return b.t-a.t; });
+}
+function matById(id){ for(var i=0;i<MATS.length;i++) if(MATS[i].id===id) return MATS[i]; return null; }
+function matRow(m){
+  var tags=(m.starter?'<span class="starterflag">Starter idea, AI-written</span> ':'')+
+    m.stds.map(function(s){ return '<span class="stdchip">'+esc(s)+'</span>'; }).join(' ')+(m.week?' <span class="tagchip">'+esc(m.week)+'</span>':'');
+  return '<div class="mrow"><div class="mm" onclick="'+call('openLinkMat',m.id)+'" title="Open">'+
+    '<div class="mname">'+esc(m.title)+'</div><div class="mmeta">'+kindOf(m.url)+' · '+esc(m.when)+(tags?' '+tags:'')+'</div></div>'+
+    '<button class="openbtn" onclick="'+call('openLinkMat',m.id)+'">Open &#8599;</button>'+
+    '<button class="minibtn" onclick="'+call('openMatMenu',m.id)+'" aria-label="more">&#8943;</button></div>';
+}
+function openLinkMat(id){ var m=matById(id); if(m) openLink(m.url); }
+function listHtml(){
+  var c=S.mat.chip;
+  if(c==='starter') return starterHtml();
+  if(c==='prompts') return promptsHtml();
+  var res=matList();
+  if(!res.length) return '<div class="empty">Nothing here yet.'+(S.mat.q?'<br><button class="btn small" style="margin-top:.6rem" onclick="clearMQ()">Clear search</button>':'')+'</div>';
+  return res.map(matRow).join('');
+}
+function renderMaterials(){
+  var h='<div class="headrow"><h1>Materials</h1><button class="btn primary small" onclick="openSave(\'\')">＋ Save a link</button></div>';
+  h+='<div class="kbdtip desk">Copied a link? Press <kbd>Ctrl</kbd>+<kbd>V</kbd> (<kbd>&#8984;</kbd>+<kbd>V</kbd> on a Mac) anywhere on this page to save it.</div>';
+  h+='<input class="searchin" id="mq" placeholder="Search by name…" value="'+esc(S.mat.q)+'" oninput="setMQ(this.value)" style="margin-top:.5rem">';
+  var chips=[['recent','Recent'],['week','This week']].concat(stdsInUse().map(function(s){ return ['std:'+s,s]; }))
+    .concat([['unsorted','No tags yet'],['starter','Starter ideas'],['prompts','Prompts']]);
+  h+='<div class="chips">'+chips.map(function(c){ return '<button class="rchip'+(S.mat.chip===c[0]?' on':'')+'" onclick="'+call('setChip',c[0])+'">'+esc(c[1])+'</button>'; }).join('')+'</div>';
+  h+='<div id="mlist">'+listHtml()+'</div>';
+  return h;
+}
+function setChip(c){ S.mat.chip=c; render(); }
+function setMQ(v){ S.mat.q=v; var l=$('mlist'); if(l) l.innerHTML=listHtml(); }
+function clearMQ(){ S.mat.q=''; render(); }
+
+/* ---- prompts: copy-only, no labels, standing caution ---- */
+function promptsHtml(){
+  return '<div class="card"><div class="mname">Make next week’s version of a probe</div>'+
+    '<div class="note">Copy this into your own AI tool. The app does not make problems.</div>'+
+    '<div class="caution">'+PROMPT_CAUTION+'</div>'+
+    '<div class="pbody">'+esc(NEXT_PROMPT)+'</div>'+
+    '<button class="btn small primary" onclick="toast(\'Copied (sketch). Remember: no names or initials in the AI tool.\')">Copy prompt</button></div>'+
+    '<div class="note">The other prompts stay the same as in the earlier Materials sketch.</div>';
+}
+
+/* ---- quick-save sheet: 1 required field ---- */
+var PASTES=['https://www.teacherspayteachers.com/Product/Two-Step-Equations-Color-by-Number-EXAMPLE',
+            'https://docs.google.com/document/d/EXAMPLE-fractions-review/edit',
+            'https://docs.google.com/presentation/d/EXAMPLE-unit2-intro/edit'];
+function openSave(url){
+  S.sv={ url:url||'', name:url?nameFromUrl(url):'', nameEdited:false, more:false, std:'', week:'', sup:[], block:[], level:'', src:'' };
+  S.sheet='save'; drawSave(); if(!sheetOpen()) openSheet();
+  setTimeout(function(){ var n=$('svName'), u=$('svUrl'); if(S.sv.url&&n){ n.focus(); n.select(); } else if(u) u.focus(); },260);
+}
+function drawSave(){
+  var v=S.sv, h=sheetHead();
+  h+='<div class="whowhat">Save to Materials</div>';
+  h+='<div style="margin:.6rem 0 .2rem"><div class="toggle2"><button class="on">Link</button><button disabled title="Not in the first version">File · coming later</button></div></div>';
+  h+='<div class="form"><label for="svUrl">Link</label><div class="inrow"><input class="tin" id="svUrl" value="'+esc(v.url)+'" placeholder="https://docs.google.com/…" oninput="svUrlIn(this.value)">'+
+     '<button class="btn small" onclick="svPaste()">&#128203; Paste</button></div>';
+  h+='<label for="svName">Name <span class="reqmark">*</span></label><input class="tin" id="svName" value="'+esc(v.name)+'" oninput="svNameIn(this.value)" onkeydown="if(event.key===\'Enter\')svSave()">';
+  h+='<div class="note">Filled in from the link. The app can’t see inside your Google Docs, so change the name to something you’ll recognize.</div>';
+  h+='<button class="moretoggle" onclick="S.sv.more=!S.sv.more;drawSave()">'+(v.more?'&#9662;':'&#9656;')+' More details (optional)</button>';
+  if(v.more){
+    h+='<div class="morebody"><div class="note">All optional. Skip them and find it later by name or Recent.</div>';
+    h+='<label>Standard</label><select class="tin" onchange="S.sv.std=this.value"><option value="">—</option>'+
+       STDS.map(function(s){ return '<option'+(v.std===s?' selected':'')+'>'+s+'</option>'; }).join('')+'</select>';
+    h+='<label>Week</label><select class="tin" onchange="S.sv.week=this.value"><option value="">—</option>'+
+       [5,6,7,8].map(function(w){ var s='Wk '+w; return '<option'+(v.week===s?' selected':'')+'>'+s+'</option>'; }).join('')+'</select>';
+    h+='<label>What kind of help</label><div class="chips">'+SUPPORTS.map(function(s){ return '<button class="fchip'+(v.sup.indexOf(s)>=0?' on':'')+'" onclick="'+call('svToggle','sup',s)+'">'+s+'</button>'; }).join('')+'</div>';
+    h+='<label>Part of the lesson</label><div class="chips">'+['I DO','WE DO','YOU DO'].map(function(s){ return '<button class="fchip'+(v.block.indexOf(s)>=0?' on':'')+'" onclick="'+call('svToggle','block',s)+'">'+s+'</button>'; }).join('')+'</div>';
+    h+='<label>How far below grade level</label><div class="chips">'+LEVELS.map(function(l){ return '<button class="fchip'+(v.level===l[0]?' on':'')+'" onclick="'+call('svLevel',l[0])+'">'+l[1]+'</button>'; }).join('')+'</div>';
+    h+='<label>Where it came from</label><div class="chips">'+SOURCES.map(function(s){ return '<button class="fchip'+(v.src===s?' on':'')+'" onclick="'+call('svSrc',s)+'">'+s+'</button>'; }).join('')+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  h+='<div class="btnrow"><button class="btn primary wide" id="svSaveBtn" onclick="svSave()" '+(svReady()?'':'disabled')+'>Save</button><button class="btn" onclick="closeSheet()">Cancel</button></div>';
+  $('sheet').innerHTML=h;
+}
+function svReady(){ return !!S.sv.url.trim() && !!S.sv.name.trim(); }
+function svUrlIn(val){ var v=S.sv; v.url=val; if(!v.nameEdited){ v.name=nameFromUrl(val); $('svName').value=v.name; } $('svSaveBtn').disabled=!svReady(); }
+function svNameIn(val){ S.sv.name=val; S.sv.nameEdited=true; $('svSaveBtn').disabled=!svReady(); }
+function svPaste(){
+  var u=PASTES[S.pasteN++ % PASTES.length]; S.sv.url=u; if(!S.sv.nameEdited) S.sv.name=nameFromUrl(u);
+  drawSave(); toast('Pasted from your clipboard (sketch: made-up link)');
+  setTimeout(function(){ var n=$('svName'); if(n){ n.focus(); n.select(); } },30);
+}
+function svToggle(key,val){ var a=S.sv[key], i=a.indexOf(val); if(i>=0) a.splice(i,1); else a.push(val); drawSave(); }
+function svLevel(k){ S.sv.level=S.sv.level===k?'':k; drawSave(); }
+function svSrc(s){ S.sv.src=S.sv.src===s?'':s; drawSave(); }
+function svSave(){
+  var v=S.sv; if(!svReady()){ toast('Add a link and a name.'); return; }
+  var top=MATS.reduce(function(a,m){ return Math.max(a,m.t); },0);
+  MATS.push({ id:'m'+(S.seq++), t:top+1, title:v.name.trim(), url:v.url.trim(), when:'today', stds:v.std?[v.std]:[], week:v.week,
+    sup:v.sup.slice(), block:v.block.slice(), level:v.level, src:v.src, starter:false });
+  S.mat.chip='recent'; S.mat.q='';
+  toast('Saved to Materials (sketch only, nothing is stored)'+(S.offline?' · syncs when online':''));
+  closeSheet(); render();
+}
+
+/* ---- row menu + details (band in words, only under More details) ---- */
+function openMatMenu(id){ S.md={id:id, more:false}; S.sheet='md'; drawMatMenu(); if(!sheetOpen()) openSheet(); }
+function drawMatMenu(){
+  var m=matById(S.md.id), h=sheetHead();
+  h+='<div class="whowhat">'+esc(m.title)+'</div><div class="ctx">'+kindOf(m.url)+' · saved '+esc(m.when)+'</div>';
+  if(m.starter) h+='<div class="caution">'+HONEST+'</div>';
+  h+='<div class="menulist" style="margin-top:.4rem">'+
+     '<button onclick="'+call('openLinkMat',m.id)+'">Open &#8599;</button>'+
+     '<button onclick="toast(\'Rename: type a new name (not in this sketch)\')">Rename</button>'+
+     '<button onclick="'+call('openMatAttach',m.id,'goal')+'">Attach to a student’s goal…</button>'+
+     '<button onclick="'+call('openMatAttach',m.id,'student')+'">Attach to a student…</button>'+
+     '<button onclick="toast(\'Hidden from Materials (sketch only). You can bring it back later.\');closeSheet()">Put away (hide)</button></div>';
+  h+='<button class="moretoggle" onclick="S.md.more=!S.md.more;drawMatMenu()">'+(S.md.more?'&#9662;':'&#9656;')+' More details</button>';
+  if(S.md.more){
+    var rows=[['Standard',m.stds.join(', ')],['Week',m.week],['What kind of help',m.sup.join(', ')],['Part of the lesson',m.block.join(', ')],
+      ['How far below grade level',levelWords(m.level)],['Where it came from',m.starter?'Starter idea, AI-written':m.src]].filter(function(r){ return r[1]; });
+    h+='<div class="morebody">'+(rows.length?rows.map(function(r){ return '<div class="kv"><span class="k">'+r[0]+'</span><span class="v">'+esc(r[1])+'</span></div>'; }).join(''):
+      '<div class="note">No details added. That’s fine; they’re optional.</div>')+
+      '<button class="btn small" style="margin-top:.5rem" onclick="toast(\'Add details: same optional fields as Save (not in this sketch)\')">Add details</button></div>';
+  }
+  $('sheet').innerHTML=h;
+}
+
+/* ---- attach a material to a goal or a student: accommodation/modification is asked HERE, explicitly ---- */
+function openMatAttach(id,mode){ S.ma={id:id, mode:mode, target:'', am:''}; S.sheet='ma'; drawMatAttach(); if(!sheetOpen()) openSheet(); }
+function drawMatAttach(){
+  var a=S.ma, m=matById(a.id), h=sheetHead(), onGrade=m.level==='on_grade';
+  h+='<div class="whowhat">'+(a.mode==='goal'?'Attach to a goal':'Attach to a student')+'</div><div class="ctx">“'+esc(m.title)+'”</div>';
+  h+='<div class="form"><label>'+(a.mode==='goal'?'Which goal?':'Which student?')+'</label><div class="ladder">';
+  if(a.mode==='goal'){
+    h+=GOALS.map(function(g){
+      return '<button class="lopt'+(a.target===g.id?' on':'')+'" onclick="'+call('maTarget',g.id)+'"><span class="rdot"></span>'+avatar(g.ini,true)+
+        '<span><span class="lt">'+esc(g.name)+'</span><span class="ld">'+g.ini+' · '+g.per+'</span></span></button>';
+    }).join('');
+  } else {
+    h+=STUDENTS.map(function(s){
+      return '<button class="lopt'+(a.target===s?' on':'')+'" onclick="'+call('maTarget',s)+'"><span class="rdot"></span>'+avatar(s,true)+
+        '<span><span class="lt">'+s+'</span></span></button>';
+    }).join('');
+  }
+  h+='</div>';
+  h+='<label>For this student, is it an accommodation or a modification? <span class="reqmark">*</span></label><div class="ladder">'+
+    '<button class="lopt'+(a.am==='accommodation'?' on':'')+'" onclick="maAm(\'accommodation\')"><span class="rdot"></span><span><span class="lt">Accommodation</span><span class="ld">'+ACC_DEF+'</span></span></button>'+
+    '<button class="lopt'+(a.am==='modification'?' on':'')+'" onclick="maAm(\'modification\')"><span class="rdot"></span><span><span class="lt">Modification</span><span class="ld">'+MOD_DEF+'</span></span></button>'+
+    (onGrade?'<button class="lopt'+(a.am==='none'?' on':'')+'" onclick="maAm(\'none\')"><span class="rdot"></span><span><span class="lt">None (grade-level, unchanged)</span><span class="ld">Plain grade-level material, nothing changed.</span></span></button>':'')+
+    '</div>';
+  if(a.am==='modification') h+='<div class="interlock">'+MOD_FLAG+'</div>';
+  h+='<div class="note">We only ask this when you attach something to a student or a goal. Saving to Materials never asks.</div></div>';
+  var ready=!!(a.target&&a.am);
+  h+='<div class="btnrow"><button class="btn primary wide" onclick="maSave()" '+(ready?'':'disabled')+'>Attach</button><button class="btn" onclick="'+call('openMatMenu',a.id)+'">Back</button></div>';
+  if(!ready) h+='<div class="note">Pick '+(a.target?'':(a.mode==='goal'?'a goal':'a student')+(a.am?'':' and '))+(a.am?'':'accommodation or modification')+' to attach.</div>';
+  $('sheet').innerHTML=h;
+}
+function maTarget(t){ S.ma.target=t; drawMatAttach(); }
+function maAm(v){ S.ma.am=v; drawMatAttach(); }
+function maSave(){
+  var a=S.ma, who=a.mode==='goal'?goal(a.target).ini+' · '+goal(a.target).name:a.target;
+  var how={accommodation:'an accommodation',modification:'a modification',none:'grade-level, unchanged'}[a.am];
+  toast('Attached to '+who+' as '+how+' (sketch only)'); closeSheet();
+}
+
+/* ---- starter ideas: read-only preview with the honesty line ---- */
+function starterHtml(){
+  var h='<div class="caution">'+HONEST+'</div>';
+  var groups={}; STARTER.forEach(function(s){ (groups[s.std]=groups[s.std]||[]).push(s); });
+  var q=S.mat.q.trim().toLowerCase();
+  Object.keys(groups).sort().forEach(function(std){
+    var items=groups[std].filter(function(s){ return !q || s.title.toLowerCase().indexOf(q)>=0; });
+    if(!items.length) return;
+    h+='<div class="sectlab">'+std+'</div>';
+    items.forEach(function(s){
+      h+='<div class="mrow"><div class="mm" onclick="'+call('openStarter',s.id)+'"><div class="mname">'+esc(s.title)+'</div>'+
+        '<div class="mmeta"><span class="starterflag">Starter idea, AI-written</span> '+esc(s.sup)+'</div></div>'+
+        '<button class="btn small" onclick="'+call('openStarter',s.id)+'">Preview</button></div>';
+    });
+  });
+  return h;
+}
+function starterById(id){ for(var i=0;i<STARTER.length;i++) if(STARTER[i].id===id) return STARTER[i]; return null; }
+function openStarter(id){ S.sp={id:id, more:false}; S.sheet='sp'; drawStarter(); if(!sheetOpen()) openSheet(); }
+function drawStarter(){
+  var s=starterById(S.sp.id), h=sheetHead();
+  h+='<div><span class="starterflag">Starter idea, AI-written · preview</span> <span class="stdchip">'+esc(s.std)+'</span></div>';
+  h+='<div class="whowhat" style="margin-top:.4rem">'+esc(s.title)+'</div>';
+  h+='<div class="caution">'+HONEST+'</div>';
+  h+='<div class="pbody" aria-readonly="true">'+esc(s.body)+'</div>';
+  h+='<button class="moretoggle" onclick="S.sp.more=!S.sp.more;drawStarter()">'+(S.sp.more?'&#9662;':'&#9656;')+' More details</button>';
+  if(S.sp.more) h+='<div class="morebody"><div class="kv"><span class="k">What kind of help</span><span class="v">'+esc(s.sup)+'</span></div>'+
+    '<div class="kv"><span class="k">How far below grade level</span><span class="v">'+esc(levelWords(s.level))+'</span></div></div>';
+  h+='<div class="btnrow"><button class="btn primary wide" onclick="'+call('addStarter',s.id)+'">Add to my Materials</button><button class="btn" onclick="closeSheet()">Close</button></div>';
+  $('sheet').innerHTML=h;
+}
+function addStarter(id){
+  var s=starterById(id), top=MATS.reduce(function(a,m){ return Math.max(a,m.t); },0);
+  MATS.push({ id:'m'+(S.seq++), t:top+1, title:s.title, url:'https://docs.google.com/document/d/EXAMPLE-starter-'+s.id+'/edit', when:'today',
+    stds:[s.std], week:'', sup:[s.sup], block:[], level:s.level, src:'', starter:true });
+  toast('Added to your Materials (sketch only). Check every problem before you use it.');
+  closeSheet(); render();
+}
+
+/* ================= Plan (out of scope here) ================= */
+function renderPlan(){
+  return '<h1>Plan</h1><div class="card">The weekly planner is in its own sketch. Nothing changes there in this round.</div>';
+}
+
+/* ================= laptop shortcuts ================= */
+document.addEventListener('paste', function(e){
+  if(S.dest!=='materials' || S.role!=='teacher' || sheetOpen()) return;
+  var t=e.target; if(t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA')) return;
+  var cd=e.clipboardData||window.clipboardData;
+  var txt=((cd && cd.getData('text'))||'').trim();
+  if(/^https?:\/\/\S+$/.test(txt)){ e.preventDefault(); openSave(txt); }
+  else toast('That wasn’t a link. Copy a link, then press Ctrl+V here.');
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && sheetOpen()){ if(S.sheet==='att') attCancel(); else closeSheet(); } });
+
+/* ================= boot ================= */
+paint();
+</script>
+</body>
+</html>
