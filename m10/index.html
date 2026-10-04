@@ -90,8 +90,8 @@
   .tabbar button.on { color:var(--accent); }
 
   @media (min-width:900px){
-    .app { display:grid; grid-template-columns:15rem 1fr; }
-    .main { display:flex; flex-direction:column; min-width:0; }
+    .app { display:grid; grid-template-columns:15rem 1fr; grid-template-rows:minmax(0,1fr); }
+    .main { display:flex; flex-direction:column; min-width:0; min-height:0; }
     .statusbar { display:none; }
     .tabbar { display:none; }
     .sidebar { display:flex; flex-direction:column; padding:.9rem .7rem; gap:.15rem;
@@ -344,7 +344,7 @@
   <div class="main">
     <!-- mobile status bar -->
     <div class="statusbar">
-      <span class="offline" id="offlineBadge">&#9925; offline &middot; syncs later</span>
+      <span class="offline" id="offlineBadge">&#9925; works without internet</span>
       <span class="grow"></span>
       <div class="roleseg" id="roleSeg">
         <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
@@ -356,7 +356,7 @@
     <div class="topbar">
       <span class="title" id="topTitle">Materials</span>
       <span class="topgrow"></span>
-      <span class="offline">&#9925; offline &middot; syncs later</span>
+      <span class="offline">&#9925; works without internet</span>
       <div class="roleseg">
         <button data-role="teacher" class="on" onclick="setRole('teacher')">Teacher</button>
         <button data-role="para" onclick="setRole('para')">Para (JT)</button>
@@ -398,34 +398,41 @@ function toggleTip(id){ var e=$(id); if(e) e.classList.toggle('open'); }
 function tellus(q){ return '<span class="tellus" onclick="askNiah(\''+q+'\')">✎ Tell us</span>'; }
 function askNiah(q){
   var m={
-    A:'Q-A — We named this section “Materials”. Tell us in a comment if you’d rather call it “Differentiate”, “My toolkit”, or “Supports”.',
-    C:'Q-C — This is the accommodation-vs-modification wording. It matches what your SED reviewer signed off. Tell us in a comment if any word doesn’t match how you’d say it.',
-    I:'Q-I — This is the one-time caution shown the first time you copy a prompt. Tell us in a comment if you’d word the warning differently.'
+    A:'We named this section “Materials”. Tell us in a comment if you’d rather call it “Differentiate”, “My toolkit”, or “Supports”.',
+    C:'This is how we explain accommodation vs. modification. Tell us in a comment if any word doesn’t match how you’d say it.',
+    I:'This warning shows the first time you copy a prompt. Tell us in a comment if you’d word it differently.'
   };
   toast(m[q]||'Tell us what you think in a comment.');
 }
 
 /* ================= reference enums / display maps ================= */
-var REACH={ on_grade:{lab:'on grade',lvl:1}, scaffolded:{lab:'grade-level scaffolded',lvl:2}, bridge:{lab:'foundational bridge',lvl:3}, access:{lab:'access — foundational',lvl:4} };
+/* Plain-words labels (2026-10 pass). Stored values (on_grade/scaffolded/bridge/access) unchanged. */
+var REACH={ on_grade:{lab:'on grade level',lvl:1}, scaffolded:{lab:'grade level + supports',lvl:2}, bridge:{lab:'a step below grade level',lvl:3}, access:{lab:'~3rd-grade level',lvl:4} };
 function reachPips(r){
   var lvl=(REACH[r]||REACH.on_grade).lvl, s='';
   for(var i=1;i<=4;i++) s+='<span class="pip'+(i<=lvl?' on':'')+'"></span>';
-  return '<span class="reachlab"><span class="pips" title="depth of scaffolding — more filled = further below grade level">'+s+'</span>Reach: '+(REACH[r]||REACH.on_grade).lab+'</span>';
+  return '<span class="reachlab"><span class="pips" title="More boxes filled = further below grade level">'+s+'</span>'+(REACH[r]||REACH.on_grade).lab+'</span>';
 }
 function accomBadge(a){ if(a==='accommodation') return '<span class="mbadge accom">Accommodation</span>'; if(a==='modification') return '<span class="mbadge mod">Modification</span>'; return ''; }
 function craAbbr(c){ return {concrete:'C',representational:'R',abstract:'A'}[c]||c; }
 function udlAbbr(u){ return {representation:'repr',action_expression:'action',engagement:'engage'}[u]||u; }
 /* LOCKED §12 display glosses */
 var CRA_GLOSS={concrete:'hands-on',representational:'picture',abstract:'numbers'};
-var UDL_GLOSS={representation:'ways to show it',action_expression:'ways to respond',engagement:'ways to stay engaged'};
+var UDL_GLOSS={representation:'ways to take it in (see, hear, touch)',action_expression:'ways to respond',engagement:'ways to stay engaged'};
 
 var STD_LIST=['8.NS.1','8.NS.2','8.EE.1','8.EE.2','8.EE.3','8.EE.4','8.EE.7','8.EE.8','8.F.1','8.F.4','8.G.7','8.G.9','8.SP.1'];
 var SUPPORT_LIST=['worked example','keyword','anchor/symbol','visual scaffold','reference tool','manipulative','practice set','CRA support','step chunked','modified assessment'];
+/* display-only names for support types; stored values above are unchanged */
+var SUPPORT_LABEL={'worked example':'worked example','keyword':'keyword card','anchor/symbol':'anchor / symbol chart','visual scaffold':'visual support',
+  'reference tool':'reference tool','manipulative':'manipulative','practice set':'practice set','CRA support':'hands-on → picture → numbers',
+  'step chunked':'broken into steps','modified assessment':'modified quiz / test / check'};
+function supLab(s){ return SUPPORT_LABEL[s]||s; }
 var BLOCK_LIST=['I DO','WE DO','YOU DO'];
 var CRA_LIST=['concrete','representational','abstract'];
 var UDL_LIST=['representation','action_expression','engagement'];
-var SOURCE_LIST=[['mine','my material'],['colleague','colleague'],['arc','ARC binder'],['purchased','purchased'],['imported_seed','imported starter']];
+var SOURCE_LIST=[['mine','made by me'],['colleague','from a colleague'],['arc','ARC binder'],['purchased','purchased'],['imported_seed','starter set']];
 function sourceLabel(s){ for(var i=0;i<SOURCE_LIST.length;i++) if(SOURCE_LIST[i][0]===s) return SOURCE_LIST[i][1]; return s; }
+function facetValLabel(key,val){ if(key==='cra') return CRA_GLOSS[val]||val; if(key==='udl') return UDL_GLOSS[val]||val; if(key==='support') return supLab(val); return val; }
 
 /* ================= synthetic data (initials only; tranche-1 exemplars) ================= */
 var SEQ=100;
@@ -474,7 +481,7 @@ var M = {
   ],
   goals:[
     {id:'g1', ini:'AB', period:'P2', name:'Two-step equations', crit:'80% × 4 probes',
-     supports:[{matId:'m1',accom_mod:'accommodation'},{matId:'m4',accom_mod:'modification'}]},
+     supports:[{matId:'m4',accom_mod:'modification'},{matId:'m1',accom_mod:'accommodation'}]},
     {id:'g2', ini:'CD', period:'P2', name:'Multiply fractions', crit:'80% × 4 probes',
      supports:[{matId:'m3',accom_mod:'accommodation'}]},
     {id:'g3', ini:'EF', period:'P4', name:'Rounding decimals', crit:'80% × 4 probes', supports:[]},
@@ -483,13 +490,13 @@ var M = {
 };
 
 var PROMPTS=[
-  {id:'p1', title:'Step-chunked worked example (I DO)', support:'step chunked',
+  {id:'p1', title:'Worked example broken into steps (I DO)', support:'step chunked',
    body:'Make a worked example for ___ (skill).\nBreak it into 3–4 numbered steps.\nFor each step, show the math and leave one ___ blank for the student to fill.\nKeep every number under ___.'},
   {id:'p2', title:'Smaller-number practice set', support:'practice set',
    body:'Make a ___-item practice set for ___.\nKeep all numbers under ___.\nPut ___ fully-worked example(s) at the top as a model.'},
-  {id:'p3', title:'Keyword / vocab support', support:'keyword',
+  {id:'p3', title:'Keyword / vocabulary card', support:'keyword',
    body:'List the ___ key math words a student needs for ___.\nFor each word, give a student-friendly meaning and a ___ picture cue.'},
-  {id:'p4', title:'CRA / manipulative script', support:'CRA support',
+  {id:'p4', title:'Hands-on → picture → numbers script', support:'CRA support',
    body:'Write a short teacher script that moves ___ from hands-on (___) to a picture to numbers.\nName the manipulative and the ___ steps.'},
   {id:'p5', title:'Anchor chart / cue card', support:'anchor/symbol',
    body:'Design an anchor chart for ___ with ___ steps, one worked example, and a ___ cue the student can copy.'}
@@ -586,14 +593,13 @@ function filtered(){
 function matCard(m){
   var meta=[];
   if(m.blocks.length) meta.push(m.blocks.join(' · '));
-  if(m.cra.length) meta.push('CRA: '+m.cra.map(craAbbr).join(' '));
-  if(m.udl.length) meta.push('UDL: '+m.udl.map(udlAbbr).join(' '));
+  if(m.cra.length) meta.push(m.cra.map(function(c){return CRA_GLOSS[c];}).join(' + '));
   return '<div class="card mcard" onclick="openMat(\''+m.id+'\')">'+
     '<div class="mtitle"><span>'+esc(m.title)+(m.retired?' <span class="tagchip" style="color:var(--nodata)">retired</span>':'')+'</span>'+
-      '<span class="mkind">'+(m.kind==='link'?'🔗 link':'¶ text')+'</span></div>'+
+      '<span class="mkind">'+(m.kind==='link'?'🔗 link':'📝 typed')+'</span></div>'+
     '<div style="margin:.35rem 0 .1rem">'+m.stds.map(function(s){return '<span class="stdchip">'+esc(s)+'</span>';}).join(' ')+'</div>'+
     '<div class="metaline">'+(accomBadge(m.accom_mod)||'')+reachPips(m.reach)+'</div>'+
-    '<div class="metaline">'+m.supports.map(function(s){return '<span class="tagchip">'+esc(s)+'</span>';}).join('')+'</div>'+
+    '<div class="metaline">'+m.supports.map(function(s){return '<span class="tagchip">'+esc(supLab(s))+'</span>';}).join('')+'</div>'+
     (meta.length?'<div class="note" style="margin-top:.4rem">'+esc(meta.join('   ·   '))+'</div>':'')+
     '</div>';
 }
@@ -606,17 +612,17 @@ function facetGroup(label,key,items,labels){
   return '<div class="facetgroup"><div class="facetlab">'+esc(label)+'</div><div class="fchips">'+chips+'</div></div>';
 }
 function facetBody(){
-  var reachLabels=['on grade','grade-level scaffolded','foundational bridge','access — foundational'];
+  var reachKeys=['on_grade','scaffolded','bridge','access'];
   return facetGroup('Standard','std',STD_LIST)+
-    facetGroup('Support','support',SUPPORT_LIST)+
-    facetGroup('Reach','reach',['on_grade','scaffolded','bridge','access'],reachLabels)+
-    facetGroup('Block','block',BLOCK_LIST)+
-    facetGroup('CRA','cra',CRA_LIST,CRA_LIST.map(function(c){return c+' ('+CRA_GLOSS[c]+')';}))+
-    facetGroup('UDL','udl',UDL_LIST,UDL_LIST.map(function(u){return udlAbbr(u);}))+
-    facetGroup('Accom / mod','accommod',['accommodation','modification'])+
+    facetGroup('Type of support','support',SUPPORT_LIST,SUPPORT_LIST.map(supLab))+
+    facetGroup('Where it starts (how far below grade level)','reach',reachKeys,reachKeys.map(function(k){return REACH[k].lab;}))+
+    facetGroup('Lesson part','block',BLOCK_LIST)+
+    facetGroup('Hands-on, picture, or numbers','cra',CRA_LIST,CRA_LIST.map(function(c){return CRA_GLOSS[c];}))+
+    facetGroup('Different ways in','udl',UDL_LIST,UDL_LIST.map(function(u){return UDL_GLOSS[u];}))+
+    facetGroup('Accommodation or modification','accommod',['accommodation','modification'])+
     '<label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:700;margin:.3rem 0 .2rem;cursor:pointer">'+
       '<input type="checkbox" '+(M.filters.retired?'checked':'')+' onchange="toggleRetired(this.checked)"> Show retired materials</label>'+
-    '<div class="note">Within a group = OR · across groups = AND.</div>';
+    '<div class="note">Tap more than one in a group to see more. Tap in different groups to narrow it down.</div>';
 }
 function toggleFacet(key,val){ var a=M.filters[key], i=a.indexOf(val); if(i>=0)a.splice(i,1); else a.push(val); render(); }
 function toggleRetired(v){ M.filters.retired=v; render(); }
@@ -629,7 +635,7 @@ function renderLibrary(){
   var res=filtered(), n=activeFilterCount();
   var h='<div class="backrow"><h1 style="margin:0">Library</h1>'+
         '<span style="margin-left:auto">'+tellus('A')+'</span></div>';
-  h+='<div class="sub">Your own materials — fully offline. '+tip('tipLib','Your library, filtering, gaps, attach and import are all local — they work with no network. The starter pack and prompts need one online fetch to cache, then work offline.')+'</div>';
+  h+='<div class="sub">Every support you’ve saved, in one place. Tap a standard (like 8.EE.7) to see what you have for it. '+tip('tipLib','This works even without internet. Anything you add is kept and sent when you’re back online.')+'</div>';
   h+='<div class="libwrap">';
   // desktop rail
   h+='<div class="filterrail"><div class="railcard"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">'+
@@ -637,7 +643,7 @@ function renderLibrary(){
      facetBody()+'</div></div>';
   // main column
   h+='<div class="libmain">';
-  h+='<div class="searchbar"><input class="searchin" placeholder="🔍 search title…" value="'+esc(M.search)+'" oninput="setSearch(this.value)">'+
+  h+='<div class="searchbar"><input class="searchin" placeholder="🔍 search by name…" value="'+esc(M.search)+'" oninput="setSearch(this.value)">'+
      '<button class="btn small libfilterbtn" onclick="openFilterSheet()">Filters'+(n?' · '+n:'')+'</button></div>';
   h+='<div class="note" id="libcount" style="margin:0 0 .6rem">'+libCountText(res)+'</div>';
   h+='<div class="cardgrid" id="cardgrid">'+(res.length?res.map(matCard).join(''):emptyLib())+'</div>';
@@ -648,7 +654,7 @@ function renderLibrary(){
 }
 function openFilterSheet(){
   var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
-  h+='<div class="whowhat">Filters</div><div class="ctx">Within a group = OR · across groups = AND.</div>';
+  h+='<div class="whowhat">Filters</div><div class="ctx">Tap more than one in a group to see more. Tap in different groups to narrow it down.</div>';
   h+=facetBody();
   h+='<div class="btnrow"><button class="btn wide" onclick="clearFilters();render();">Clear all</button>'+
      '<button class="btn primary wide" onclick="closeSheet()">Show '+filtered().length+'</button></div>';
@@ -664,19 +670,19 @@ function renderMatDetail(){
   var attachedGoals=goalsWithMat(m.id);
   var h='<div class="backrow"><button class="back" onclick="go(\'library\')">‹ Library</button></div>';
   h+='<div class="card">';
-  h+='<div class="mtitle"><span>'+esc(m.title)+'</span><span class="mkind">'+(m.kind==='link'?'🔗 link':'¶ text')+'</span></div>';
+  h+='<div class="mtitle"><span>'+esc(m.title)+'</span><span class="mkind">'+(m.kind==='link'?'🔗 link':'📝 typed')+'</span></div>';
   h+='<div class="metaline" style="margin-top:.5rem">'+(accomBadge(m.accom_mod)||'')+reachPips(m.reach)+'</div>';
   h+='<div class="kv" style="margin-top:.6rem"><span class="k">Standards</span><span class="v">'+m.stds.map(function(s){return '<span class="stdchip">'+esc(s)+'</span>';}).join(' ')+'</span></div>';
-  h+='<div class="kv"><span class="k">Support</span><span class="v">'+esc(m.supports.join(' · '))+'</span></div>';
-  h+='<div class="kv"><span class="k">Block</span><span class="v">'+esc(m.blocks.join(' · ')||'—')+'</span></div>';
-  h+='<div class="kv"><span class="k">CRA</span><span class="v">'+(m.cra.length?m.cra.map(function(c){return craAbbr(c)+' ('+CRA_GLOSS[c]+')';}).join(', '):'—')+'</span></div>';
-  h+='<div class="kv"><span class="k">UDL</span><span class="v">'+(m.udl.length?m.udl.map(function(u){return udlAbbr(u)+' ('+UDL_GLOSS[u]+')';}).join(', '):'—')+'</span></div>';
-  h+='<div class="kv"><span class="k">Source</span><span class="v">'+esc(sourceLabel(m.source))+'</span></div>';
-  if(m.myp.length) h+='<div class="kv"><span class="k">MYP criteria</span><span class="v">'+m.myp.join(' ')+' <span class="note" style="display:inline">(scores live in Toddle)</span></span></div>';
+  h+='<div class="kv"><span class="k">Type of support</span><span class="v">'+esc(m.supports.map(supLab).join(' · '))+'</span></div>';
+  h+='<div class="kv"><span class="k">Lesson part</span><span class="v">'+esc(m.blocks.join(' · ')||'—')+'</span></div>';
+  h+='<div class="kv"><span class="k">Hands-on, picture, or numbers</span><span class="v">'+(m.cra.length?m.cra.map(function(c){return CRA_GLOSS[c];}).join(', '):'—')+'</span></div>';
+  h+='<div class="kv"><span class="k">Different ways in</span><span class="v">'+(m.udl.length?m.udl.map(function(u){return UDL_GLOSS[u];}).join(', '):'—')+'</span></div>';
+  h+='<div class="kv"><span class="k">Where it came from</span><span class="v">'+esc(sourceLabel(m.source))+'</span></div>';
+  if(m.myp.length) h+='<div class="kv"><span class="k">MYP criteria</span><span class="v">'+m.myp.join(' ')+' <span class="note" style="display:inline">(scores go in Toddle)</span></span></div>';
   h+='</div>';
   // content
-  h+='<div class="card"><b style="font-size:.85rem">Content</b>';
-  if(m.kind==='link') h+='<div style="margin-top:.5rem"><button class="btn small" onclick="toast(\'Opening a link is handled by your browser — stored offline either way.\')">Open link ↗</button> <span class="note" style="display:inline">'+esc(m.label||m.url)+'</span></div>';
+  h+='<div class="card"><b style="font-size:.85rem">The material</b>';
+  if(m.kind==='link') h+='<div style="margin-top:.5rem"><button class="btn small" onclick="toast(\'In the real app, this opens the link in your browser.\')">Open link ↗</button> <span class="note" style="display:inline">'+esc(m.label||m.url)+'</span></div>';
   else h+='<div class="pbody open" style="margin-top:.5rem">'+esc(m.text)+'</div>';
   h+='</div>';
   // attached
@@ -688,11 +694,11 @@ function renderMatDetail(){
      '<button class="btn small wide" onclick="openAttachStudent(\''+m.id+'\')">Attach to a student</button></div>';
   h+='</div>';
   h+='<div class="btnrow"><button class="btn wide" onclick="openAdd(\''+m.id+'\')">Edit</button>'+
-     '<button class="btn wide danger" onclick="retireMat(\''+m.id+'\')">'+(m.retired?'Un-retire':'Retire')+'</button></div>';
-  h+='<div class="note">Retire is a soft hide — nothing is deleted; retired materials leave the goal-support lists.</div>';
+     '<button class="btn wide danger" onclick="retireMat(\''+m.id+'\')">'+(m.retired?'Bring back':'Retire')+'</button></div>';
+  h+='<div class="note">Retire just hides it. Nothing is deleted, and you can bring it back anytime. Retired materials no longer show on students’ goals.</div>';
   return h;
 }
-function retireMat(id){ var m=findMat(id); if(!m)return; m.retired=!m.retired; toast(m.retired?'Material retired':'Material restored'); render(); }
+function retireMat(id){ var m=findMat(id); if(!m)return; m.retired=!m.retired; toast(m.retired?'Material retired':'Material brought back'); render(); }
 
 /* ================= ADD / EDIT (§3.2–3.4) ================= */
 function freshAdd(){ return { id:null, title:'', kind:'link', url:'', label:'', text:'', stds:[], supports:[], reach:'', accom_mod:'', blocks:[], cra:[], udl:[], source:'mine', myp:[], fineOpen:false }; }
@@ -735,29 +741,30 @@ function renderAdd(){
   // title
   h+='<label>Title <span class="reqmark">*</span></label><input class="tin" value="'+esc(a.title)+'" placeholder="Perfect-squares chart" oninput="M.add.title=this.value;updateAddGate()">';
   // content
-  h+='<label>Content <span class="reqmark">*</span></label>';
-  h+='<div class="toggle2"><button class="'+(a.kind==='link'?'on':'')+'" onclick="addSet(\'kind\',\'link\')">Link</button><button class="'+(a.kind==='text'?'on':'')+'" onclick="addSet(\'kind\',\'text\')">Text</button></div>';
+  h+='<label>The material <span class="reqmark">*</span></label>';
+  h+='<div class="toggle2"><button class="'+(a.kind==='link'?'on':'')+'" onclick="addSet(\'kind\',\'link\')">Link</button><button class="'+(a.kind==='text'?'on':'')+'" onclick="addSet(\'kind\',\'text\')">Type it in</button></div>';
   if(a.kind==='link'){
     h+='<input class="tin" style="margin-top:.5rem" value="'+esc(a.url)+'" placeholder="https://…" oninput="M.add.url=this.value;updateAddGate()">';
-    h+='<input class="tin" style="margin-top:.4rem" value="'+esc(a.label)+'" placeholder="label (optional)" oninput="M.add.label=this.value">';
+    h+='<input class="tin" style="margin-top:.4rem" value="'+esc(a.label)+'" placeholder="short name for the link (optional)" oninput="M.add.label=this.value">';
   } else {
     h+='<textarea class="tin" style="margin-top:.5rem" placeholder="type or paste the material…" oninput="M.add.text=this.value;updateAddGate()">'+esc(a.text)+'</textarea>';
   }
-  h+='<div class="note">ℹ Scanning / PDF attachments coming later.</div>';
+  h+='<div class="note">ℹ Uploading scans and PDFs is coming later.</div>';
   // standards
   h+='<label>Standard(s) <span class="reqmark">*</span> <span style="text-transform:none;font-weight:600">(power standards first)</span></label>';
   h+='<div class="fchips">'+STD_LIST.map(function(s){return '<button class="fchip'+(a.stds.indexOf(s)>=0?' on':'')+'" onclick="addToggle(\'stds\',\''+s+'\')">'+s+'</button>';}).join('')+'</div>';
   // support
-  h+='<label>Support type(s) <span class="reqmark">*</span></label>';
-  h+='<div class="fchips">'+SUPPORT_LIST.map(function(s){return '<button class="fchip'+(a.supports.indexOf(s)>=0?' on':'')+'" onclick="addToggle(\'supports\',\''+s+'\')">'+esc(s)+'</button>';}).join('')+'</div>';
+  h+='<label>Type of support <span class="reqmark">*</span></label>';
+  h+='<div class="fchips">'+SUPPORT_LIST.map(function(s){return '<button class="fchip'+(a.supports.indexOf(s)>=0?' on':'')+'" onclick="addToggle(\'supports\',\''+s+'\')">'+esc(supLab(s))+'</button>';}).join('')+'</div>';
   // reach ladder
   h+='<div style="height:1px;background:var(--border);margin:.9rem 0 .2rem"></div>';
-  h+='<label>Reach &amp; posture (required)</label>';
-  h+='<div style="font-size:.72rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;margin:.3rem 0 .1rem">Access band <span class="reqmark">*</span></div>';
-  var reachOpts=[['on_grade','On grade','unadapted 8th-grade'],['scaffolded','Grade-level scaffolded','same skill, easier to access'],['bridge','Foundational bridge','a ramp skill'],['access','Access / foundational','~3rd-grade skill']];
+  h+='<label>Level and type (required)</label>';
+  h+='<div style="font-size:.72rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;margin:.3rem 0 .1rem">Where does it start? (how far below grade level) <span class="reqmark">*</span></div>';
+  var reachOpts=[['on_grade','On grade level','plain 8th-grade work, not changed'],['scaffolded','Grade level + supports','same 8th-grade skill, made easier to get into'],['bridge','A step below grade level','starts from an earlier building-block step and leads up to the 8th-grade skill'],['access','~3rd-grade level','starts at about a 3rd-grade level (reading, numbers, steps)']];
   h+='<div class="ladder">'+reachOpts.map(function(o){
     return '<button class="lopt'+(a.reach===o[0]?' on':'')+'" onclick="addSetReach(\''+o[0]+'\')"><span class="rdot"></span><span><span class="lt">'+o[1]+'</span><span class="ld">'+o[2]+'</span></span></button>';
   }).join('')+'</div>';
+  h+='<div class="note">This is where the material starts. Whether it changes the skill you grade is the Accommodation / Modification choice below.</div>';
   // accom/mod conscious choice (§3.3, §12 LOCKED wording)
   h+='<div style="display:flex;align-items:center;gap:.5rem;margin:.9rem 0 .1rem"><span style="font-size:.72rem;font-weight:800;color:var(--text-dim);text-transform:uppercase">This material is a… <span class="reqmark">*</span></span>'+tellus('C')+'</div>';
   var modLock=isModifiedAssessment();
@@ -768,24 +775,24 @@ function renderAdd(){
   h+='<button class="lopt'+(a.accom_mod==='none'?' on':'')+((noneDisabled||modLock)?' dis':'')+'" '+((noneDisabled||modLock)?'':'onclick="addSetAccom(\'none\')"')+'><span class="rdot"></span><span><span class="lt">Neither — plain grade-level material, nothing changed.</span></span></button>';
   h+='</div>';
   if(noneDisabled && !modLock) h+='<div class="interlock">You’ve adapted this material, so it’s not plain grade-level anymore — it’s either an accommodation or a modification. Pick one.</div>';
-  if(modLock) h+='<div class="interlock">A modified test is always a modification.</div>';
+  if(modLock) h+='<div class="interlock">A modified quiz, test, or check changes what\u2019s expected, so it\u2019s always a modification. Same test with read-aloud, extra time, or a calculator? Don\u2019t use this tag. Mark it as an Accommodation.</div>';
   h+='<div class="note">You’ll confirm this again for each goal you attach it to — the same material can be an accommodation for one goal and a modification for another.</div>';
   // MYP block (conditional) §3.4
   if(modLock){
     h+='<div class="mypblock"><div class="mh">MYP criteria this test covers <span class="reqmark">*</span></div>';
     h+='<div class="metaline" style="margin:.5rem 0">'+['A','B','C','D'].map(function(c){return '<button class="critchip'+(a.myp.indexOf(c)>=0?' on':'')+'" onclick="addToggle(\'myp\',\''+c+'\')">'+c+'</button>';}).join(' ')+'</div>';
     h+='<div class="note">(pick 1+; use the same criteria as the gen-ed test — you can drop one it doesn’t need, but never add one it doesn’t have)</div>';
-    h+='<div class="note" style="margin-top:.4rem">ℹ Scores still live in Toddle. This only tags which criteria the test assesses.</div>';
+    h+='<div class="note" style="margin-top:.4rem">ℹ Scores still go in Toddle. This just notes which criteria the test covers.</div>';
     h+='</div>';
   }
   // fine-tune (encouraged, not hidden)
   h+='<div style="height:1px;background:var(--border);margin:.9rem 0 .2rem"></div>';
-  h+='<button class="btn small ghost" style="padding-left:0" onclick="M.add.fineOpen=!M.add.fineOpen;render()">'+(a.fineOpen?'▾':'▸')+' Fine-tune (helps the gap finder)</button>';
+  h+='<button class="btn small ghost" style="padding-left:0" onclick="M.add.fineOpen=!M.add.fineOpen;render()">'+(a.fineOpen?'▾':'▸')+' More details (optional — makes the Gaps page more useful)</button>';
   if(a.fineOpen){
-    h+='<label>Lesson block</label><div class="fchips">'+BLOCK_LIST.map(function(b){return '<button class="fchip'+(a.blocks.indexOf(b)>=0?' on':'')+'" onclick="addToggle(\'blocks\',\''+b+'\')">'+b+'</button>';}).join('')+'</div>';
-    h+='<label>CRA stage</label><div class="fchips">'+CRA_LIST.map(function(c){return '<button class="fchip'+(a.cra.indexOf(c)>=0?' on':'')+'" onclick="addToggle(\'cra\',\''+c+'\')">'+c+' ('+CRA_GLOSS[c]+')</button>';}).join('')+'</div>';
-    h+='<label>UDL</label><div class="fchips">'+UDL_LIST.map(function(u){return '<button class="fchip'+(a.udl.indexOf(u)>=0?' on':'')+'" onclick="addToggle(\'udl\',\''+u+'\')">'+udlAbbr(u)+'</button>';}).join('')+'</div>';
-    h+='<label>Source</label><select class="tin" onchange="M.add.source=this.value">'+SOURCE_LIST.map(function(s){return '<option value="'+s[0]+'"'+(a.source===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('')+'</select>';
+    h+='<label>Lesson part</label><div class="fchips">'+BLOCK_LIST.map(function(b){return '<button class="fchip'+(a.blocks.indexOf(b)>=0?' on':'')+'" onclick="addToggle(\'blocks\',\''+b+'\')">'+b+'</button>';}).join('')+'</div>';
+    h+='<label>Hands-on, picture, or numbers?</label><div class="fchips">'+CRA_LIST.map(function(c){return '<button class="fchip'+(a.cra.indexOf(c)>=0?' on':'')+'" onclick="addToggle(\'cra\',\''+c+'\')">'+CRA_GLOSS[c]+'</button>';}).join('')+'</div>';
+    h+='<label>Different ways in</label><div class="fchips">'+UDL_LIST.map(function(u){return '<button class="fchip'+(a.udl.indexOf(u)>=0?' on':'')+'" onclick="addToggle(\'udl\',\''+u+'\')">'+UDL_GLOSS[u]+'</button>';}).join('')+'</div>';
+    h+='<label>Where it came from</label><select class="tin" onchange="M.add.source=this.value">'+SOURCE_LIST.map(function(s){return '<option value="'+s[0]+'"'+(a.source===s[0]?' selected':'')+'>'+s[1]+'</option>';}).join('')+'</select>';
   }
   h+='<button class="btn primary wide" id="saveMat" style="width:100%;margin-top:1rem" '+(addValid()?'':'disabled')+' onclick="saveMat()">'+(editing?'Save changes':'Save material')+'</button>';
   h+='</div>';
@@ -798,13 +805,13 @@ function saveMat(){
   if(a.id){ var m=findMat(a.id);
     ['title','kind','url','label','text','stds','supports','reach','accom_mod','blocks','cra','udl','source','myp'].forEach(function(k){ m[k]=a[k]; });
     if(!isModifiedAssessment()) m.myp=[];
-    toast('Saved — stored offline'); go('matDetail');
+    toast('Saved'); go('matDetail');
   } else {
     var id=mkid();
     M.library.push({ id:id, t:Date.now(), title:a.title, kind:a.kind, url:a.url, label:a.label, text:a.text,
       stds:a.stds.slice(), supports:a.supports.slice(), reach:a.reach, accom_mod:a.accom_mod, blocks:a.blocks.slice(),
       cra:a.cra.slice(), udl:a.udl.slice(), source:a.source, myp:isModifiedAssessment()?a.myp.slice():[], retired:false });
-    M.matId=id; toast('Added to your library — stored offline'); go('matDetail');
+    M.matId=id; toast('Added to your library'); go('matDetail');
   }
 }
 
@@ -834,7 +841,7 @@ function drawAttachGoal(){
   h+='<button class="rchip'+(at.accom_mod==='modification'?' on':'')+'" onclick="M.attach.accom_mod=\'modification\';drawAttachGoal()">Modification</button>';
   if(noneOk && !locked) h+='<button class="rchip'+(at.accom_mod==='none'?' on':'')+'" onclick="M.attach.accom_mod=\'none\';drawAttachGoal()">Neither</button>';
   h+='</div>';
-  if(locked) h+='<div class="interlock">A modified test is always a modification.</div>';
+  if(locked) h+='<div class="interlock">A modified quiz, test, or check changes what\u2019s expected, so it\u2019s always a modification. Same test with read-aloud, extra time, or a calculator? Don\u2019t use this tag. Mark it as an Accommodation.</div>';
   else h+='<div class="note">ℹ Pre-filled from the material — change it if it’s different for this goal.</div>';
   h+='<div class="btnrow"><button class="btn wide" onclick="closeSheet()">Cancel</button>'+
      '<button class="btn primary wide" '+(at.goalId&&at.accom_mod?'':'disabled')+' onclick="doAttachGoal()">Attach</button></div>';
@@ -852,7 +859,7 @@ function openAttachStudent(matId){
   var students=['AB','CD','EF','GH','JM','RT'];
   var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
   h+='<div class="whowhat">Attach to a student</div><div class="ctx">Material: '+esc(m.title)+'</div>';
-  h+='<div class="note">A student link carries no accom/mod — that’s set per goal only.</div>';
+  h+='<div class="note">Attaching to a student doesn’t mark it as an accommodation or modification. You only do that when you attach it to a goal.</div>';
   h+='<div class="metaline" style="margin:.6rem 0">'+students.map(function(s){return '<button class="rchip" style="display:inline-flex;align-items:center;gap:.4rem" onclick="toast(\'Attached to '+s+'\');closeSheet()">'+avatar(s,true)+s+'</button>';}).join('')+'</div>';
   h+='<div class="btnrow"><button class="btn wide" onclick="closeSheet()">Cancel</button></div>';
   $('sheet').innerHTML=h; openSheet();
@@ -866,9 +873,9 @@ function renderGoalDetail(){
   h+='<div style="display:flex;align-items:center;gap:.6rem;margin:.1rem 0 .4rem">'+avatar(g.ini)+
      '<div><h1 style="margin:0">'+esc(g.name)+'</h1><div class="sub" style="margin:.1rem 0 0">'+g.period+' · Criterion: '+esc(g.crit)+'</div></div></div>';
   // monitoring block (stub of the real TRACK Goal Detail)
-  h+='<div class="card"><b style="font-size:.9rem">Monitoring</b>'+
-     '<div class="note" style="margin-top:.3rem">Trend chart · consistency window · quarterly summary · ARC history live here (see the TRACK prototype). This screen shows how the differentiation supports attach below — separated from the data.</div>'+
-     '<div style="margin-top:.5rem;height:5rem;border:1px dashed var(--border-strong);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem">[ trend + honesty surfaces — unchanged from TRACK ]</div>'+
+  h+='<div class="card"><b style="font-size:.9rem">Progress</b>'+
+     '<div class="note" style="margin-top:.3rem">The progress graph and probe scores go here (you can see them in the goal-tracker preview). This page is about the supports listed below.</div>'+
+     '<div style="margin-top:.5rem;height:5rem;border:1px dashed var(--border-strong);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:.8rem">[ progress graph goes here ]</div>'+
      '</div>';
   // HARD DIVIDER then SDI supports (below the monitoring block, §12 placement)
   h+='<div class="harddiv"></div>';
@@ -876,15 +883,15 @@ function renderGoalDetail(){
   h+='<div class="sdifence">';
   h+='<div class="collapsehdr" onclick="M.sdiCollapsed=!M.sdiCollapsed;render()">'+
      '<span style="font-weight:800;font-size:1rem">SDI supports attached</span>'+
-     '<span class="roflag">read-only</span>'+
+     '<span class="roflag">planning only</span>'+
      '<span style="margin-left:auto;color:var(--text-dim);font-weight:800">'+(M.sdiCollapsed?'▸':'▾')+'</span></div>';
   if(!M.sdiCollapsed){
-    h+='<div class="sdicap">Planning references only — these don’t change the goal, the scores, or the graph.</div>';
+    h+='<div class="sdicap">For planning only — these don’t change the goal, the scores, or the graph.</div>';
     if(supports.length){
       h+=supports.map(function(s){ var m=findMat(s.matId); return '<button class="sdirow" onclick="openMat(\''+m.id+'\')"><span class="t">'+esc(m.title)+'</span>'+accomBadge(s.accom_mod)+'<span style="color:var(--text-dim)">›</span></button>'; }).join('');
     } else h+='<div class="note">No supports attached yet.</div>';
     h+='<button class="btn small wide" style="width:100%;margin-top:.4rem" onclick="openAttachGoal(null,\''+g.id+'\')">＋ Add a support</button>';
-    h+='<button class="btn small ghost wide" style="width:100%;margin-top:.4rem" onclick="openGapForGoal(\''+g.id+'\')">Check supports for this goal</button>';
+    h+='<button class="btn small ghost wide" style="width:100%;margin-top:.4rem" onclick="openGapForGoal(\''+g.id+'\')">See what’s missing for this goal</button>';
   }
   h+='</div>';
   return h;
@@ -904,7 +911,7 @@ function drawPickMaterial(){
   var mats=M.library.filter(function(m){return !m.retired;});
   var h='<div class="grip"></div><button class="iconbtn sheetx" onclick="closeSheet()">✕</button>';
   h+='<div class="whowhat">Add a support</div><div class="ctx">Goal: '+esc(g.ini)+' · '+esc(g.name)+'</div>';
-  h+='<div class="note">Pick a material — you’ll confirm the accom/mod for this goal next.</div>';
+  h+='<div class="note">Pick a material. Next, you’ll mark it as an accommodation or modification for this goal.</div>';
   h+='<div style="margin-top:.5rem">'+mats.map(function(m){
     return '<button class="sdirow" onclick="pickMaterialForGoal(\''+m.id+'\')"><span class="t">'+esc(m.title)+'</span>'+accomBadge(m.accom_mod)+'<span style="color:var(--text-dim)">›</span></button>';
   }).join('')+'</div>';
@@ -931,15 +938,15 @@ function computeGaps(std){
   var floor=['keyword','anchor/symbol','worked example','CRA support'];
   var floorHave=floor.filter(function(f){ return mats.some(function(m){return m.supports.indexOf(f)>=0;}); });
   var dims=[
-    { name:'Reaches ~3rd-grade access', covered:reachHave, gloss:null,
-      have: reachHave?['a foundational / access-level material']:[], missing: reachHave?[]:['a material that reaches down to ~3rd-grade access'], facet:{key:'reach',vals:['bridge','access']} },
-    { name:'CRA ladder — hands-on → picture → numbers', covered:(craHave.length>=3),
+    { name:'Something that starts below grade level (down to ~3rd grade)', covered:reachHave, gloss:null,
+      have: reachHave?['a below-grade-level material']:[], missing: reachHave?[]:['a below-grade-level material'], facet:{key:'reach',vals:['bridge','access']} },
+    { name:'Hands-on, picture, and numbers', covered:(craHave.length>=3),
       have:craHave.map(function(c){return CRA_GLOSS[c];}), missing:CRA_LIST.filter(function(c){return craHave.indexOf(c)<0;}).map(function(c){return {enum:c,gloss:CRA_GLOSS[c]};}), facet:{key:'cra'} },
     { name:'Key supports', covered:(floorHave.length===floor.length),
-      have:floorHave, missing:floor.filter(function(f){return floorHave.indexOf(f)<0;}).map(function(f){return {enum:f}; }), facet:{key:'support'} },
-    { name:'Ways to access (UDL)', covered:(udlHave.length>=3),
+      have:floorHave.map(supLab), missing:floor.filter(function(f){return floorHave.indexOf(f)<0;}).map(function(f){return {enum:f,gloss:supLab(f)}; }), facet:{key:'support'} },
+    { name:'Different ways in', covered:(udlHave.length>=3),
       have:udlHave.map(function(u){return UDL_GLOSS[u];}), missing:UDL_LIST.filter(function(u){return udlHave.indexOf(u)<0;}).map(function(u){return {enum:u,gloss:UDL_GLOSS[u]};}), facet:{key:'udl'} },
-    { name:'Lesson blocks (I/WE/YOU DO)', covered:(blockHave.length>=3),
+    { name:'I DO / WE DO / YOU DO', covered:(blockHave.length>=3),
       have:blockHave, missing:BLOCK_LIST.filter(function(b){return blockHave.indexOf(b)<0;}).map(function(b){return {enum:b}; }), facet:{key:'block'} }
   ];
   return dims;
@@ -948,37 +955,36 @@ function renderGaps(){
   var std=gapStandard(), dims=computeGaps(std);
   var coveredN=dims.filter(function(d){return d.covered;}).length;
   var h='<div class="backrow"><h1 style="margin:0">Gaps</h1></div>';
-  h+='<div class="sub">The app reveals the gap; you fill it. No titles, no ranking, no generated content.</div>';
+  h+='<div class="sub">Pick a standard or a student’s goal. You’ll see which supports you already have and which are missing. You decide what to add.</div>';
   // target picker
-  h+='<div class="card"><div class="metaline"><span style="font-weight:800;font-size:.85rem">Gaps for:</span>';
+  h+='<div class="card"><div class="metaline"><span style="font-weight:800;font-size:.85rem">Show gaps for:</span>';
   h+='<select class="tin" style="width:auto;flex:1" onchange="setGapTarget(this.value)">';
-  h+='<optgroup label="Standard">'+STD_LIST.map(function(s){return '<option value="std:'+s+'"'+(M.gapTarget.kind==='standard'&&M.gapTarget.id===s?' selected':'')+'>'+s+'</option>';}).join('')+'</optgroup>';
-  h+='<optgroup label="Goal">'+M.goals.map(function(g){return '<option value="goal:'+g.id+'"'+(M.gapTarget.kind==='goal'&&M.gapTarget.id===g.id?' selected':'')+'>'+g.ini+' · '+g.name+'</option>';}).join('')+'</optgroup>';
+  h+='<optgroup label="Standards">'+STD_LIST.map(function(s){return '<option value="std:'+s+'"'+(M.gapTarget.kind==='standard'&&M.gapTarget.id===s?' selected':'')+'>'+s+'</option>';}).join('')+'</optgroup>';
+  h+='<optgroup label="Student goals">'+M.goals.map(function(g){return '<option value="goal:'+g.id+'"'+(M.gapTarget.kind==='goal'&&M.gapTarget.id===g.id?' selected':'')+'>'+g.ini+' · '+g.name+'</option>';}).join('')+'</optgroup>';
   h+='</select></div>';
   h+='<div class="gapsum">Supports in place: '+coveredN+' of 5 areas</div>';
-  if(M.gapTarget.kind==='goal') h+='<div class="note">Reading standard '+std+' (from the goal’s attached supports).</div>';
+  if(M.gapTarget.kind==='goal') h+='<div class="note">Checking standard '+std+' (the standard on the supports already attached to this goal).</div>';
   h+='</div>';
   dims.forEach(function(d,i){
     h+='<div class="dim"><div class="dimhd"><span style="color:var(--text-dim);font-weight:800">'+(i+1)+'</span><span class="dn">'+esc(d.name)+'</span>'+
-       (d.covered?'<span class="cov">✓ covered</span>':'<span class="gapmark">gap</span>')+'</div>';
+       (d.covered?'<span class="cov">✓ have it</span>':'<span class="gapmark">missing</span>')+'</div>';
     if(!d.covered){
-      var haveTxt=d.have.length?d.have.join(', '):'none yet';
+      var haveTxt=d.have.length?d.have.join(', '):'nothing yet';
       var missTxt=d.missing.map(function(x){ if(typeof x==='string')return x; return x.gloss?(x.gloss):(x.enum); }).join(', ');
-      h+='<div class="havemiss">have: <b>'+esc(haveTxt)+'</b> · missing: <b>'+esc(missTxt)+'</b></div>';
+      h+='<div class="havemiss">You have: <b>'+esc(haveTxt)+'</b> · Missing: <b>'+esc(missTxt)+'</b></div>';
       h+='<div>'+d.missing.map(function(x){
         var val = (typeof x==='string')?null:x.enum;
         var lab = (typeof x==='string')?x:(x.gloss||x.enum);
-        return '<button class="findbtn" onclick="findOrAdd(\''+std+'\',\''+d.facet.key+'\',\''+(val||'')+'\')">find or add: '+esc(lab)+'</button>';
+        return '<button class="findbtn" onclick="findOrAdd(\''+std+'\',\''+d.facet.key+'\',\''+(val||'')+'\')">Find or add: '+esc(lab)+'</button>';
       }).join('')+'</div>';
-      if(d.facet.key==='support'||d.name.indexOf('CRA')>=0){
-        h+='<div><button class="promptbtn" onclick="go(\'prompts\');toast(\'Prompts — copy one to make this support.\')">copy a prompt to make one</button></div>';
+      if(d.facet.key==='support'||d.facet.key==='cra'){
+        h+='<div><button class="promptbtn" onclick="go(\'prompts\');toast(\'Copy a prompt to help you make this support.\')">Get an AI prompt to help make one</button></div>';
       }
     } else {
-      h+='<div class="havemiss">have: <b>'+esc((d.have.length?d.have.join(', '):'✓')) +'</b></div>';
+      h+='<div class="havemiss">You have: <b>'+esc((d.have.length?d.have.join(', '):'✓')) +'</b></div>';
     }
     h+='</div>';
   });
-  h+='<div class="note">A ~3rd-grade access material is Niah’s #1 need, so it’s listed first.</div>';
   return h;
 }
 function setGapTarget(v){ var p=v.split(':'); M.gapTarget={kind:p[0]==='std'?'standard':'goal', id:p[1]}; render(); }
@@ -987,7 +993,7 @@ function findOrAdd(std,key,val){
   M.filters.std=[std];
   if(key==='reach'){ M.filters.reach=['bridge','access']; }
   else if(val && M.filters[key]!==undefined){ M.filters[key]=[val]; }
-  go('library'); toast('Library filtered to '+std+(val?(' · '+val):'')+' — find one or add a new material.');
+  go('library'); toast('Showing '+std+(key==='reach'?' · below grade level':(val?(' · '+facetValLabel(key,val)):''))+'. Pick one, or add a new material.');
 }
 
 /* ================= PROMPTS (§6) ================= */
@@ -997,14 +1003,14 @@ function renderPrompts(){
      '<span class="small">You paste these into your OWN AI tool. The app never runs them.</span></div>';
   PROMPTS.forEach(function(p){
     h+='<div class="pcard"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">'+
-       '<b style="font-size:.95rem">'+esc(p.title)+'</b><span class="tagchip">'+esc(p.support)+'</span></div>';
+       '<b style="font-size:.95rem">'+esc(p.title)+'</b><span class="tagchip">'+esc(supLab(p.support))+'</span></div>';
     h+='<button class="btn small ghost" style="padding-left:0;margin-top:.3rem" onclick="togglePrompt(\''+p.id+'\')">▸ show prompt</button>';
     h+='<div class="pbody" id="pb_'+p.id+'">'+esc(p.body)+'</div>';
     h+='<div class="cautionrow">⚠ AI can be wrong — check every step.</div>';
     h+='<div class="btnrow"><button class="btn small primary" onclick="copyPrompt(\''+p.id+'\')">Copy</button></div>';
     h+='</div>';
   });
-  h+='<div class="note">Copy only — no Run, Send, or Generate. The ___ blanks copy through so you fill them in your own tool. Cached seed content: works offline, zero egress.</div>';
+  h+='<div class="note">The app only copies the prompt. Fill in the ___ blanks in your own AI tool before you send it.</div>';
   return h;
 }
 function togglePrompt(id){ var e=$('pb_'+id); if(e){ e.classList.toggle('open'); var b=e.previousElementSibling; if(b) b.innerHTML=(e.classList.contains('open')?'▾ hide prompt':'▸ show prompt'); } }
@@ -1030,19 +1036,18 @@ function doCopy(id){
 /* ================= STARTER PACK (§7) ================= */
 function renderStarter(){
   var h='<div class="backrow"><h1 style="margin:0">Starter pack</h1></div>';
-  h+='<div class="banner info">⛅ offline: cached · one online fetch loads the pack, then it works offline.</div>';
-  h+='<div class="sub">Ready-made, teacher-vetted. Add any to your library, then edit your copy freely.</div>';
+  h+='<div class="sub">Ready-made, teacher-checked supports for the power standards. Add any to your library, then change your copy however you like.</div>';
   Object.keys(STARTER).forEach(function(std){
     var open=M.starterOpen[std];
     h+='<div class="card">';
     h+='<div class="shead" onclick="M.starterOpen[\''+std+'\']=!M.starterOpen[\''+std+'\'];render()">'+
-       '<span style="color:var(--text-dim);font-weight:800">'+(open?'▾':'▸')+'</span><span class="stdchip">'+std+'</span><span class="sc" style="font-weight:600;color:var(--text-dim);font-size:.82rem">'+STARTER[std].length+' exemplars</span></div>';
+       '<span style="color:var(--text-dim);font-weight:800">'+(open?'▾':'▸')+'</span><span class="stdchip">'+std+'</span><span class="sc" style="font-weight:600;color:var(--text-dim);font-size:.82rem">'+STARTER[std].length+' supports</span></div>';
     if(open){
       STARTER[std].forEach(function(seed,i){
         h+='<div class="card" style="margin:.5rem 0 0;background:var(--surface-2)">'+
            '<div class="mtitle" style="font-size:.95rem"><span>'+esc(seed.title)+'</span><span class="starterflag">Starter</span></div>'+
            '<div class="metaline" style="margin-top:.4rem"><span class="mbadge accom">Accommodation</span>'+reachPips(seed.reach)+'</div>'+
-           '<div class="metaline">'+seed.supports.map(function(s){return '<span class="tagchip">'+esc(s)+'</span>';}).join('')+'</div>'+
+           '<div class="metaline">'+seed.supports.map(function(s){return '<span class="tagchip">'+esc(supLab(s))+'</span>';}).join('')+'</div>'+
            '<div class="btnrow"><button class="btn small primary wide" onclick="importSeed(\''+std+'\','+i+')">Add to library</button></div>'+
            '</div>';
       });
@@ -1050,36 +1055,36 @@ function renderStarter(){
     }
     h+='</div>';
   });
-  h+='<div class="note">Import copies the seed into YOUR library (you can edit it freely). Import-time posture is pre-filled to Accommodation — you can change it on your copy; the conscious-choice rule still applies if you edit.</div>';
+  h+='<div class="note">Adding one puts your own copy in your library. It comes with a suggested label (Accommodation or Modification). Check it on your copy.</div>';
   return h;
 }
 function importSeed(std,i){
   var seed=STARTER[std][i], id=mkid();
-  M.library.push({ id:id, t:Date.now(), title:seed.title, kind:'text', url:'', label:'', text:'(imported starter — edit your copy)',
-    stds:[std], supports:seed.supports.slice(), reach:seed.reach, accom_mod:'accommodation', blocks:[], cra:[], udl:[], source:'imported_seed', myp:[], retired:false });
+  M.library.push({ id:id, t:Date.now(), title:seed.title, kind:'text', url:'', label:'', text:'(from the starter set — edit your copy)',
+    stds:[std], supports:seed.supports.slice(), reach:seed.reach, accom_mod:(seed.supports.indexOf('modified assessment')>=0?'modification':'accommodation'), blocks:[], cra:[], udl:[], source:'imported_seed', myp:[], retired:false });
   toast('Added to your library — edit anytime.');
   render();
 }
 function importAll(std){
   STARTER[std].forEach(function(seed){ var id=mkid();
-    M.library.push({ id:id, t:Date.now(), title:seed.title, kind:'text', url:'', label:'', text:'(imported starter — edit your copy)',
-      stds:[std], supports:seed.supports.slice(), reach:seed.reach, accom_mod:'accommodation', blocks:[], cra:[], udl:[], source:'imported_seed', myp:[], retired:false }); });
+    M.library.push({ id:id, t:Date.now(), title:seed.title, kind:'text', url:'', label:'', text:'(from the starter set — edit your copy)',
+      stds:[std], supports:seed.supports.slice(), reach:seed.reach, accom_mod:(seed.supports.indexOf('modified assessment')>=0?'modification':'accommodation'), blocks:[], cra:[], udl:[], source:'imported_seed', myp:[], retired:false }); });
   toast('Added '+STARTER[std].length+' to your library — edit anytime.'); render();
 }
 
 /* ================= TRACK / PLAN stubs + Para block ================= */
 function renderTrack(){
-  var h='<h1>Track</h1><div class="sub">Weekly monitoring lives in the TRACK prototype. Shown here so you can reach a Goal Detail and see how differentiation supports attach.</div>';
+  var h='<h1>Track</h1><div class="sub">Progress tracking is in the goal-tracker preview. Here, tap a student’s goal to see the supports attached to it.</div>';
   h+=M.goals.map(function(g){
     return '<button class="sdirow" onclick="openGoalDetail(\''+g.id+'\')">'+avatar(g.ini,true)+'<span class="t" style="margin-left:.3rem">'+esc(g.name)+'</span>'+
       '<span class="note" style="display:inline;margin:0">'+g.period+' · '+g.supports.length+' support'+(g.supports.length===1?'':'s')+'</span><span style="color:var(--text-dim);margin-left:.4rem">›</span></button>';
   }).join('');
   return h;
 }
-function renderPlan(){ return '<h1>Plan</h1><div class="sub">Weekly planning lives in the TRACK/PLAN prototype (prototype-p0). This prototype focuses on Materials.</div><div class="card"><div class="note">Open the goal-tracker prototype to see Plan.</div></div>'; }
+function renderPlan(){ return '<h1>Plan</h1><div class="sub">Weekly planning is in the goal-tracker preview. This preview is just about Materials.</div>'; }
 function renderParaBlock(){
   return '<div class="empty"><div style="font-size:2rem">🔒</div><h1 style="margin:.4rem 0">Teacher-only</h1>'+
-    '<div class="sub">Materials (differentiation) is only for the teacher. In the Para role this whole section — the nav and every screen — is hidden. Switch back to Teacher to use it.</div></div>';
+    '<div class="sub">Materials is for you only. When your para is using the app, this whole section is hidden. Switch back to Teacher to use it.</div></div>';
 }
 
 /* ================= sheet ================= */
