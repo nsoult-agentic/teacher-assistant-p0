@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teacher Assistant — Setting up your devices (sketch)</title>
+<style>
+  /* ===== tokens: copied verbatim from prototype-p0.html / prototype-probes.html — do not diverge ===== */
+  :root {
+    --bg:#e9edf3; --surface:#ffffff; --surface-2:#f4f6f9; --text:#1a1f2b; --text-dim:#586074;
+    --border:#d7dce6; --border-strong:#c2cad8;
+    --accent:#2563d9; --accent-ink:#ffffff; --accent-soft:#e8f0ff;
+    --owes:#b56a00; --owes-bg:#fff4e0; --owes-line:#e7a63a;
+    --logged:#137a41; --logged-bg:#e6f5ec;
+    --nodata:#5f6675; --nodata-bg:#eceef2;
+    --mastery:#8a6300; --mastery-bg:#fbf1d4;
+    --pending:#6a35c9; --pending-bg:#efe7fb;
+    --danger:#b5271b;
+    --shadow:0 6px 24px rgba(24,33,52,.14);
+    --radius:16px;
+    --s-ab:#0f766e; --s-cd:#4338ca; --s-ef:#0369a1; --s-gh:#6d28d9; --s-jm:#a21caf; --s-rt:#0e7490;
+  }
+  :root[data-theme="dark"] {
+    --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+    --border:#2c3a52; --border-strong:#3a4a66;
+    --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+    --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+    --logged:#54d38c; --logged-bg:#123726;
+    --nodata:#9aa7bd; --nodata-bg:#232c3b;
+    --mastery:#f4d271; --mastery-bg:#3a3111;
+    --pending:#bda2f7; --pending-bg:#2a1f45;
+    --danger:#ff8072;
+    --shadow:0 6px 26px rgba(0,0,0,.45);
+    --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0e1320; --surface:#182234; --surface-2:#1f2b40; --text:#e9eef6; --text-dim:#9aa7bd;
+      --border:#2c3a52; --border-strong:#3a4a66;
+      --accent:#5f9dff; --accent-ink:#0a1120; --accent-soft:#1b2740;
+      --owes:#f0b552; --owes-bg:#3a2c12; --owes-line:#f0b552;
+      --logged:#54d38c; --logged-bg:#123726;
+      --nodata:#9aa7bd; --nodata-bg:#232c3b;
+      --mastery:#f4d271; --mastery-bg:#3a3111;
+      --pending:#bda2f7; --pending-bg:#2a1f45;
+      --danger:#ff8072;
+      --shadow:0 6px 26px rgba(0,0,0,.45);
+      --s-ab:#2dd4bf; --s-cd:#818cf8; --s-ef:#38bdf8; --s-gh:#a78bfa; --s-jm:#e879f9; --s-rt:#22d3ee;
+    }
+  }
+
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; font-size:16px; line-height:1.4;
+    display:flex; flex-direction:column; height:100dvh; overflow:hidden; }
+  .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace; }
+
+  /* ===== sketch banner + control bar (outside the app) ===== */
+  .skbanner { flex:none; background:var(--pending); color:#fff; font-weight:800; font-size:.82rem; text-align:center; padding:.45rem .8rem; }
+  :root[data-theme="dark"] .skbanner { color:#120a24; }
+  .ctlbar { flex:none; display:flex; align-items:center; flex-wrap:wrap; gap:.5rem .7rem; padding:.55rem .9rem;
+    background:var(--surface); border-bottom:1px solid var(--border); font-size:.84rem; }
+  .ctlbar .grow { flex:1; }
+  .ctllab { font-weight:800; }
+  .ctlnote { color:var(--text-dim); font-size:.78rem; }
+
+  /* ===== responsive shell (from m10/probes): <900 = stacked; >=900 = sidebar ===== */
+  .app { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
+  .main { display:flex; flex-direction:column; flex:1; min-height:0; }
+  .sidebar { display:none; }
+  .screen { flex:1; overflow-y:auto; overflow-x:hidden; padding:.9rem .9rem 1.4rem; position:relative; min-height:0; }
+  .flowchips { flex:none; display:flex; gap:.4rem; overflow-x:auto; padding:.55rem .9rem; background:var(--surface); border-bottom:1px solid var(--border); }
+  .flowchips button { flex:none; border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text-dim);
+    border-radius:999px; padding:.35rem .7rem; font:inherit; font-size:.8rem; font-weight:800; cursor:pointer; white-space:nowrap; }
+  .flowchips button.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+
+  @media (min-width:900px){
+    .app { display:grid; grid-template-columns:15rem 1fr; grid-template-rows:minmax(0,1fr); }
+    .main { display:flex; flex-direction:column; min-width:0; min-height:0; }
+    .flowchips { display:none; }
+    .sidebar { display:flex; flex-direction:column; padding:.9rem .7rem; gap:.15rem;
+      background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; }
+    .screen { padding:1.1rem 1.3rem 2rem; }
+    .screen::-webkit-scrollbar { width:10px; }
+    .screen::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:6px; }
+    .pagewrap { max-width:1150px; margin:0 auto; }
+  }
+  .brand { font-weight:900; font-size:.95rem; padding:.3rem .5rem .8rem; }
+  .brand small { display:block; font-weight:700; font-size:.66rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:.15rem; }
+  .navitem { display:flex; align-items:flex-start; gap:.55rem; border:0; background:transparent; color:var(--text-dim);
+    font-family:inherit; font-size:.88rem; font-weight:700; text-align:left; width:100%; padding:.55rem .6rem; border-radius:10px; cursor:pointer; }
+  .navitem:hover { background:var(--surface-2); }
+  .navitem .ic { flex:none; width:1.4rem; height:1.4rem; border-radius:50%; background:var(--surface-2); border:1px solid var(--border);
+    display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:900; }
+  .navitem.on { color:var(--accent); background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .navitem.on .ic { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .sidefoot { margin-top:auto; font-size:.68rem; color:var(--text-dim); padding:.5rem; }
+  .sketchnote { font-size:.68rem; color:var(--pending); background:var(--pending-bg); border-radius:8px; padding:.4rem .5rem; margin:.5rem .3rem 0; }
+
+  /* ===== shared components (from p0/probes) ===== */
+  h1 { font-size:1.25rem; margin:.1rem 0; }
+  .sub { color:var(--text-dim); font-size:.86rem; margin:.15rem 0 .8rem; }
+  .backrow { display:flex; align-items:center; gap:.4rem; margin-bottom:.4rem; }
+  .back { border:0; background:transparent; color:var(--accent); font-weight:700; font-size:.9rem; cursor:pointer; padding:.2rem 0; font-family:inherit; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:.85rem; margin-bottom:.7rem; }
+  button.btn { border-radius:13px; padding:.8rem 1rem; font-size:.92rem; font-weight:800; cursor:pointer;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border); font-family:inherit; }
+  button.btn.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  button.btn.wide { flex:1; }
+  button.btn.small { padding:.5rem .7rem; font-size:.82rem; border-radius:10px; }
+  button.btn.ghost { background:transparent; }
+  button.btn.block { display:block; width:100%; margin-top:.6rem; text-align:center; }
+  button.btn.dangerbtn { color:var(--danger); border-color:var(--danger); background:transparent; }
+  button.btn.dangerfill { background:var(--danger); color:#fff; border-color:var(--danger); }
+  :root[data-theme="dark"] button.btn.dangerfill { color:#1a0805; }
+  button.btn:disabled { opacity:.5; cursor:not-allowed; }
+  .bsub { display:block; font-size:.74rem; font-weight:600; opacity:.8; margin-top:.15rem; }
+  .btnrow { display:flex; gap:.6rem; margin-top:.7rem; }
+  .note { font-size:.8rem; color:var(--text-dim); margin-top:.35rem; }
+  .banner { border-radius:12px; padding:.6rem .7rem; margin:.5rem 0; font-size:.86rem; }
+  .banner.info { background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); }
+  .caution { background:var(--owes-bg); border:1px solid var(--owes-line); color:var(--owes); border-radius:12px;
+    padding:.6rem .7rem; font-size:.86rem; font-weight:700; margin:.6rem 0; }
+  .iconbtn { border:1px solid var(--border); background:var(--surface-2); color:var(--text);
+    border-radius:10px; padding:.3rem .55rem; font-size:.82rem; font-weight:700; cursor:pointer; font-family:inherit; }
+  .offline { display:inline-flex; align-items:center; gap:.35rem; font-weight:700; color:var(--owes);
+    background:var(--owes-bg); padding:.2rem .55rem; border-radius:999px; font-size:.74rem; border:0; cursor:pointer; font-family:inherit; }
+  .offline.now { color:var(--accent-ink); background:var(--owes); }
+  .okpill { display:inline-flex; align-items:center; gap:.3rem; font-weight:700; color:var(--logged); background:var(--logged-bg);
+    padding:.2rem .55rem; border-radius:999px; font-size:.74rem; }
+  .toggle2 { display:inline-flex; border:1.5px solid var(--border-strong); border-radius:11px; overflow:hidden; }
+  .toggle2 button { border:0; background:var(--surface-2); color:var(--text-dim); font-weight:800; font-size:.86rem; padding:.4rem .8rem; cursor:pointer; font-family:inherit; }
+  .toggle2 button.on { background:var(--accent); color:var(--accent-ink); }
+  .form label { display:block; font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.03em; color:var(--text-dim); margin:.75rem 0 .25rem; }
+  .form input.tin, .form select.tin, .form textarea.tin { width:100%; border:1px solid var(--border-strong); border-radius:10px;
+    background:var(--surface); color:var(--text); font-size:1rem; padding:.65rem .7rem; font-family:inherit; }
+  .inrow { display:flex; gap:.5rem; align-items:center; }
+  .inrow input { flex:1; min-width:0; }
+  .sectlab { font-size:.72rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); margin:1rem 0 .45rem; }
+  .tagchip { font-size:.7rem; font-weight:700; color:var(--text-dim); background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:.1rem .5rem; }
+  .rchip { border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:999px; padding:.45rem .8rem; font-size:.84rem; font-weight:700; cursor:pointer; font-family:inherit; }
+  .rchip.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin:.5rem 0; }
+  .textbtn { border:0; background:none; color:var(--accent); font-weight:700; cursor:pointer; font-size:.88rem; padding:.4rem 0; font-family:inherit; display:block; }
+  .av { flex:none; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:.8rem; width:2.1rem; height:2.1rem; border-radius:50%; color:#fff; }
+  .av.ab{background:var(--s-ab);} .av.cd{background:var(--s-cd);} .av.ef{background:var(--s-ef);}
+  .av.gh{background:var(--s-gh);} .av.jm{background:var(--s-jm);}
+  .toast { position:fixed; left:50%; bottom:1.5rem; transform:translateX(-50%) translateY(1rem); z-index:60;
+    background:var(--text); color:var(--bg); padding:.6rem .9rem; border-radius:10px; font-size:.85rem; font-weight:700;
+    opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; max-width:88%; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ===== NEW: flow header, stage, device frames ===== */
+  .flowhead { display:flex; align-items:flex-start; justify-content:space-between; gap:.8rem; flex-wrap:wrap; }
+  .fhr { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+  .tapc { font-size:.76rem; font-weight:800; color:var(--text-dim); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:.25rem .6rem; }
+  .devtog { display:flex; align-items:center; gap:.5rem; margin:.2rem 0 .8rem; flex-wrap:wrap; font-size:.84rem; }
+  .devtog .dtl { font-weight:800; color:var(--text-dim); }
+  .stage { display:block; }
+  .skcol { margin-top:.9rem; }
+  @media (min-width:900px){
+    .stage { display:grid; grid-template-columns:minmax(0,1fr) 18rem; gap:1.1rem; align-items:start; }
+    .skcol { margin-top:1.6rem; position:sticky; top:0; }
+  }
+  .devwrap { margin:0 auto; }
+  .devwrap.lap { max-width:44rem; }
+  .devwrap.ph { max-width:23rem; }
+  .devlabel { font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--text-dim); margin:0 0 .35rem .3rem; }
+  .devframe { background:var(--surface); box-shadow:var(--shadow); overflow:hidden; }
+  .devframe.lap { border:10px solid var(--border-strong); border-bottom-width:18px; border-radius:16px; }
+  .devframe.ph { border:9px solid var(--border-strong); border-radius:30px; }
+  .dscreen { position:relative; padding:1rem 1rem 1.3rem; }
+  .devframe.lap .dscreen { min-height:30rem; }
+  .devframe.ph .dscreen { min-height:36rem; }
+  .c { text-align:center; }
+  .lead { font-size:1.12rem; font-weight:800; margin:.6rem 0 .1rem; text-align:center; }
+  .appname { text-align:center; font-weight:900; font-size:1.05rem; }
+  .padlock { width:2.6rem; height:2.1rem; background:var(--accent); border-radius:7px; position:relative; margin:1.9rem auto .5rem; }
+  .padlock:before { content:''; position:absolute; left:.45rem; top:-1.15rem; width:1.7rem; height:1.5rem; border:.32rem solid var(--accent); border-bottom:0; border-radius:1rem 1rem 0 0; box-sizing:border-box; }
+  .bigcheck { width:3.4rem; height:3.4rem; border-radius:50%; background:var(--logged-bg); color:var(--logged); font-size:2rem; font-weight:900;
+    display:flex; align-items:center; justify-content:center; margin:1.6rem auto .6rem; }
+  .err { color:var(--danger); font-weight:700; font-size:.9rem; margin:.55rem 0; }
+  .okmsg { color:var(--logged); background:var(--logged-bg); border-radius:10px; padding:.5rem .65rem; font-weight:700; font-size:.88rem; margin:.5rem 0; }
+  .owesbar { background:var(--owes-bg); color:var(--owes); border:1px solid var(--owes-line); border-radius:10px; padding:.45rem .6rem; font-weight:800; font-size:.82rem; margin:-.2rem 0 .7rem; }
+  .offnote { font-size:.8rem; font-weight:700; color:var(--owes); margin:.3rem 0; }
+  .codein { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; letter-spacing:.04em; text-transform:uppercase; }
+  .form textarea.codein { resize:none; line-height:1.5; }
+  .codebox { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:800; letter-spacing:.06em;
+    display:flex; flex-wrap:wrap; gap:.35rem .9rem; justify-content:center; background:var(--surface-2); border:2px dashed var(--border-strong);
+    border-radius:12px; padding:.85rem .6rem; margin:.7rem 0; font-size:1.35rem; }
+  .codebox.pair { font-size:1.05rem; gap:.3rem .7rem; }
+  .codebox.rc { max-width:20rem; margin-left:auto; margin-right:auto; }
+  .mcbig { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:2.3rem; font-weight:900; letter-spacing:.1em; text-align:center; line-height:1.25; margin:1rem 0; }
+  .mcrow { display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; margin:.6rem 0; }
+  .mcin { width:4.6rem; text-align:center; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:1.3rem; font-weight:800;
+    border:1.5px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); padding:.45rem .2rem; text-transform:lowercase; }
+  .mcdash { color:var(--text-dim); font-weight:800; }
+  .chkrow { display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; margin:.7rem 0; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:1.1rem; font-weight:800; }
+  .chkrow .mask { color:var(--text-dim); letter-spacing:.1em; }
+  .chkrow input { width:4.6rem; text-align:center; font-family:inherit; font-size:1.1rem; font-weight:800; text-transform:uppercase;
+    border:1.5px solid var(--accent); border-radius:9px; background:var(--surface); color:var(--text); padding:.35rem .2rem; }
+  .dos { list-style:none; padding:0; margin:.6rem 0; font-size:.9rem; }
+  .dos li { margin:.35rem 0; padding-left:1.4rem; position:relative; }
+  .dos li b.g { position:absolute; left:0; }
+  .steps { padding-left:1.2rem; font-size:.9rem; margin:.5rem 0; }
+  .steps li { margin:.35rem 0; }
+  .pchk { list-style:none; padding:0; margin:.35rem 0 0; font-size:.82rem; }
+  .pchk li { color:var(--text-dim); margin:.15rem 0; }
+  .pchk li.ok { color:var(--logged); font-weight:700; }
+  .spin { width:2rem; height:2rem; border:4px solid var(--border); border-top-color:var(--accent); border-radius:50%; margin:3rem auto 1rem; animation:sp 0.9s linear infinite; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  .safari { font-size:.72rem; font-weight:700; color:var(--text-dim); background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:.3rem .5rem; margin-bottom:.8rem; text-align:center; }
+  .timer { font-size:.86rem; font-weight:700; color:var(--text-dim); margin:.6rem 0; }
+
+  /* fake square code (always dark on white so it reads in dark mode) */
+  .qr { display:grid; grid-template-columns:repeat(21,1fr); grid-template-rows:repeat(21,1fr); width:10.5rem; height:10.5rem; background:#fff; padding:.55rem; border-radius:8px; margin:.6rem auto .2rem; box-sizing:content-box; }
+  .qr i { display:block; }
+  .qr i.k { background:#111; }
+  .qrcap { text-align:center; font-size:.72rem; color:var(--text-dim); }
+
+  /* camera view */
+  .cam { background:#0d0f14; border-radius:14px; height:14rem; position:relative; display:flex; align-items:center; justify-content:center; margin:.6rem 0; }
+  .cam .frame { width:9rem; height:9rem; border:3px solid rgba(255,255,255,.85); border-radius:14px; display:flex; align-items:center; justify-content:center; }
+
+  /* in-app mock (unlocked) */
+  .mockbar { display:flex; align-items:center; gap:.4rem; margin:-.3rem -.2rem .6rem; padding-bottom:.6rem; border-bottom:1px solid var(--border); }
+  .mockbar .grow { flex:1; }
+  .mrow { display:flex; align-items:center; gap:.6rem; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.55rem .65rem; margin-bottom:.45rem; }
+  .mrow .mm { flex:1; min-width:0; }
+  .mname { font-weight:800; font-size:.92rem; }
+  .mmeta { font-size:.76rem; color:var(--text-dim); }
+  .mscore { font-weight:800; font-size:.85rem; white-space:nowrap; }
+
+  /* devices list */
+  .hrow { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+  .dh { font-weight:900; font-size:1.15rem; }
+  .drow { display:flex; align-items:center; gap:.6rem; border:1px solid var(--border); background:var(--surface); border-radius:12px; padding:.6rem .7rem; margin-bottom:.45rem; }
+  .drow.unk { border-color:var(--danger); }
+  .drow.gone { opacity:.55; }
+  .dmain { flex:1; min-width:0; }
+  .dname { font-weight:800; font-size:.95rem; }
+  .dmeta { font-size:.78rem; color:var(--text-dim); }
+  .dnote { font-size:.78rem; color:var(--text-dim); margin-top:.2rem; }
+  .dnote.danger { color:var(--danger); font-weight:700; }
+  .dpend { font-size:.78rem; font-weight:800; color:var(--owes); background:var(--owes-bg); border-radius:6px; padding:.1rem .4rem; display:inline-block; margin-top:.2rem; }
+  .bigopt { display:block; width:100%; text-align:left; border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text);
+    border-radius:14px; padding:.8rem .9rem; font-family:inherit; font-weight:800; font-size:.95rem; cursor:pointer; margin:.55rem 0; }
+  .bigopt .bsub { font-weight:600; }
+  .bigopt:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* phone/laptop pop-ups (the device's own boxes, not the app) */
+  .osp { position:absolute; inset:0; background:rgba(8,12,20,.6); display:flex; align-items:center; justify-content:center; z-index:5; padding:1rem; }
+  .ospbox { background:#20242c; color:#f2f4f8; width:100%; max-width:19rem; border-radius:18px; padding:1rem 1rem .8rem; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+  .ospsrc { font-size:.66rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#a9b2c3; }
+  .osptitle { font-weight:800; font-size:1rem; margin:.3rem 0 .2rem; }
+  .ospsub { font-size:.82rem; color:#c9d0dc; margin-bottom:.7rem; }
+  .ospbox button { display:block; width:100%; margin-top:.45rem; border-radius:11px; padding:.65rem; font-weight:800; font-size:.88rem; cursor:pointer; font-family:inherit; border:0; }
+  .ospbox button.sim { background:#4a8cff; color:#fff; }
+  .ospbox button.cx { background:#343a46; color:#f2f4f8; }
+  .fp { width:3.3rem; height:3.3rem; border-radius:50%; margin:.5rem auto; border:3px solid #4a8cff;
+    box-shadow:inset 0 0 0 5px #20242c, inset 0 0 0 8px #4a8cff, inset 0 0 0 13px #20242c, inset 0 0 0 16px #4a8cff; }
+  .faceid { width:3.3rem; height:3.3rem; border-radius:14px; margin:.5rem auto; border:3px solid #4a8cff; position:relative; }
+  .faceid:before { content:''; position:absolute; left:.75rem; right:.75rem; bottom:.65rem; height:.6rem; border:3px solid #4a8cff; border-top:0; border-radius:0 0 1rem 1rem; }
+  .faceid:after { content:''; position:absolute; left:.85rem; top:.8rem; width:.3rem; height:.45rem; background:#4a8cff; border-radius:2px; box-shadow:1.1rem 0 0 #4a8cff; }
+  .camglyph { width:3.3rem; height:2.4rem; border-radius:8px; margin:.6rem auto; border:3px solid #4a8cff; position:relative; }
+  .camglyph:after { content:''; position:absolute; left:50%; top:50%; width:1rem; height:1rem; margin:-.5rem 0 0 -.5rem; border:3px solid #4a8cff; border-radius:50%; box-sizing:border-box; }
+  .appsheet { background:var(--surface); color:var(--text); width:100%; max-width:24rem; border-radius:16px; padding:1rem; box-shadow:var(--shadow); border:1px solid var(--border); }
+  .appsheet ul { padding-left:1.1rem; font-size:.88rem; margin:.4rem 0; }
+  .appsheet li { margin:.3rem 0; }
+
+  /* auto-lock warning: high contrast, large */
+  .warnbar { position:absolute; left:.7rem; right:.7rem; bottom:.8rem; z-index:4; background:var(--text); color:var(--bg); border-radius:14px;
+    padding:.75rem .8rem; display:flex; align-items:center; gap:.6rem; font-weight:900; font-size:1.05rem; box-shadow:var(--shadow); }
+  .warnbar span { flex:1; }
+
+  /* sketch controls */
+  .skctl { border:2px dashed var(--pending); background:var(--pending-bg); border-radius:14px; padding:.75rem .8rem; }
+  .sklab { font-size:.7rem; font-weight:900; text-transform:uppercase; letter-spacing:.05em; color:var(--pending); margin-bottom:.4rem; }
+  .skctl button.btn.sk { display:block; width:100%; text-align:left; margin:.35rem 0; background:var(--surface); border-color:var(--pending); color:var(--pending); }
+  .sknote { font-size:.78rem; color:var(--text); margin:.45rem 0; }
+  .skpaper { font-size:.8rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:.5rem .6rem; margin:.4rem 0; }
+  .skpaper .mono { font-weight:800; letter-spacing:.04em; }
+  .dscreen button.sk { border:1.5px dashed #bda2f7; background:transparent; color:#e4d8ff; border-radius:10px; padding:.5rem .7rem; font-weight:800; font-family:inherit; font-size:.82rem; cursor:pointer; }
+
+  /* pairing: two panes (tabs below 900) */
+  .panetabs { display:flex; gap:.4rem; margin:0 0 .7rem; }
+  .panetabs button { flex:1; border:1.5px solid var(--border-strong); background:var(--surface-2); color:var(--text-dim);
+    border-radius:11px; padding:.55rem .4rem; font:inherit; font-size:.88rem; font-weight:800; cursor:pointer; }
+  .panetabs button.on { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .pdot { display:inline-block; width:.6rem; height:.6rem; border-radius:50%; background:var(--owes); margin-left:.3rem; vertical-align:middle; }
+  .pane { display:none; }
+  .pane.cur { display:block; }
+  .panes + .skctl { margin-top:.9rem; }
+  @media (min-width:900px){
+    .panetabs { display:none; }
+    .panes { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:1.2rem; align-items:start; }
+    .pane { display:block; }
+    .mobonly { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="skbanner">SKETCH ONLY — a clickable drawing, not the real app. Every code here is made up (they start with DEMO or are plain patterns). Nothing is saved or sent.</div>
+<div class="ctlbar">
+  <span class="ctllab">Your phone:</span>
+  <div class="toggle2" id="phoneSw">
+    <button id="phP" class="on" onclick="setPhone('pixel')">Pixel (Android)</button>
+    <button id="phI" onclick="setPhone('iphone')">iPhone</button>
+  </div>
+  <span class="ctlnote" id="phNote"></span>
+  <span class="grow"></span>
+  <button class="offline" id="netBtn" onclick="toggleOffline()"></button>
+  <button class="iconbtn" onclick="toggleTheme()" id="themeBtn" aria-label="light or dark">&#9789;</button>
+</div>
+
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="flowchips" id="flowchips"></div>
+    <div class="screen" id="screen"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ================= helpers ================= */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (''+(s==null?'':s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function call(fn){
+  var a=[].slice.call(arguments,1).map(function(x){ return typeof x==='number' ? String(x) : "'"+String(x).replace(/[^A-Za-z0-9 ._:-]/g,'')+"'"; });
+  return fn+'('+a.join(',')+')';
+}
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); },3200); }
+function toggleTheme(){
+  var root=document.documentElement, cur=root.getAttribute('data-theme');
+  var isDark = cur==='dark' || (!cur && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  root.setAttribute('data-theme', isDark?'light':'dark');
+  $('themeBtn').innerHTML = isDark ? '&#9789;' : '&#9728;';
+}
+function strip(s){ return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+/* same rule as the app: case, dashes, spaces ignored; I and L read as 1, O reads as 0 */
+function norm(s){ return strip(s).replace(/[IL]/g,'1').replace(/O/g,'0'); }
+function fmt(raw,sep){ return (raw.match(/.{1,4}/g)||[]).join(sep); }
+function mmss(ms){ if(ms<0) ms=0; var s=Math.ceil(ms/1000); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+function av(ini){ return '<span class="av '+ini.toLowerCase()+'">'+esc(ini)+'</span>'; }
+
+/* ================= made-up codes (clearly fake) ================= */
+var SETUP_OK  ='DEMOSETPCD7K4QM2XD9HTBR0WC';             /* 26 = 6x4 + 2 */
+var SETUP_BAD ='DEMOWRNGCD7K4QM2XD9HTBR0WC';
+var RCS  =['DEMORCVR7KQ4M2XD9HTBR0WC4FNAQ8VJ','DEMONEWC0DE2K6YM3JR5WZ0DH7GAPB4N','DEMOTHRDC0DEXC2TPB4N7KQ4M2XD9HTB'];  /* 32 = 8x4 */
+var RECS2=['DEMONEWPAPERK6YM3JR5WZ0DH7GAPB4N','DEMONEWC0DE2K6YM3JR5WZ0DH7GAPB4N','DEMOTHRDC0DEXC2TPB4N7KQ4M2XD9HTB'];
+var RC_OLD='DEMOOLDPAPER7KQ4M2XD9HTBR0WC4FNA';           /* the paper she wrote at first setup */
+var RC_BAD='DEMOWRNGPAPR7KQ4M2XD9HTBR0WC4FNA';
+var PAIRS=['DEMOPAIR7KQ4M2XD9HTBR0WC4FNAQ8VJ2EPSK6YM3JR5WZ0DH7GA','DEMOPAIR2NDCK6YM3JR5WZ0DH7GAPB4N7KQ4M2XD9HTBR0WC4FNA'];  /* 52 = 13x4 */
+var MCS=['abcd1234ef567890','cafe0000beef1234'];          /* 16 hex = 4x4 */
+var DEMO_PASS='blue7kites';
+
+/* ================= state ================= */
+var S={phone:'pixel', paraPhone:'pixel', online:true, flow:1, dev:'laptop', pane:'L', taps:0, os:0, osp:null, fu:null, f:{}, timers:[]};
+var FLOWS=[
+  {t:'First setup',          s:'Setup',     single:true,  d:'Once, on your first device. Needs the internet. About 3–5 minutes, most of it writing a code on paper.'},
+  {t:'Unlock and lock',      s:'Unlock',    single:true,  d:'Every day. Works without the internet.'},
+  {t:'Add your phone',       s:'Add phone', single:false, d:'Once. Your laptop and your phone side by side. Both need the internet. About 2 minutes.'},
+  {t:'Add the para’s phone', s:'Para',      single:false, d:'With the para next to you, holding her own phone. She sees one class period only.'},
+  {t:'Your devices',         s:'Devices',   single:true,  d:'Settings &#9656; Devices. Removing a device asks for your fingerprint (or Face ID) again.'},
+  {t:'Get your data back',   s:'Recovery',  single:true,  d:'Only if you lose every device. You need a new setup code from Neil and your paper recovery code.'},
+  {t:'Lost a device',        s:'Lost',      single:true,  d:'What to do if a phone or laptop goes missing.'}
+];
+
+function kindOf(D){ if(D==='L') return 'laptop'; return S.flow===4 ? S.paraPhone : S.phone; }
+function isW(D){ return kindOf(D)==='iphone'; }
+function bio(D){ return {laptop:'fingerprint or PIN', pixel:'fingerprint', iphone:'Face ID'}[kindOf(D)]; }
+function noun(D){ return D==='L' ? 'laptop' : 'phone'; }
+function SD(){ return S.dev==='laptop' ? 'L' : 'P'; }
+function knownPass(){ return (S.f && S.f.passA) || DEMO_PASS; }
+
+function later(ms,fn){ S.timers.push(setTimeout(function(){ fn(); render(); },ms)); }
+function clearTimers(){ S.timers.forEach(clearTimeout); S.timers=[]; }
+
+/* ================= phone/laptop pop-ups ================= */
+function osPrompt(D,reason,ok,cancel){ S.osp={dev:D, kind:'bio', reason:reason, ok:ok, cancel:cancel}; render(); }
+function camPrompt(ok,cancel){ S.osp={dev:'P', kind:'camera', ok:ok, cancel:cancel}; render(); }
+function osOk(){ var p=S.osp; S.osp=null; if(p && p.ok) p.ok(); render(); }
+function osCancel(){ var p=S.osp; S.osp=null; if(p && p.cancel) p.cancel(); render(); }
+function ospHtml(D){
+  var p=S.osp; if(!p || p.dev!==D) return '';
+  var k=kindOf(D), src=(D==='L'?'From your laptop, not the app':'From your phone, not the app');
+  var h='<div class="osp"><div class="ospbox"><div class="ospsrc">'+src+'</div>';
+  if(p.kind==='camera'){
+    h+='<div class="camglyph"></div><div class="osptitle">Allow Teacher Assistant to use your camera?</div><div class="ospsub">To scan the square code.</div>';
+    h+='<button class="sim" onclick="osOk()">Allow</button><button class="cx" onclick="osCancel()">Don’t allow</button></div></div>';
+    return h;
+  }
+  if(k==='iphone'){ h+='<div class="faceid"></div><div class="osptitle">Face ID</div>'; }
+  else if(k==='pixel'){ h+='<div class="fp"></div><div class="osptitle">Touch the fingerprint sensor</div>'; }
+  else { h+='<div class="fp"></div><div class="osptitle">Confirm it’s you</div>'; }
+  h+='<div class="ospsub">'+esc(p.reason)+'</div>';
+  var sim = k==='iphone' ? 'Pretend: look at the phone' : (k==='pixel' ? 'Pretend: touch the sensor' : 'Pretend: fingerprint or PIN');
+  h+='<button class="sim" onclick="osOk()">'+sim+'</button><button class="cx" onclick="osCancel()">Cancel</button></div></div>';
+  return h;
+}
+/* fresh unlock (A-7, pairing approval): Style W asks for the passphrase first */
+function freshUnlock(D,title,then,onCancel){
+  if(isW(D)){ S.fu={dev:D, title:title, then:then, cancel:onCancel, pass:'', err:''}; render(); }
+  else osPrompt(D,title,then,onCancel);
+}
+function fuGo(){
+  var u=S.fu; if(!u) return;
+  if(u.pass!==knownPass()){ u.err='That passphrase didn’t match. Try again.'; render(); return; }
+  S.fu=null; osPrompt(u.dev,u.title,u.then,u.cancel);
+}
+function fuCancel(){ var u=S.fu; S.fu=null; if(u && u.cancel) u.cancel(); render(); }
+function fuHtml(D){
+  var u=S.fu; if(!u || u.dev!==D) return '';
+  return '<div class="osp"><div class="appsheet"><div class="dname">'+esc(u.title)+'</div><div class="sub">Type your passphrase, then use Face ID.</div>'+
+    '<div class="form"><label>Passphrase</label><input class="tin" type="password" id="fuPass" autocomplete="off" oninput="S.fu.pass=this.value" onkeydown="if(event.key===\'Enter\')fuGo()"></div>'+
+    (u.err?'<div class="err">'+esc(u.err)+'</div>':'')+
+    '<div class="btnrow"><button class="btn" onclick="fuCancel()">Cancel</button><button class="btn primary wide" onclick="fuGo()">Confirm</button></div></div></div>';
+}
+
+/* ================= device frame ================= */
+function frame(D,inner){
+  var k=kindOf(D), label;
+  if(D==='L') label='Your laptop';
+  else if(S.flow===4) label='The para’s phone · '+(k==='iphone'?'iPhone':'Android');
+  else label='Your '+(k==='iphone'?'iPhone':'Pixel');
+  var cls = D==='L' ? 'lap' : 'ph';
+  return '<div class="devwrap '+cls+'"><div class="devlabel">'+label+'</div><div class="devframe '+cls+'"><div class="dscreen" id="ds_'+D+'">'+inner+ospHtml(D)+fuHtml(D)+'</div></div></div>';
+}
+function padlock(){ return '<div class="padlock" aria-hidden="true"></div>'; }
+function backBtn(fnExpr,label){ return '<div class="backrow"><button class="back" onclick="'+fnExpr+'">&#8249; '+(label||'Back')+'</button></div>'; }
+function netBadge(){ return S.online ? '<span class="okpill">online</span>' : '<span class="offline">&#9925; offline · syncs later</span>'; }
+
+/* the unlocked app, drawn small (no real data: made-up initials only) */
+function appMock(D,para){
+  var h='<div class="mockbar">'+netBadge()+'<span class="grow"></span><button class="iconbtn" onclick="lockNow()">Lock</button>'+
+    (para?'':'<button class="iconbtn" onclick="gear()">&#9881; Settings</button>')+'</div>';
+  h+='<div class="mockbody" onclick="appTap()">';
+  if(para){
+    h+='<div class="sectlab">Your class · 3rd period</div>';
+    h+='<div class="mrow">'+av('GH')+'<div class="mm"><div class="mname">Adding fractions probe</div><div class="mmeta">3rd period</div></div><span class="mscore">+ Score</span></div>';
+    h+='<div class="mrow">'+av('JM')+'<div class="mm"><div class="mname">Ratio tables probe</div><div class="mmeta">3rd period</div></div><span class="mscore">+ Score</span></div>';
+    h+='<p class="note">Scores you add wait for the teacher’s OK.</p>';
+  } else {
+    h+='<div class="sectlab">Track · this week</div>';
+    h+='<div class="mrow">'+av('AB')+'<div class="mm"><div class="mname">Adding fractions probe</div><div class="mmeta">3rd period</div></div><span class="mscore">4 of 5 · 80%</span></div>';
+    h+='<div class="mrow">'+av('CD')+'<div class="mm"><div class="mname">Ratio tables probe</div><div class="mmeta">5th period</div></div><span class="mscore" style="color:var(--text-dim)">to do</span></div>';
+    h+='<div class="mrow">'+av('EF')+'<div class="mm"><div class="mname">Adding fractions probe</div><div class="mmeta">3rd period</div></div><span class="mscore">3 of 5 · 60%</span></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function lockNow(){
+  if(S.flow===2){ lockF2('manual'); render(); return; }
+  toast('Locking is shown in step 2 (Unlock and lock).');
+}
+function gear(){
+  var f=S.f;
+  if(S.flow===3||S.flow===4){ f.L='devices'; f.msg=''; }
+  else if(S.flow===5||S.flow===7){ f.view='devices'; f.msg=''; }
+  else { toast('Settings ▸ Devices is shown in step 5 (Your devices).'); return; }
+  render();
+}
+function appTap(){ if(S.flow===2 && S.f.warn!=null) keepOpen(); }
+
+/* passphrase screen (Style W only) — shared by first setup and the phone side of pairing */
+function passOk(p){ return (p.length>=8 && /[A-Za-z]/.test(p) && /[0-9]/.test(p)) || /^[0-9]{10,}$/.test(p); }
+function checkHtml(p){
+  var a=p.length>=8, b=/[A-Za-z]/.test(p)&&/[0-9]/.test(p), c=/^[0-9]{10,}$/.test(p);
+  return '<li class="'+(a?'ok':'')+'">'+(a?'&#10003;':'&#9675;')+' 8 or more characters</li>'+
+         '<li class="'+(b?'ok':'')+'">'+(b?'&#10003;':'&#9675;')+' has letters and numbers</li>'+
+         '<li class="'+(c?'ok':'')+'">'+(c?'&#10003;':'&#9675;')+' — or 10 or more numbers</li>';
+}
+function onPass(el,i){ var f=S.f; if(i===0) f.passA=el.value; else f.passB=el.value; var c=$('pchk'); if(c) c.innerHTML=checkHtml(f.passA); }
+function peek(id){ var el=$(id); if(el) el.type = el.type==='password' ? 'text' : 'password'; }
+function passScreen(saveFn,para){
+  var f=S.f, h='';
+  h+='<div class="banner info">This phone also needs a passphrase to keep student data safe.</div>';
+  h+='<h1>Choose a passphrase</h1><p class="sub">'+(para?'The para chooses it and keeps it to herself. ':'')+
+     'You’ll type it with Face ID each time you unlock this phone. It never leaves this phone. Nobody can reset it — not Neil, not the school.</p>';
+  h+='<div class="form"><label>Passphrase</label><div class="inrow"><input class="tin" type="password" id="passA" value="'+esc(f.passA)+'" oninput="onPass(this,0)" autocomplete="new-password"><button class="iconbtn" onclick="peek(\'passA\')">Show</button></div>';
+  h+='<ul class="pchk" id="pchk">'+checkHtml(f.passA)+'</ul>';
+  h+='<label>Type it again</label><input class="tin" type="password" id="passB" value="'+esc(f.passB)+'" oninput="onPass(this,1)" autocomplete="new-password"></div>';
+  h+='<p class="note">Tip: a short phrase is easiest, like “blue7kites”.</p>';
+  if(f.passErr) h+='<div class="err">'+esc(f.passErr)+'</div>';
+  h+='<button class="btn primary block" onclick="'+saveFn+'()">Save passphrase</button>';
+  return h;
+}
+function checkPassFields(){
+  var f=S.f;
+  if(!passOk(f.passA)){ f.passErr='Use at least 8 characters with letters and numbers, or at least 10 numbers.'; return false; }
+  if(f.passA!==f.passB){ f.passErr='The two passphrases don’t match.'; return false; }
+  f.passErr=''; return true;
+}
+
+/* typed code fields: setup 26, recovery 32, pairing 52 */
+var CODE_MAX={setup:26, rec:32, pair:52};
+function onCodeIn(el,kind){
+  var max=CODE_MAX[kind], raw=strip(el.value).slice(0,max), f=S.f;
+  el.value=fmt(raw,'-');
+  if(kind==='setup') f.code=raw; else if(kind==='rec') f.rec=raw; else f.typed=raw;
+  var c=$('cnt_'+kind); if(c) c.textContent=raw.length+' of '+max;
+  var b=$('go_'+kind); if(b) b.disabled = !(raw.length===max && S.online && !(kind==='setup' && f.lockUntil));
+}
+
+/* the "iPhone: Home Screen first" gate (A-3) */
+function gateHtml(phoneSide){
+  return '<div class="safari">Safari · a web page, not the Home Screen app</div>'+
+    '<h1>Add the app to your Home Screen first</h1>'+
+    '<p class="sub">On iPhone, set up only from the Home Screen icon. Safari can erase the app’s saved setup if you don’t open it there for about a week. The Home Screen app keeps it.</p>'+
+    '<ol class="steps"><li>In Safari, tap the Share button (a square with an arrow).</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Close Safari. Open <b>Teacher Assistant</b> from the new icon.</li></ol>'+
+    '<p class="note">'+(phoneSide?'Adding this phone':'Setting up')+' is turned off in Safari on purpose, so there is nothing to tap here.</p>';
+}
+function gateOpened(){ var f=S.f; if(S.flow===3||S.flow===4) f.P='welcome'; else f.step='s0'; render(); }
+
+/* ================= FLOW 1 + FLOW 6: first setup / recovery ================= */
+function initSetup(mode){
+  var f={mode:mode, step:'s0', code:'', err:'', s2err:'', wrong:0, lockUntil:0, keys:false, stage:'none',
+    passA:'', passB:'', passErr:'', rcList:(mode==='first'?RCS:RECS2), rcI:0, rc:'', rcNote:'', okLine:'',
+    chk:['',''], chkErr:'', rec:'', recErr:'', resumeMsg:'', s0msg:'', lostOpen:false, noPaper:false, resumeFrom:'', resumePass:'', resumeErr:'',
+    olds:[{id:'o1',name:'Laptop',meta:'added Sep 2'},{id:'o2',name:'Phone',meta:'added Sep 2'},{id:'o3',name:'Para phone',meta:'3rd period · added Sep 3',para:true}], rmsg:''};
+  if(S.dev==='phone' && S.phone==='iphone') f.step='gate';
+  return f;
+}
+function setupScreen(D){
+  var f=S.f, n=noun(D), W=isW(D), h='';
+  var pending = f.stage==='recovery_pending' && (f.step==='s4'||f.step==='s5');
+  if(pending) h+='<div class="owesbar">Recovery code not saved yet — finish setup.</div>';
+  switch(f.step){
+  case 'gate': return gateHtml(false);
+  case 's0':
+    h+=padlock()+'<div class="appname">Teacher Assistant</div>';
+    if(f.s0msg) h+='<div class="caution">'+esc(f.s0msg)+'</div>';
+    h+='<p class="lead">Let’s set up this '+n+'.</p><p class="sub c">Student data stays locked on your own devices. Only you can open it.</p>';
+    h+='<button class="btn primary block" onclick="s0Code()">I have a setup code from Neil &#9656;</button>';
+    h+='<button class="btn block" onclick="s0Add()">Add this '+n+' to my account &#9656;<span class="bsub">I already use the app on another device</span></button>';
+    if(D==='L') h+='<p class="note c">Tip: install the app on this laptop first, then set it up from the app’s icon.</p>';
+    else if(!W) h+='<p class="note c">Tip: add the app to your Home screen first, then set it up from the icon.</p>';
+    h+='<button class="textbtn" style="margin:.6rem auto 0" onclick="toggleLostAll()">Lost all your devices?</button>';
+    if(f.lostOpen) h+='<div class="card" style="font-size:.88rem">Text Neil: “I need a new setup code for Teacher Assistant.” Then find your paper recovery code.</div>';
+    return h;
+  case 's1':
+    h+=backBtn('setupBack()');
+    h+='<h1>Enter your setup code</h1><p class="sub">Neil sent you this code. It works once and lasts 24 hours.</p>';
+    if(f.resumeMsg) h+='<div class="banner info">'+esc(f.resumeMsg)+'</div>';
+    if(f.err==='bad') h+='<div class="err">That setup code didn’t work. Codes work once and last 24 hours. Check it with Neil, or ask him for a new one.</div>';
+    if(f.lockUntil) h+='<div class="err">Too many tries. Wait 15 minutes, then try again. <span data-until="'+f.lockUntil+'">'+mmss(f.lockUntil-Date.now())+'</span></div>';
+    h+='<div class="form"><input class="tin codein" id="in_setup" value="'+esc(fmt(f.code,'-'))+'" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XX" autocomplete="off" autocapitalize="characters" spellcheck="false" oninput="onCodeIn(this,\'setup\')"></div>';
+    h+='<div class="note" id="cnt_setup">'+f.code.length+' of 26</div><p class="note">Capitals, dashes and spaces don’t matter.</p>';
+    var dis=!(S.online && f.code.length===26 && !f.lockUntil);
+    h+='<button class="btn primary block" id="go_setup" onclick="s1Go()"'+(dis?' disabled':'')+'>'+(S.online?'Continue':'Connect to the internet to continue')+'</button>';
+    if(f.keys) h+='<p class="note">Your '+bio(D)+' is already set up on this '+n+'. You won’t be asked for it again here.</p>';
+    return h;
+  case 's2':
+    h+=backBtn('setupBack()');
+    h+='<h1>Set up unlock</h1><p class="sub">You’ll open the app with your '+bio(D)+', like unlocking your '+n+'.</p>';
+    h+='<p style="font-weight:700">Your '+n+' will ask twice. That’s normal.</p>';
+    if(f.s2err) h+='<div class="err">'+esc(f.s2err)+'</div>';
+    h+='<button class="btn primary block" onclick="s2Go()">Set up '+bio(D)+'</button>';
+    return h;
+  case 's3': return passScreen('savePassSetup',false);
+  case 'checking':
+    return '<div class="spin"></div><p class="c" style="font-weight:700">Checking your setup code…</p>';
+  case 's4':
+    if(f.okLine) h+='<div class="okmsg">'+esc(f.okLine)+'</div>';
+    if(f.rcNote) h+='<div class="caution">'+esc(f.rcNote)+'</div>';
+    if(f.mode==='recovery') h+='<div class="caution">Your old recovery code no longer works. Write down this new one. Throw away the old paper.</div>';
+    h+='<h1>Write down your recovery code</h1><p class="sub">If you ever lose all your devices, this code is the only way to get your student data back.</p>';
+    h+='<div class="codebox rc">'+(f.rc.match(/.{4}/g)||[]).map(function(g){ return '<span>'+g+'</span>'; }).join('')+'</div>';
+    h+='<ul class="dos"><li><b class="g">&#9998;</b>Write it on paper. Keep it at home, somewhere safe — not in your school bag.</li><li><b class="g" style="color:var(--danger)">&#10005;</b>Don’t take a photo or screenshot.</li></ul>';
+    h+='<button class="btn primary block" onclick="s4Done()">I wrote it down</button>';
+    return h;
+  case 's5':
+    h+='<h1>Check your paper</h1><p class="sub">Type the last two groups from your paper.</p>';
+    h+='<div class="chkrow">';
+    for(var i=0;i<6;i++) h+='<span class="mask">••••</span>';
+    h+='<input id="chk0" maxlength="4" value="'+esc(f.chk[0])+'" oninput="onChk(this,0)" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="group 7">';
+    h+='<input id="chk1" maxlength="4" value="'+esc(f.chk[1])+'" oninput="onChk(this,1)" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="group 8">';
+    h+='</div>';
+    if(f.chkErr) h+='<div class="err">'+esc(f.chkErr)+'</div>';
+    h+='<button class="btn primary block" onclick="s5Check()">Check</button>';
+    h+='<button class="textbtn" onclick="s5Show()">&#8249; Show the code again</button>';
+    return h;
+  case 's6':
+    h+='<div class="bigcheck">&#10003;</div><p class="lead">This '+n+' is set up</p>';
+    h+='<p class="sub c">'+(W?'Next time, open the app from your Home Screen, type your passphrase, and use Face ID.':'Next time, open the app and use your '+bio(D)+'.')+'</p>';
+    if(D==='L'){
+      h+='<div class="card c"><b>Want the app on your phone too?</b><div class="btnrow"><button class="btn primary wide" onclick="s6Phone()">Add my phone now</button><button class="btn" onclick="s6Later()">Later</button></div></div>';
+    } else h+='<button class="btn primary block" onclick="s6Later()">Done</button>';
+    return h;
+  case 'resume':
+    h+=padlock()+'<div class="appname">Teacher Assistant</div>';
+    h+='<p class="lead">'+(f.mode==='recovery'?'Finish getting your data back':'Finish setting up')+'</p><p class="sub c">Unlock to continue where you stopped.</p>';
+    if(W) h+='<div class="form"><label>Passphrase</label><input class="tin" type="password" id="resPass" oninput="S.f.resumePass=this.value" autocomplete="off"></div>';
+    if(f.resumeErr) h+='<div class="err">'+esc(f.resumeErr)+'</div>';
+    h+='<button class="btn primary block" onclick="resumeGo()">Unlock</button>';
+    return h;
+  case 'r2':
+    if(f.resumeMsg) h+='<div class="banner info">'+esc(f.resumeMsg)+'</div>';
+    h+='<h1>Welcome back</h1><p class="sub">You already have an account. Type the recovery code from your paper to get your data back.</p>';
+    h+='<div class="form"><textarea class="tin codein" rows="2" id="in_rec" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" oninput="onCodeIn(this,\'rec\')">'+esc(fmt(f.rec,'-'))+'</textarea></div>';
+    h+='<div class="note" id="cnt_rec">'+f.rec.length+' of 32</div><p class="note">Dashes and spaces don’t matter.</p>';
+    if(f.recErr) h+='<div class="err">'+esc(f.recErr)+'</div>';
+    var dr=!(S.online && f.rec.length===32);
+    h+='<button class="btn primary block" id="go_rec" onclick="r2Go()"'+(dr?' disabled':'')+'>'+(S.online?'Get my data back':'Connect to the internet to continue')+'</button>';
+    h+='<button class="textbtn" onclick="toggleNoPaper()">I can’t find my recovery code</button>';
+    if(f.noPaper) h+='<div class="card" style="font-size:.88rem">Without your recovery code, your old data can’t be opened by anyone, including Neil. You can start fresh: Neil can help.</div>';
+    return h;
+  case 'r3':
+    return '<div class="spin"></div><p class="c" style="font-weight:700">Getting your data back…</p>';
+  case 'r5':
+    h+='<h1>Your old devices</h1><p class="sub">These devices were added before. Remove any you no longer have.</p>';
+    if(f.rmsg) h+='<div class="okmsg">'+esc(f.rmsg)+'</div>';
+    f.olds.forEach(function(o){
+      h+='<div class="drow'+(o.gone?' gone':'')+'"><div class="dmain"><div class="dname">'+esc(o.name)+'</div><div class="dmeta">'+esc(o.meta)+'</div>'+
+        (o.para&&!o.gone?'<div class="dnote">Keep it if the para still has her phone.</div>':'')+'</div>'+
+        (o.gone?'<span class="tagchip">Removed</span>':'<button class="btn small dangerbtn" onclick="'+call('r5Remove',o.id)+'">Remove</button>')+'</div>';
+    });
+    h+='<button class="btn primary block" onclick="r5Done()">Done</button>';
+    return h;
+  case 'app':
+    return appMock(D,false);
+  }
+  return h;
+}
+function s0Code(){ var f=S.f; f.step='s1'; f.err=''; f.s0msg=''; render(); }
+function s0Add(){ toast('Adding a device to your account is shown in step 3 (Add your phone), on the phone side.'); }
+function toggleLostAll(){ S.f.lostOpen=!S.f.lostOpen; render(); }
+function toggleNoPaper(){ S.f.noPaper=!S.f.noPaper; render(); }
+function setupBack(){ var f=S.f; if(f.step==='s2') f.step='s1'; else if(f.step==='s1') f.step='s0'; render(); }
+function s1Go(){
+  var f=S.f; if(!S.online || f.code.length!==26 || f.lockUntil) return;
+  f.err=''; f.resumeMsg='';
+  if(f.keys) goCheck(); else f.step='s2';     /* A-1: unlock already set up, so only the code is asked again */
+  render();
+}
+function s2Go(){
+  var D=SD(), f=S.f; f.s2err='';
+  var no=function(){ f.s2err='Setup needs your '+bio(D)+'. Tap to try again.'; };
+  osPrompt(D,'Set up '+bio(D)+' for Teacher Assistant (1 of 2)', function(){
+    osPrompt(D,'Check that it works (2 of 2)', function(){
+      if(isW(D)){ f.step='s3'; }
+      else { f.keys=true; f.stage='keys_created'; f.okLine='Done. This '+noun(D)+' unlocks with your '+bio(D)+'.'; goCheck(); }
+    }, no);
+  }, no);
+}
+function savePassSetup(){
+  var f=S.f, D=SD();
+  if(!checkPassFields()){ render(); return; }
+  f.keys=true; f.stage='keys_created'; f.okLine='Done. This '+noun(D)+' unlocks with Face ID and your passphrase.';
+  goCheck(); render();
+}
+function goCheck(){ var f=S.f; f.step='checking'; later(900, checkResult); }
+function checkResult(){
+  var f=S.f;
+  if(norm(f.code)===norm(SETUP_OK)){
+    f.wrong=0; f.err='';
+    if(f.mode==='first'){ f.stage='recovery_pending'; f.rcI=0; f.rc=f.rcList[0]; f.step='s4'; }
+    else { f.stage='redeemed'; f.step='r2'; }
+  } else {
+    f.wrong++; f.step='s1';
+    if(f.wrong>=5){ f.lockUntil=Date.now()+15*60000; f.err=''; } else f.err='bad';
+  }
+}
+function s4Done(){ var f=S.f; f.step='s5'; f.chk=['','']; f.chkErr=''; f.okLine=''; render(); }
+function s5Show(){ S.f.step='s4'; render(); }
+function onChk(el,i){
+  var v=strip(el.value).slice(0,4); el.value=v; S.f.chk[i]=v;
+  if(i===0 && v.length===4){ var n=$('chk1'); if(n) n.focus(); }
+}
+function s5Check(){
+  var f=S.f;
+  if(!S.online){ f.chkErr='Connect to the internet to finish setup.'; render(); return; }
+  if(norm(f.chk[0]+f.chk[1])===norm(f.rc.slice(24))){ f.stage='done'; f.rcNote=''; f.chkErr=''; f.step = f.mode==='first' ? 's6' : 'r5'; }
+  else f.chkErr='That doesn’t match. Look at your paper again — the last two groups.';
+  render();
+}
+function s6Phone(){ startFlow(3,'a0'); }
+function s6Later(){ S.f.step='app'; render(); }
+function r2Go(){
+  var f=S.f; if(!S.online || f.rec.length!==32) return;
+  if(norm(f.rec)===norm(RC_OLD)){
+    f.recErr=''; f.resumeMsg=''; f.okLine=''; f.step='r3';
+    later(1300,function(){ f.stage='recovery_pending'; f.rcI=0; f.rc=f.rcList[0]; f.step='s4'; });
+  } else f.recErr='That recovery code didn’t match. Check your paper — dashes and spaces don’t matter.';
+  render();
+}
+function r5Remove(id){
+  var f=S.f, D=SD(), o=f.olds.filter(function(x){ return x.id===id; })[0]; if(!o) return;
+  freshUnlock(D,'Confirm it’s you to remove the old '+o.name.toLowerCase()+'.', function(){ o.gone=true; f.rmsg='✓ Old '+o.name.toLowerCase()+' removed.'; },
+    function(){ f.rmsg=''; });
+}
+function r5Done(){ S.f.step='app'; render(); }
+/* A-2 / A-8: close and reopen mid-setup */
+function reopenApp(){
+  var f=S.f; S.osp=null; S.fu=null; clearTimers();
+  if(f.stage==='none'){ f.step='s0'; f.code=''; toast('Nothing was kept yet, so it starts from the beginning.'); render(); return; }
+  f.resumeFrom=f.stage; f.step='resume'; f.resumePass=''; f.resumeErr=''; f.code=''; f.rec='';
+  render();
+}
+function resumeGo(){
+  var f=S.f, D=SD();
+  if(isW(D) && f.resumePass!==f.passA){ f.resumeErr='That passphrase didn’t match. Try again.'; render(); return; }
+  osPrompt(D,'Unlock Teacher Assistant', function(){
+    var st=f.resumeFrom; f.resumeErr='';
+    if(st==='keys_created'){ f.step='s1'; f.err=''; f.resumeMsg='Welcome back. Your unlock is already set up — just type your setup code to finish.'; }
+    else if(st==='redeemed'){ f.step='r2'; f.recErr=''; f.resumeMsg='Finish getting your data back — type your recovery code.'; }
+    else { f.rcI=(f.rcI+1)%f.rcList.length; f.rc=f.rcList[f.rcI]; f.rcNote='For safety, here is a new recovery code. Throw away the old one.'; f.okLine=''; f.step='s4'; }
+  }, function(){ f.resumeErr='Unlock needs your '+bio(D)+'. Tap Unlock to try again.'; });
+}
+function reopenLate(){
+  var f=S.f; S.osp=null; clearTimers();
+  f.keys=false; f.stage='none'; f.code=''; f.passA=''; f.passB=''; f.resumeMsg=''; f.err='';
+  f.step='s0'; f.s0msg='That setup was more than 24 hours old, so it was cleared. Ask Neil for a new setup code.';
+  render();
+}
+function fillSetup(ok){ var f=S.f; f.code = ok ? SETUP_OK : SETUP_BAD; render(); }
+function fillChk(ok){ var f=S.f; f.chk = ok ? [f.rc.slice(24,28), f.rc.slice(28,32)] : ['AAAA','BBBB']; render(); }
+function fillRec(ok){ S.f.rec = ok ? RC_OLD : RC_BAD; render(); }
+function skipLockout(){ var f=S.f; f.lockUntil=0; f.wrong=0; render(); }
+function setupCtl(){
+  var f=S.f, D=SD(), h='';
+  if(f.step==='gate') h+=skBtn('gateOpened()','Pretend: I opened it from the Home Screen icon');
+  h+='<div class="skpaper"><b>Neil’s text (made up):</b><br><span class="mono">'+fmt(SETUP_OK,'-')+'</span></div>';
+  if(f.mode==='recovery') h+='<div class="skpaper"><b>Your paper (made up):</b><br><span class="mono">'+fmt(RC_OLD,' ')+'</span></div>';
+  if(f.step==='s1'){ h+=skBtn('fillSetup(1)','Fill the right setup code'); h+=skBtn('fillSetup(0)','Fill a wrong setup code'); }
+  if(f.lockUntil) h+=skBtn('skipLockout()','Skip the 15-minute wait');
+  if(f.step==='s3') h+='<div class="sknote">Any passphrase that passes the checklist works. Example: blue7kites</div>';
+  if(f.step==='s5'){ h+=skBtn('fillChk(1)','Fill the right two groups'); h+=skBtn('fillChk(0)','Fill two wrong groups'); }
+  if(f.step==='r2'){ h+=skBtn('fillRec(1)','Fill the code from the paper'); h+=skBtn('fillRec(0)','Fill a wrong recovery code'); }
+  var canReopen = f.stage!=='none' && f.stage!=='done' && ['s1','s4','s5','r2'].indexOf(f.step)>=0;
+  if(canReopen) h+=skBtn('reopenApp()','Pretend: close the app here, then open it again');
+  if(f.stage==='keys_created' && f.step==='s1') h+=skBtn('reopenLate()','Pretend: open it again 25 hours later');
+  if(f.mode==='first') h+='<div class="sknote">Try a wrong code first. After the error it asks only for the code again — not for your '+bio(D)+'.</div>'+
+    '<div class="sknote">Close the app while the recovery code is showing: when you come back you get a <b>new</b> code, and the old one stops working.</div>';
+  else h+='<div class="sknote">Recovery starts like first setup. After the setup code, the app sees you already have an account and asks for your paper.</div>';
+  if(isW(D)) h+='<div class="sknote">iPhone: setup only from the Home Screen app, plus a passphrase.</div>';
+  return skWrap(h);
+}
+
+/* ================= FLOW 2: unlock, auto-lock, Lock ================= */
+var LOCK_REASON={
+  manual:'You locked the app.',
+  idle:'Locked after 10 minutes without use. Everything you saved is still here.',
+  away:'Locked because you left the app for more than 2 minutes.'
+};
+function lockF2(kind){ var f=S.f; f.locked=true; f.reason=kind; f.warn=null; f.pass=''; f.err=''; S.osp=null; S.fu=null; }
+function lockScreen(D){
+  var f=S.f, W=isW(D), h='';
+  h+=padlock()+'<div class="appname">Teacher Assistant</div>';
+  h+='<p class="sub c" style="margin-top:.4rem">Student data is locked on this device.</p>';
+  if(f.reason) h+='<div class="banner info c">'+esc(LOCK_REASON[f.reason])+'</div>';
+  var waiting = f.waitEnd && f.waitEnd>Date.now();
+  if(W) h+='<div class="form"><label>Passphrase</label><input class="tin" type="password" id="f2pass" value="'+esc(f.pass)+'" autocomplete="current-password" oninput="S.f.pass=this.value" onkeydown="if(event.key===\'Enter\')f2Unlock()"'+(waiting?' disabled':'')+'></div>';
+  h+='<button class="btn primary block" style="padding:1.05rem;font-size:1.1rem" onclick="f2Unlock()"'+((waiting||f.unlocking)?' disabled':'')+'>'+(f.unlocking?'Unlocking… (a few seconds)':'Unlock')+'</button>';
+  if(waiting) h+='<div class="err">Too many tries. Try again in <span data-until="'+f.waitEnd+'">'+mmss(f.waitEnd-Date.now())+'</span>.</div>';
+  else if(f.err) h+='<div class="err">'+esc(f.err)+'</div>';
+  if(W){
+    h+='<button class="textbtn" onclick="toggleForgot()">Forgot your passphrase?</button>';
+    if(f.forgot) h+='<div class="card" style="font-size:.86rem">Your passphrase can’t be reset — that’s what keeps student data safe if this phone is lost. To use this phone again: on your other device, go to Settings &#9656; Devices, remove this phone, then add it again. No other device? Use your recovery code (ask Neil for a setup code).</div>';
+  }
+  if(!S.online) h+='<p class="offnote c">&#9925; offline — unlocking still works</p>';
+  return h;
+}
+function f2Screen(){
+  var D=SD(), f=S.f;
+  if(f.locked) return lockScreen(D);
+  var h=appMock(D,false);
+  if(f.warn!=null) h+='<div class="warnbar"><span id="warnTxt">Locking in '+f.warn+' seconds</span><button class="btn small primary" onclick="keepOpen()">Keep open</button></div>';
+  return h;
+}
+function f2Unlock(){
+  var D=SD(), f=S.f;
+  if(f.waitEnd && f.waitEnd>Date.now()) return;
+  var no=function(){ f.err='Unlock needs your '+bio(D)+'. Tap Unlock to try again.'; };
+  var yes=function(){ f.locked=false; f.reason=''; f.pass=''; f.err=''; f.wrong=0; };
+  if(isW(D)){
+    if(f.pass!==DEMO_PASS){
+      f.wrong++;
+      if(f.wrong>=3){ f.waitEnd=Date.now()+30000; f.wrong=0; f.err=''; }
+      else f.err='That passphrase didn’t match. Try again.';
+      render(); return;
+    }
+    f.err=''; f.unlocking=true; render();
+    later(700,function(){ f.unlocking=false; S.osp={dev:D, kind:'bio', reason:'Unlock Teacher Assistant', ok:yes, cancel:no}; });
+    return;
+  }
+  osPrompt(D,'Unlock Teacher Assistant',yes,no);
+}
+function toggleForgot(){ S.f.forgot=!S.f.forgot; render(); }
+function keepOpen(){ S.f.warn=null; toast('Kept open. The 10 minutes start again from this tap.'); render(); }
+function f2Warn(){ var f=S.f; if(f.locked){ toast('Unlock first.'); return; } f.warn=60; render(); }
+function f2LastMinute(){ if(S.f.warn!=null){ lockF2('idle'); render(); } }
+function f2Away(min){
+  var f=S.f; if(f.locked){ toast('It is already locked.'); return; }
+  if(min>2){ lockF2('away'); render(); } else toast('Back after 1 minute — still open. The limit is 2 minutes.');
+}
+function skipWait(){ S.f.waitEnd=0; render(); }
+function f2Ctl(){
+  var f=S.f, D=SD(), h='';
+  if(!f.locked){
+    if(f.warn==null) h+=skBtn('f2Warn()','Pretend 9 minutes pass with no taps');
+    else h+=skBtn('f2LastMinute()','Pretend the last minute passes too');
+    h+=skBtn('f2Away(1)','Pretend you switch to another app for 1 minute');
+    h+=skBtn('f2Away(3)','Pretend you switch to another app for 3 minutes');
+  }
+  if(isW(D)) h+='<div class="sknote">Sketch passphrase: <b class="mono">blue7kites</b>. Three wrong tries means a 30-second wait.</div>';
+  if(f.waitEnd && f.waitEnd>Date.now()) h+=skBtn('skipWait()','Skip the 30-second wait');
+  h+='<div class="sknote">The “Locking in 60 seconds” warning does not add time. If nobody taps, it locks at 10 minutes. Any real tap (the button or anywhere in the app) keeps it open.</div>';
+  h+='<div class="sknote">When you switch apps there is no warning — the app isn’t on screen to show one.</div>';
+  h+='<div class="sknote">A score you were still typing and hadn’t saved is not kept when it locks. Saved scores always are.</div>';
+  h+='<div class="sknote">10 and 2 minutes are the starting settings. How fast it locks is still your choice (question 2 on the ticket).</div>';
+  return skWrap(h);
+}
+
+/* ================= FLOWS 3 + 4: add a phone (pairing) ================= */
+function row(id,kind,name,meta){ return {id:id, kind:kind, name:name, meta:meta, gone:false, pending:false}; }
+function initPair(para,opt){
+  var f={para:para, L:'home', P:(kindOf('P')==='iphone'?'gate':'welcome'), sess:0, active:false, timeEnd:0, tries:3,
+    mc:['','','',''], mcErr:'', a3err:'', name:(para?'Para phone':'Phone'), showType:false, typed:'', camBlocked:false, pErr:'', scanned:false,
+    passA:'', passB:'', passErr:'', b2err:'', ping:{L:false,P:false}, msg:'',
+    rows: para ? [row('lap','mine','Laptop','added Oct 9'), row('ph','mine','Phone','added Oct 9')] : [row('lap','mine','Laptop','added Oct 9')]};
+  if(opt==='a0') f.L='a0';
+  if(opt==='p1') f.L='p1';
+  if(opt==='a1'){ f.L='a1'; f.active=true; f.timeEnd=Date.now()+600000; }
+  return f;
+}
+function setL(st){ S.f.L=st; if(S.pane!=='L') S.f.ping.L=true; }
+function setP(st){ S.f.P=st; if(S.pane!=='P') S.f.ping.P=true; }
+function setPane(p){ S.pane=p; S.f.ping[p]=false; render(); }
+function who(){ return S.f.para ? 'the para’s phone' : 'your phone'; }
+function pairTitle(){ return S.f.para ? 'Add the para’s phone — 3rd period' : 'Add your phone'; }
+function qrHtml(seed){
+  var n=21, x=seed*7919+104729, h='<div class="qr" role="img" aria-label="made-up square code">';
+  function rnd(){ x=(x*9301+49297)%233280; return x/233280; }
+  function finder(r,c){
+    var fr=[[0,0],[0,14],[14,0]];
+    for(var i=0;i<3;i++){
+      var rr=r-fr[i][0], cc=c-fr[i][1];
+      if(rr>=0&&rr<7&&cc>=0&&cc<7){ var edge=(rr===0||rr===6||cc===0||cc===6), core=(rr>=2&&rr<=4&&cc>=2&&cc<=4); return (edge||core)?1:0; }
+      if(rr>=-1&&rr<=7&&cc>=-1&&cc<=7) return 0;
+    }
+    return -1;
+  }
+  for(var r=0;r<n;r++) for(var c=0;c<n;c++){ var v=finder(r,c); if(v<0) v = rnd()<0.47 ? 1 : 0; h+='<i'+(v?' class="k"':'')+'></i>'; }
+  return h+'</div><div class="qrcap">made-up square code</div>';
+}
+function lapScreen(){
+  var f=S.f, h='';
+  switch(f.L){
+  case 'home': return appMock('L',false);
+  case 'devices': return backBtn('devBack()')+devList('L');
+  case 'a0':
+    h+=backBtn('devBack()','Devices');
+    h+='<h1>Add a device</h1><p class="sub">Whose device is it?</p>';
+    if(!S.online) h+='<div class="err">Adding a device needs the internet. Connect and try again.</div>';
+    h+='<button class="bigopt" onclick="'+call('lPick','mine')+'"'+(S.online?'':' disabled')+'>My phone or another computer of mine &#9656;<span class="bsub">Sees everything you see.</span></button>';
+    h+='<button class="bigopt" onclick="'+call('lPick','para')+'"'+(S.online?'':' disabled')+'>The para’s phone &#9656;<span class="bsub">Sees 3rd period only.</span></button>';
+    return h;
+  case 'p1':
+    h+=backBtn('p1Back()');
+    h+='<h1>Add the para’s phone</h1><p class="sub">The para will see 3rd period only:</p>';
+    h+='<ul class="dos" style="padding-left:1.1rem;list-style:disc"><li>the students’ initials</li><li>the goals to give and score</li></ul>';
+    h+='<p style="font-size:.9rem">She can add scores. You check them before they count.</p>';
+    h+='<div class="form"><label>Class</label><select class="tin"><option>3rd period</option></select></div>';
+    h+='<p class="note">Only 3rd period has a para, so it’s picked for you.</p>';
+    h+='<button class="btn primary block" onclick="p1Continue()"'+(S.online?'':' disabled')+'>Continue</button>';
+    return h;
+  case 'a1':
+    h+='<h1>'+pairTitle()+'</h1>';
+    var iph=kindOf('P')==='iphone';
+    h+='<ol class="steps"><li>On '+who()+', open Teacher Assistant'+(iph?' from its Home Screen icon (not Safari)':'')+'.</li>'+
+       '<li>Tap “Add this phone to my account”.</li><li>Point the phone at this square code. Use the app’s scanner — the phone’s own camera app won’t work.</li></ol>';
+    h+=qrHtml(f.sess+1);
+    h+='<button class="textbtn" style="margin:0 auto" onclick="toggleTypeCode()">'+(f.showType?'Hide the typed code':'Can’t scan? Type this on the phone instead')+'</button>';
+    if(f.showType) h+='<div class="codebox pair">'+(PAIRS[f.sess].match(/.{4}/g)||[]).map(function(g){ return '<span>'+g+'</span>'; }).join('')+'</div>';
+    h+='<div class="timer">'+(f.scanned?'The phone found the code. Waiting for it to finish setting up unlock…':'Waiting for '+who()+'…')+' &#9719; <span data-until="'+f.timeEnd+'">'+mmss(f.timeEnd-Date.now())+'</span> left</div>';
+    h+='<button class="btn" onclick="a1Cancel()">Cancel</button>';
+    return h;
+  case 'a2':
+    h+='<h1>'+pairTitle()+'</h1>';
+    h+='<p style="font-weight:800;margin:.6rem 0 .1rem">'+(f.para?'The para’s phone':'Your phone')+' is showing a code</p><p class="sub">Type it here to make sure it’s '+(f.para?'her':'your')+' phone.</p>';
+    h+='<div class="mcrow">';
+    for(var i=0;i<4;i++){ h+=(i?'<span class="mcdash">-</span>':'')+'<input class="mcin" id="mc'+i+'" value="'+esc(f.mc[i])+'" maxlength="'+(i===0?16:4)+'" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="part '+(i+1)+' of 4" oninput="onMc(this,'+i+')">'; }
+    h+='</div><p class="note">Numbers 0–9 and letters a–f only. Capitals don’t matter.</p>';
+    if(f.mcErr) h+='<div class="err">'+esc(f.mcErr)+'</div>';
+    var full=f.mc.join('').length===16;
+    h+='<button class="btn primary block" id="go_mc" onclick="a2Approve()"'+(full?'':' disabled')+'>Approve</button>';
+    h+='<div class="timer">&#9719; <span data-until="'+f.timeEnd+'">'+mmss(f.timeEnd-Date.now())+'</span> left</div>';
+    return h;
+  case 'a3':
+    h+='<h1>'+pairTitle()+'</h1>';
+    h+='<p style="font-weight:700;margin-top:.8rem">Confirm with your fingerprint or PIN to add '+who()+'.</p>';
+    if(f.a3err) h+='<div class="err">'+esc(f.a3err)+'</div>';
+    h+='<button class="btn primary block" onclick="a3Confirm()">Confirm</button>';
+    return h;
+  case 'a4':
+    h+='<div class="bigcheck">&#10003;</div><p class="lead">'+(f.para?'The para’s phone is added — 3rd period.':'Your phone is added.')+'</p>';
+    h+='<p class="sub c">Name it:</p><div class="chips" style="justify-content:center">';
+    var names=f.para?['Para phone','Para tablet']:['Phone','Tablet','Home computer','School computer'];
+    names.forEach(function(nm,i){ h+='<button class="rchip'+(f.name===nm?' on':'')+'" onclick="'+call('pickName',i)+'">'+esc(nm)+'</button>'; });
+    h+='</div><button class="btn primary block" onclick="a4Done()">Done</button>';
+    return h;
+  case 'stopped':
+    h+='<h1>'+pairTitle()+'</h1><div class="err">Those codes didn’t match 3 times. Pairing stopped for safety. Start again.</div>';
+    h+='<button class="btn primary block" onclick="startAgain()"'+(S.online?'':' disabled')+'>Start again</button>';
+    return h;
+  case 'timeout':
+    h+='<h1>'+pairTitle()+'</h1><div class="err">Time ran out. Start again.</div>';
+    h+='<button class="btn primary block" onclick="startAgain()"'+(S.online?'':' disabled')+'>Start again</button>';
+    return h;
+  case 'netlost':
+    h+='<h1>'+pairTitle()+'</h1><div class="err">Adding a device needs the internet. Connect, then start again.</div>';
+    h+='<button class="btn primary block" onclick="startAgain()"'+(S.online?'':' disabled')+'>Start again</button>';
+    return h;
+  }
+  return h;
+}
+function phoneScreen(){
+  var f=S.f, D='P', W=isW(D), h='';
+  var other = f.para ? 'the teacher’s laptop' : 'your laptop';
+  switch(f.P){
+  case 'gate': return gateHtml(true);
+  case 'welcome':
+    h+=padlock()+'<div class="appname">Teacher Assistant</div><p class="lead">Let’s set up this phone.</p>';
+    h+='<p class="sub c">Student data stays locked on your own devices. Only you can open it.</p>';
+    if(f.pErr) h+='<div class="err">'+esc(f.pErr)+'</div>';
+    h+='<button class="btn block" onclick="pCodeStart()">I have a setup code from Neil &#9656;</button>';
+    h+='<button class="btn primary block" onclick="pAddStart()">Add this phone to my account &#9656;<span class="bsub">'+(f.para?'The teacher is adding this phone':'I already use the app on another device')+'</span></button>';
+    return h;
+  case 'scan':
+    h+=backBtn('pToWelcome()');
+    h+='<h1>Scan the code on '+other+'</h1><p class="sub">Hold the phone up to the square code on the laptop screen.</p>';
+    if(f.camBlocked) h+='<div class="err">Camera is off for this app. Tap “Type the code instead”, or allow the camera in Settings.</div>';
+    else h+='<div class="cam"><div class="frame"><button class="sk" onclick="pPoint()">Pretend: point at the laptop</button></div></div>';
+    if(f.pErr) h+='<div class="err">'+esc(f.pErr)+'</div>';
+    h+='<button class="textbtn" onclick="pTypeShow()">Type the code instead</button>';
+    return h;
+  case 'type':
+    h+=backBtn('pTypeBack()','Back to scanning');
+    h+='<h1>Type the code from the laptop</h1><p class="sub">It’s under “Can’t scan?” on the laptop: 52 letters and numbers. Dashes and spaces don’t matter.</p>';
+    h+='<div class="form"><textarea class="tin codein" rows="3" id="in_pair" autocomplete="off" autocapitalize="characters" spellcheck="false" oninput="onCodeIn(this,\'pair\')">'+esc(fmt(f.typed,'-'))+'</textarea></div>';
+    h+='<div class="note" id="cnt_pair">'+f.typed.length+' of 52</div>';
+    if(f.pErr) h+='<div class="err">'+esc(f.pErr)+'</div>';
+    var dp=!(S.online && f.typed.length===52);
+    h+='<button class="btn primary block" id="go_pair" onclick="pTypeGo()"'+(dp?' disabled':'')+'>Continue</button>';
+    return h;
+  case 'b2':
+    h+='<h1>Set up unlock</h1>';
+    if(f.para) h+='<div class="banner info">Hand this phone to the para. She sets up her own '+bio(D)+(W?' and passphrase. You never learn her passphrase.':'.')+'</div>';
+    h+='<p class="sub">You’ll open the app with your '+bio(D)+', like unlocking your phone.</p><p style="font-weight:700">Your phone will ask twice. That’s normal.</p>';
+    if(f.b2err) h+='<div class="err">'+esc(f.b2err)+'</div>';
+    h+='<button class="btn primary block" onclick="pUnlock()">Set up '+bio(D)+'</button>';
+    return h;
+  case 'b3pass': return passScreen('savePassPair',f.para);
+  case 'b3':
+    h+='<h1>Type this code on '+other+'</h1>';
+    h+='<div class="mcbig">'+MCS[f.sess].slice(0,4)+' '+MCS[f.sess].slice(4,8)+'<br>'+MCS[f.sess].slice(8,12)+' '+MCS[f.sess].slice(12,16)+'</div>';
+    h+='<div class="timer c">Waiting for the laptop…'+(f.active?' &#9719; <span data-until="'+f.timeEnd+'">'+mmss(f.timeEnd-Date.now())+'</span> left':'')+'</div>';
+    return h;
+  case 'b4':
+    h+='<div class="bigcheck">&#10003;</div>';
+    if(f.para) h+='<p class="lead">This phone is set up for 3rd period.</p><p class="sub c">You’ll see 3rd-period students only.</p>';
+    else h+='<p class="lead">This phone is set up.</p><p class="sub c">It unlocks with '+(W?'Face ID and your passphrase.':'your fingerprint.')+'</p>';
+    h+='<button class="btn primary block" onclick="b4Continue()">Continue</button>';
+    return h;
+  case 'loading': return '<div class="spin"></div><p class="c" style="font-weight:700">Getting your data… one moment</p>';
+  case 'app': return appMock('P',f.para);
+  case 'interrupted':
+    h+='<div class="err" style="margin-top:2rem">Pairing interrupted — start again on '+(f.para?'the teacher’s laptop':'your other device')+'.</div>';
+    h+='<button class="btn primary block" onclick="pToWelcome()">OK</button>';
+    return h;
+  case 'netlost':
+    h+='<div class="err" style="margin-top:2rem">Adding a device needs the internet. Connect, then start again.</div>';
+    h+='<button class="btn primary block" onclick="pToWelcome()">OK</button>';
+    return h;
+  }
+  return h;
+}
+function devBack(){ var f=S.f; if(S.flow===3||S.flow===4) f.L = f.L==='a0' ? 'devices' : 'home'; else f.view='home'; f.msg=''; render(); }
+function lPick(which){
+  var f=S.f;
+  if(which==='para'){ if(S.flow===4){ f.L='p1'; render(); } else startFlow(4,'p1'); return; }
+  if(S.flow===3){ startPairing(); render(); } else startFlow(3,'a1');
+}
+function p1Back(){ S.f.L='a0'; render(); }
+function p1Continue(){ startPairing(); render(); }
+function startPairing(){ var f=S.f; f.L='a1'; f.active=true; f.timeEnd=Date.now()+600000; f.tries=3; f.mc=['','','','']; f.mcErr=''; f.scanned=false; f.showType=false; }
+function toggleTypeCode(){ S.f.showType=!S.f.showType; render(); }
+function a1Cancel(){
+  var f=S.f; f.active=false; f.L='devices';
+  if(['b2','b3pass','b3'].indexOf(f.P)>=0) setP('interrupted');
+  render();
+}
+function onMc(el,i){
+  var f=S.f, v=el.value.toLowerCase().replace(/[^0-9a-f]/g,'');
+  if(i===0 && v.length>4){
+    for(var j=0;j<4;j++){ f.mc[j]=v.slice(j*4,j*4+4); var e=$('mc'+j); if(e) e.value=f.mc[j]; }
+    var last=$('mc3'); if(last) last.focus();
+  } else {
+    f.mc[i]=v.slice(0,4); el.value=f.mc[i];
+    if(f.mc[i].length===4 && i<3){ var nx=$('mc'+(i+1)); if(nx) nx.focus(); }
+  }
+  var b=$('go_mc'); if(b) b.disabled = f.mc.join('').length!==16;
+}
+function a2Approve(){
+  var f=S.f;
+  if(f.mc.join('')===MCS[f.sess]){ f.mcErr=''; f.L='a3'; f.a3err=''; render(); return; }
+  f.tries--;
+  if(f.tries<=0){ f.L='stopped'; f.active=false; f.mcErr=''; }
+  else f.mcErr='Those codes don’t match. Check the code on the phone and type it again. '+f.tries+(f.tries===1?' try':' tries')+' left.';
+  render();
+}
+function a3Confirm(){
+  var f=S.f;
+  osPrompt('L','Confirm it’s you to add '+who()+'.', function(){ f.L='a4'; f.active=false; setP('b4'); },
+    function(){ f.a3err='Confirm it’s you to add '+who()+'.'; });
+}
+function pickName(i){ var f=S.f, names=f.para?['Para phone','Para tablet']:['Phone','Tablet','Home computer','School computer']; f.name=names[i]; render(); }
+function a4Done(){
+  var f=S.f;
+  f.rows.push(row('new'+f.rows.length, f.para?'para':'mine', f.name, (f.para?'3rd period · ':'')+'added today'));
+  f.L='devices'; f.active=false; f.msg = f.para ? '✓ '+f.name+' added — 3rd period.' : '✓ '+f.name+' added.';
+  render();
+}
+function startAgain(){
+  var f=S.f; if(!S.online) return;
+  f.sess=(f.sess+1)%2; startPairing();
+  if(['b2','b3pass','b3','scan','type'].indexOf(f.P)>=0) setP('interrupted');
+  render();
+}
+function pairTimeout(){
+  var f=S.f; f.L='timeout'; f.active=false;
+  if(['b2','b3pass','b3'].indexOf(f.P)>=0) setP('interrupted');
+}
+/* phone side */
+function pToWelcome(){ var f=S.f; f.P='welcome'; f.pErr=''; f.typed=''; f.camBlocked=false; f.b2err=''; render(); }
+function pCodeStart(){ toast('A setup code from Neil is only for the very first device — see step 1.'); }
+function pAddStart(){
+  var f=S.f; f.pErr='';
+  if(!S.online){ f.pErr='Adding a device needs the internet. Connect and try again.'; render(); return; }
+  camPrompt(function(){ f.camBlocked=false; f.P='scan'; }, function(){ f.camBlocked=true; f.P='scan'; });
+}
+function pPoint(){
+  var f=S.f;
+  if(!S.online){ f.P='netlost'; render(); return; }
+  if(!(f.L==='a1' && f.active)){ f.pErr='No code found. On '+(f.para?'the teacher’s':'your')+' laptop: Settings ▸ Devices ▸ Add a device.'; render(); return; }
+  onScanned(); render();
+}
+function pTypeShow(){ var f=S.f; f.P='type'; f.pErr=''; render(); }
+function pTypeBack(){ var f=S.f; f.P='scan'; f.pErr=''; render(); }
+function pTypeGo(){
+  var f=S.f; if(!S.online || f.typed.length!==52) return;
+  if(!(f.L==='a1' && f.active)){ f.P='interrupted'; render(); return; }
+  if(norm(f.typed)!==norm(PAIRS[f.sess])){ f.pErr='That code didn’t work. Check it against the laptop screen and try again.'; render(); return; }
+  onScanned(); render();
+}
+function onScanned(){ var f=S.f; f.pErr=''; f.scanned=true; f.P='b2'; f.b2err=''; if(S.pane!=='L') f.ping.L=true; }
+function pUnlock(){
+  var f=S.f, D='P';
+  var no=function(){ f.b2err='Setup needs '+bio(D)+'. Tap to try again.'; };
+  osPrompt(D,'Set up '+bio(D)+' for Teacher Assistant (1 of 2)', function(){
+    osPrompt(D,'Check that it works (2 of 2)', function(){ if(isW(D)) f.P='b3pass'; else checkIn(); }, no);
+  }, no);
+}
+function savePassPair(){ if(!checkPassFields()){ render(); return; } checkIn(); render(); }
+function checkIn(){
+  var f=S.f;
+  if(!(f.active && f.L==='a1')){ f.P='interrupted'; return; }
+  f.P='b3'; setL('a2');
+}
+function b4Continue(){ var f=S.f; f.P='loading'; later(1200,function(){ f.P='app'; }); render(); }
+function fillPair(){ S.f.typed=PAIRS[S.f.sess]; render(); }
+function fillMc(ok){ var f=S.f, c = ok ? MCS[f.sess] : 'abcd1234ef567899'; f.mc=[c.slice(0,4),c.slice(4,8),c.slice(8,12),c.slice(12,16)]; render(); }
+function skUsed(){ setP('interrupted'); render(); }
+function skLapTimeout(){ pairTimeout(); render(); }
+function skPhoneTimeout(){ setP('interrupted'); render(); }
+function setParaPhone(k){ S.paraPhone=k; startFlow(4); }
+function pairStage(){
+  var f=S.f, h='';
+  h+='<div class="panetabs"><button class="'+(S.pane==='L'?'on':'')+'" onclick="'+call('setPane','L')+'">Laptop'+(f.ping.L?'<span class="pdot"></span>':'')+'</button>'+
+     '<button class="'+(S.pane==='P'?'on':'')+'" onclick="'+call('setPane','P')+'">'+(f.para?'Para’s phone':'Your phone')+(f.ping.P?'<span class="pdot"></span>':'')+'</button></div>';
+  h+='<div class="panes"><div class="pane'+(S.pane==='L'?' cur':'')+'">'+frame('L',lapScreen())+'</div><div class="pane'+(S.pane==='P'?' cur':'')+'">'+frame('P',phoneScreen())+'</div></div>';
+  h+=pairCtl();
+  return h;
+}
+function pairCtl(){
+  var f=S.f, h='';
+  h+='<div class="sknote">In real life these are two devices side by side.<span class="mobonly"> On a small screen, switch between them with the Laptop / Phone tabs above. An orange dot means that side changed.</span></div>';
+  if(f.para) h+='<div class="sknote"><b>Para’s phone:</b> <span class="toggle2"><button class="'+(S.paraPhone==='pixel'?'on':'')+'" onclick="'+call('setParaPhone','pixel')+'">Android</button><button class="'+(S.paraPhone==='iphone'?'on':'')+'" onclick="'+call('setParaPhone','iphone')+'">iPhone</button></span></div>';
+  if(f.P==='gate') h+=skBtn('gateOpened()','Phone: pretend I opened it from the Home Screen icon');
+  if(f.P==='type') h+=skBtn('fillPair()','Phone: fill the typed code from the laptop');
+  if(f.P==='scan'||f.P==='type') h+=skBtn('skUsed()','Phone: pretend the code was already used or ran out');
+  if(f.L==='a2'){ h+=skBtn('fillMc(1)','Laptop: fill the matching code'); h+=skBtn('fillMc(0)','Laptop: fill a wrong matching code'); }
+  if(['a1','a2','a3'].indexOf(f.L)>=0) h+=skBtn('skLapTimeout()','Laptop: pretend the 10 minutes run out');
+  if(f.P==='b3' && !f.active) h+=skBtn('skPhoneTimeout()','Phone: pretend its 10 minutes run out');
+  if(kindOf('P')==='iphone') h+='<div class="sknote">iPhone: the app must be opened from the Home Screen icon, and it adds a passphrase. Any passphrase that passes the checklist works.</div>';
+  h+='<div class="sknote">A wrong matching code gets 3 tries. After the third, pairing stops and you start again.</div>';
+  return skWrap(h);
+}
+
+/* ================= devices list (flows 3, 4, 5, 7) ================= */
+function thisId(){ return (S.flow===3||S.flow===4) ? 'lap' : (S.dev==='laptop' ? 'lap' : 'ph'); }
+function devList(D){
+  var f=S.f, me=thisId(), h='';
+  var live=f.rows.filter(function(r){ return !r.gone; });
+  var mine=live.filter(function(r){ return r.kind==='mine'; });
+  var para=live.filter(function(r){ return r.kind==='para'; });
+  var unk=live.filter(function(r){ return r.kind==='unknown'; });
+  h+='<div class="hrow"><div class="dh">Devices</div><button class="btn small primary" onclick="addDevice()">+ Add a device</button></div>';
+  if(!S.online) h+='<div class="offnote">&#9925; offline — list may be out of date</div>';
+  if(f.securing) h+='<div class="banner info">Securing 3rd period…</div>';
+  if(f.msg) h+='<div class="okmsg">'+esc(f.msg)+'</div>';
+  h+='<div class="sectlab">Your devices</div>';
+  mine.forEach(function(r){ h+=rowHtml(r,me,mine.length); });
+  if(para.length){ h+='<div class="sectlab">Para</div>'; para.forEach(function(r){ h+=rowHtml(r,me,mine.length); }); }
+  if(unk.length){ h+='<div class="sectlab">Not added from this app</div>'; unk.forEach(function(r){ h+=rowHtml(r,me,mine.length); }); }
+  h+='<button class="textbtn" onclick="lostLink()">Lost a device? &#9656;</button>';
+  if(S.flow===5 && f.confirm) h+=confirmSheet(D);
+  return h;
+}
+function rowHtml(r,me,nMine){
+  var isMe=r.id===me, h='<div class="drow'+(r.kind==='unknown'?' unk':'')+'">';
+  h+='<div class="dmain"'+(isMe?' onclick="ownRowTap()" style="cursor:pointer"':'')+'><div class="dname">'+esc(r.name)+(isMe?' <span class="tagchip">This device</span>':'')+'</div><div class="dmeta">'+esc(r.meta)+'</div>';
+  if(isMe && nMine===1) h+='<div class="dnote">Your only device — add another before you can remove this one.</div>';
+  if(r.pending) h+='<div class="dpend">Removal waiting · connect to finish</div>';
+  if(r.kind==='unknown') h+='<div class="dnote danger">If you didn’t add this, remove it and tell Neil.</div>';
+  h+='</div>';
+  if(!isMe && !r.pending) h+='<button class="btn small dangerbtn" onclick="'+call('removeAsk',r.id)+'">Remove</button>';
+  return h+'</div>';
+}
+function ownRowTap(){
+  var f=S.f, mine=f.rows.filter(function(r){ return !r.gone && r.kind==='mine'; });
+  f.msg='';
+  toast(mine.length===1 ? 'This is your only device. Add another device before you can remove this one.' : 'To remove this '+(thisId()==='lap'?'laptop':'phone')+', use your other device.');
+}
+function addDevice(){
+  if(S.flow===3||S.flow===4){ S.f.L='a0'; S.f.msg=''; render(); return; }
+  toast('Adding a device is shown in steps 3 and 4.');
+}
+function lostLink(){ if(S.flow===7){ S.f.view='lost'; render(); } else startFlow(7,'lost'); }
+function removeAsk(id){
+  if(S.flow!==5){ toast('Removing a device is shown in step 5 (Your devices).'); return; }
+  S.f.confirm=id; S.f.msg=''; render();
+}
+function findRow(id){ return S.f.rows.filter(function(r){ return r.id===id; })[0]; }
+function confirmSheet(D){
+  var f=S.f, r=findRow(f.confirm); if(!r) return '';
+  var h='<div class="osp"><div class="appsheet"><div class="dh" style="font-size:1.05rem">Remove '+esc(r.name)+'?</div><ul>';
+  if(r.kind==='para'){
+    h+='<li>The para loses access to 3rd period right away (as soon as you’re online).</li>'+
+       '<li>What’s already on her phone stays there: 3rd-period initials, goal names, and scores she entered that you haven’t checked yet.</li>'+
+       '<li>Her unchecked scores will still show in your “needs your OK” list.</li>';
+  } else if(r.kind==='unknown'){
+    h+='<li>It stops getting new data right away (as soon as you’re online).</li><li>Then tell Neil about it.</li>';
+  } else {
+    h+='<li>It stops getting new data right away (as soon as you’re online).</li>'+
+       '<li>What’s already on it stays on it, locked behind its own fingerprint, Face ID or passphrase.</li>'+
+       '<li>To use it again, you’d add it again.</li>';
+  }
+  h+='</ul><p class="note">Next, confirm it’s you with your '+bio(D)+(isW(D)?' and passphrase':'')+'.</p>';
+  h+='<div class="btnrow"><button class="btn" onclick="removeCancel()">Cancel</button><button class="btn dangerfill wide" onclick="removeYes()">Remove '+esc(r.name.toLowerCase())+'</button></div></div></div>';
+  return h;
+}
+function removeCancel(){ S.f.confirm=null; render(); }
+function removeYes(){
+  var f=S.f, D=SD(), id=f.confirm, r=findRow(id); f.confirm=null; if(!r) return;
+  freshUnlock(D,'Confirm it’s you to remove '+r.name+'.', function(){ doRemove(r); },
+    function(){ f.msg='Not removed. Removing a device needs your '+bio(D)+(isW(D)?' and passphrase':'')+'.'; });
+}
+function doRemove(r){
+  var f=S.f;
+  if(!S.online){ r.pending=true; f.msg=r.name+' will be removed when you’re back online.'; return; }
+  finishRemove(r);
+}
+function finishRemove(r){
+  var f=S.f; r.pending=false;
+  if(r.kind==='para'){
+    f.securing=true; f.msg='';
+    later(1500,function(){ f.securing=false; r.gone=true; f.msg='✓ '+r.name+' removed. To give the para access again, add her phone again.'; });
+  } else { r.gone=true; f.msg='✓ '+r.name+' removed.'; }
+}
+
+/* ================= FLOW 5: devices + remove ================= */
+function baseRows(){ return [row('lap','mine','Laptop','added Oct 9'), row('ph','mine','Phone','added Oct 9'), row('para','para','Para phone','3rd period · added Oct 10')]; }
+function initF5(scen){
+  var rows=baseRows();
+  if(scen==='one') rows=rows.filter(function(r){ return r.id===thisId(); });
+  if(scen==='unknown') rows.push(row('unk','unknown','Unknown device','added Oct 8'));
+  return {view:'home', rows:rows, confirm:null, msg:'', securing:false, scen:scen};
+}
+function setScenario(s){ var v=S.f.view; S.f=initF5(s); S.f.view=(v==='home'?'home':'devices'); S.osp=null; S.fu=null; render(); }
+function f5Screen(){
+  var f=S.f, D=SD();
+  if(f.view==='home') return appMock(D,false);
+  return backBtn('devBack()')+devList(D);
+}
+function f5Ctl(){
+  var f=S.f, D=SD(), h='';
+  h+='<div class="sknote"><b>Which devices are on the account?</b></div>';
+  h+=skBtn('setScenario(\'normal\')',(f.scen==='normal'?'&#10003; ':'')+'Laptop, phone and the para’s phone');
+  h+=skBtn('setScenario(\'one\')',(f.scen==='one'?'&#10003; ':'')+'Only this device (can’t remove the last one)');
+  h+=skBtn('setScenario(\'unknown\')',(f.scen==='unknown'?'&#10003; ':'')+'Plus a device you don’t recognize');
+  h+='<div class="sknote">Removing asks for your '+bio(D)+(isW(D)?' and passphrase':'')+' again, even though the app is open. That stops someone at an open laptop from removing your devices.</div>';
+  if(isW(D)) h+='<div class="sknote">Sketch passphrase: <b class="mono">blue7kites</b></div>';
+  h+='<div class="sknote">Try it offline (top bar): the removal waits and finishes by itself when you’re back online.</div>';
+  return skWrap(h);
+}
+
+/* ================= FLOW 7: lost device ================= */
+function f7Screen(){
+  var f=S.f, D=SD(), h='';
+  if(f.view==='home') return appMock(D,false);
+  if(f.view==='devices') return backBtn('devBack()')+devList(D);
+  h+=backBtn('goDevices7()','Devices');
+  h+='<h1>Lost a device?</h1>';
+  h+='<ol class="steps" style="font-size:.95rem"><li><b>Remove it now</b> — from any device you still have: Devices &#9656; Remove.</li><li><b>Tell Neil</b> it’s lost.</li></ol>';
+  h+='<button class="btn primary block" onclick="goDevices7()">Go to Devices</button>';
+  h+='<button class="textbtn" onclick="toRecovery()">No device left? Text Neil for a setup code, then use your recovery code &#9656;</button>';
+  h+='<div class="sectlab">What a removed device keeps</div>';
+  h+='<p style="font-size:.9rem">Removing it stops all new data right away. What was already on it stays on it, locked behind its fingerprint or Face ID (and passphrase, if it had one) and the auto-lock. Someone would need to get past that lock to see it.</p>';
+  return h;
+}
+function goDevices7(){ S.f.view='devices'; render(); }
+function toRecovery(){ startFlow(6); }
+function f7Ctl(){
+  return skWrap('<div class="sknote">This page is plain on purpose: two steps, then what a removed device still holds. It doesn’t promise to wipe a lost device — that isn’t built.</div>'+
+    '<div class="sknote">“Remove” on the Devices list works in step 5.</div>');
+}
+
+/* ================= sketch-control helpers ================= */
+function skBtn(expr,label){ return '<button class="btn small sk" onclick="'+expr+'">'+label+'</button>'; }
+function skWrap(inner){ return '<div class="skctl"><div class="sklab">Sketch controls — pretend things happen</div>'+inner+'</div>'; }
+
+/* ================= top controls ================= */
+function setPhone(k){ S.phone=k; startFlow(S.flow); }
+function setDev(d){ S.dev=d; startFlow(S.flow); }
+function toggleOffline(){
+  S.online=!S.online;
+  var f=S.f;
+  if(!S.online && (S.flow===3||S.flow===4)){
+    if(['a1','a2','a3'].indexOf(f.L)>=0){ f.L='netlost'; f.active=false; }
+    if(['scan','type','b2','b3pass','b3'].indexOf(f.P)>=0) setP('netlost');
+  }
+  if(S.online && S.flow===5){
+    f.rows.forEach(function(r){ if(r.pending){ finishRemove(r); toast(r.name+' removed now that you’re online.'); } });
+  }
+  render();
+}
+function restart(){ startFlow(S.flow); }
+function startFlow(n,opt){
+  clearTimers(); S.flow=n; S.taps=0; S.os=0; S.osp=null; S.fu=null; S.pane='L';
+  if(n===1) S.f=initSetup('first');
+  else if(n===6) S.f=initSetup('recovery');
+  else if(n===2) S.f={locked:true, reason:'', pass:'', err:'', wrong:0, waitEnd:0, forgot:false, warn:null, unlocking:false};
+  else if(n===3||n===4) S.f=initPair(n===4,opt);
+  else if(n===5) S.f=initF5('normal');
+  else if(n===7) S.f={view:(opt==='lost'?'lost':'devices'), rows:baseRows(), msg:'', confirm:null};
+  render();
+  $('screen').scrollTop=0;
+}
+
+/* ================= counters (taps inside the drawn devices) ================= */
+function countTxt(){ return 'Your taps: '+S.taps+' · phone/laptop pop-ups: '+S.os; }
+function updCount(){ var c=$('tapc'); if(c) c.textContent=countTxt(); }
+document.addEventListener('click',function(e){
+  var b=e.target.closest ? e.target.closest('button') : null;
+  if(!b || !b.closest('.dscreen')) return;
+  if(b.classList.contains('sk')) return;
+  if(b.closest('.ospbox')){ if(b.classList.contains('sim')) S.os++; }
+  else S.taps++;
+  setTimeout(updCount,0);
+},true);
+
+/* ================= render ================= */
+function renderChrome(){
+  $('phP').className = S.phone==='pixel' ? 'on' : '';
+  $('phI').className = S.phone==='iphone' ? 'on' : '';
+  $('phNote').textContent = S.phone==='iphone' ? 'Adds a passphrase, and the app must be on your Home Screen first.' : 'Unlocks with your fingerprint.';
+  var nb=$('netBtn');
+  nb.className = 'offline'+(S.online?'':' now');
+  nb.innerHTML = S.online ? 'Internet: on (tap to go offline)' : '&#9925; Internet: off (tap to go online)';
+  var side='<div class="brand">Teacher Assistant<small>Setting up your devices</small></div>';
+  var chips='';
+  FLOWS.forEach(function(F,i){
+    var n=i+1, on=S.flow===n;
+    side+='<button class="navitem'+(on?' on':'')+'" onclick="startFlow('+n+')"><span class="ic">'+n+'</span><span>'+F.t+'</span></button>';
+    chips+='<button class="'+(on?'on':'')+'" onclick="startFlow('+n+')">'+n+' '+F.s+'</button>';
+  });
+  side+='<div class="sketchnote">Sketch only. Made-up codes and initials. Nothing you do here is saved or sent.</div>';
+  side+='<div class="sidefoot">Initials only · TCMS · 8th math</div>';
+  $('sidebar').innerHTML=side;
+  $('flowchips').innerHTML=chips;
+}
+function flowHead(){
+  var F=FLOWS[S.flow-1];
+  var h='<div class="flowhead"><div><h1>'+S.flow+'. '+F.t+'</h1><div class="sub">'+F.d+'</div></div><div class="fhr"><span class="tapc" id="tapc">'+countTxt()+'</span><button class="btn small" onclick="restart()">Start over</button></div></div>';
+  if(F.single){
+    h+='<div class="devtog"><span class="dtl">Show it on:</span><div class="toggle2"><button class="'+(S.dev==='laptop'?'on':'')+'" onclick="'+call('setDev','laptop')+'">Laptop</button>'+
+       '<button class="'+(S.dev==='phone'?'on':'')+'" onclick="'+call('setDev','phone')+'">My phone ('+(S.phone==='iphone'?'iPhone':'Pixel')+')</button></div></div>';
+  }
+  return h;
+}
+function render(){
+  renderChrome();
+  var h=flowHead(), D=SD();
+  switch(S.flow){
+    case 1: case 6: h+='<div class="stage"><div>'+frame(D,setupScreen(D))+'</div><div class="skcol">'+setupCtl()+'</div></div>'; break;
+    case 2: h+='<div class="stage"><div>'+frame(D,f2Screen())+'</div><div class="skcol">'+f2Ctl()+'</div></div>'; break;
+    case 3: case 4: h+=pairStage(); break;
+    case 5: h+='<div class="stage"><div>'+frame(D,f5Screen())+'</div><div class="skcol">'+f5Ctl()+'</div></div>'; break;
+    case 7: h+='<div class="stage"><div>'+frame(D,f7Screen())+'</div><div class="skcol">'+f7Ctl()+'</div></div>'; break;
+  }
+  var sc=$('screen'), top=sc.scrollTop;
+  sc.innerHTML='<div class="pagewrap">'+h+'</div>';
+  sc.scrollTop=top;
+}
+
+/* one clock for every countdown on the page */
+function tick(){
+  var f=S.f, now=Date.now(), dirty=false;
+  if(S.flow===2 && f.warn!=null){
+    f.warn--;
+    if(f.warn<=0){ lockF2('idle'); dirty=true; }
+    else { var w=$('warnTxt'); if(w) w.textContent='Locking in '+f.warn+' second'+(f.warn===1?'':'s'); }
+  }
+  if(f.waitEnd && now>=f.waitEnd){ f.waitEnd=0; dirty=true; }
+  if(f.lockUntil && now>=f.lockUntil){ f.lockUntil=0; f.wrong=0; dirty=true; }
+  if((S.flow===3||S.flow===4) && f.active && f.timeEnd && now>=f.timeEnd){ pairTimeout(); dirty=true; }
+  [].forEach.call(document.querySelectorAll('[data-until]'),function(el){ el.textContent=mmss(+el.getAttribute('data-until')-now); });
+  if(dirty) render();
+}
+setInterval(tick,1000);
+startFlow(1);
+</script>
+</body>
+</html>
